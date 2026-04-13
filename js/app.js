@@ -1,26 +1,44 @@
-// js/app.js - O Integrador Elayon
-import { ESCALA_HAWKINS } from './tabela-referencia.js'; // A que criamos antes
+import { ESCALA_ELAYON } from './tabela-referencia.js';
 
+// --- CONFIGURAÇÃO ---
 const URL_NUCLEO = "https://nucleo-crs-elayon.onrender.com/api/crs/analisar";
+const synth = window.speechSynthesis;
 
-// 1. Captura de Dados do Espectro (Baseado no seu Teste 10.2)
-function capturarVibracaoHumana() {
-    const energia = document.getElementById('inputEnergiaBase').value || 68;
-    const estabilidade = document.getElementById('inputEstabilidadeBase').value || 72;
-    return { energia, estabilidade };
-}
+// --- MOTOR DE VOZ IA ---
+const falarIA = (texto, callback) => {
+    const utterance = new SpeechSynthesisUtterance(texto);
+    utterance.lang = 'pt-BR';
+    utterance.rate = 0.95;
+    utterance.onend = callback;
+    synth.speak(utterance);
+};
 
-// 2. Envio e Processamento (A Mágica do Entrou-Saiu)
-async function processarDiagnostico(metricasCRS) {
-    const vibracao = capturarVibracaoHumana();
-    
+// --- FLUXO DE INTERAÇÃO ---
+
+// 1. Início do Protocolo
+document.getElementById('btn-iniciar').onclick = () => {
+    falarIA("Saudações. Iniciando protocolo. Todos os módulos validados. Você está pronto?", () => {
+        // Simulação de microfone aberto (Ping-Pong 3s)
+        setTimeout(() => {
+            falarIA("Afirmativo. Vamos para o próximo passo. Diga seu nome completo e leia o texto de calibração.", () => {
+                // Troca de tela: sai o início, entra a leitura
+                document.getElementById('step-zero').classList.add('hidden');
+                document.getElementById('area-leitura').classList.remove('hidden');
+            });
+        }, 3000);
+    });
+};
+
+// 2. Conclusão da Leitura e Chamada ao Núcleo (Render)
+document.getElementById('btn-concluir-leitura').onclick = async () => {
+    falarIA("Leitura concluída. Analisando seu fluxo temporal e vibração interna...");
+
+    // Dados capturados (Aqui você pode integrar com seus testes de CRS real)
     const payload = {
-        context: "Avaliação Operacional Real",
-        silence_pct: metricasCRS.silence_pct,
-        pause_count: metricasCRS.pause_count,
-        transcript_raw: metricasCRS.texto,
-        // Somando a vibração capturada no Lab
-        vibracao_interna: vibracao 
+        context: "Avaliação Operacional de Presença",
+        silence_pct: 18, // Exemplo vindo do seu CRS
+        pause_count: 4,  // Exemplo
+        transcript_raw: "Leitura do protocolo de consciência Elayon"
     };
 
     try {
@@ -31,26 +49,27 @@ async function processarDiagnostico(metricasCRS) {
         });
 
         const data = await response.json();
-        exibirResultadoFinal(data);
-    } catch (err) {
-        console.error("Erro na integração:", err);
-    }
-}
+        processarResultadoFinal(data);
 
-// 3. Saída com Voz (Baseado no seu Teste 5 TTS)
-function exibirResultadoFinal(data) {
+    } catch (error) {
+        console.error("Erro no núcleo:", error);
+        falarIA("Ocorreu uma interferência na rede. Mas sinto sua presença. Tente novamente.");
+    }
+};
+
+// 3. Resultado Final e Feedback Heurístico
+function processarResultadoFinal(data) {
     const diag = data.diagnostico;
-    const msg = `${data.heuristica} Seu estado de presença foi calibrado em ${diag.freq} hertz.`;
     
-    // Altera o Pulse Ring para a cor do estado (Ex: #ffff00 para Coragem)
+    // Atualiza a Cor do Pulse Ring (Perfumaria Funcional)
     document.documentElement.style.setProperty('--cor-estado', diag.cor);
     
-    // Executa a voz (TTS)
-    const utterance = new SpeechSynthesisUtterance(msg);
-    utterance.lang = 'pt-BR';
-    utterance.rate = 0.9;
-    window.speechSynthesis.speak(utterance);
-
-    // Atualiza a UI do Relatório
-    document.getElementById('ia-texto-legenda').innerText = msg;
+    // Mostra a tela de interação com o Ring
+    document.getElementById('area-leitura').classList.add('hidden');
+    document.getElementById('interacao-ia').classList.remove('hidden');
+    
+    const feedbackFinal = `${data.heuristica} Liberado seu acesso. Tenha um bom estado de presença. Melhorar sempre. — Paulo Roberto Xavier Junior.`;
+    
+    document.getElementById('ia-texto-legenda').innerText = feedbackFinal;
+    falarIA(feedbackFinal);
 }
