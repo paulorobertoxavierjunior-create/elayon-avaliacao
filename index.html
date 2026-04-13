@@ -6,11 +6,11 @@
   <title>Elayon • Avaliação Pessoal</title>
   <style>
     :root{
-      --bg:#edf5f6;
+      --bg:#eef6f7;
       --card:#ffffff;
       --ink:#173b42;
       --muted:#5f7b80;
-      --line:#d7e7ea;
+      --line:#d8e8eb;
       --soft:#f7fbfc;
       --accent:#6ec1c8;
       --accent-2:#7bd490;
@@ -30,7 +30,7 @@
     }
 
     .app{
-      max-width:1400px;
+      max-width:1280px;
       margin:0 auto;
       padding:20px;
     }
@@ -83,8 +83,8 @@
 
     .btn.ghost{
       background:transparent;
-      border:1px solid var(--line);
       color:var(--ink);
+      border:1px solid var(--line);
     }
 
     .hero{
@@ -92,7 +92,7 @@
       border:1px solid var(--line);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
-      padding:24px;
+      padding:22px;
       margin-bottom:18px;
     }
 
@@ -111,7 +111,7 @@
 
     .hero h2{
       margin:0 0 10px;
-      font-size:36px;
+      font-size:34px;
       line-height:1.05;
     }
 
@@ -132,7 +132,7 @@
 
     .layout{
       display:grid;
-      grid-template-columns: 1.2fr 0.8fr;
+      grid-template-columns:1.15fr .85fr;
       gap:18px;
     }
 
@@ -160,15 +160,52 @@
       line-height:1.7;
     }
 
+    .prompt-box{
+      background:#fff;
+      border:1px dashed var(--line);
+      border-radius:16px;
+      padding:16px;
+      margin-bottom:16px;
+    }
+
+    .prompt-box .label{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:8px;
+      text-transform:uppercase;
+    }
+
+    .prompt-text{
+      font-size:18px;
+      line-height:1.6;
+      font-weight:700;
+    }
+
+    .flow-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+
+    .timeline{
+      display:grid;
+      gap:10px;
+    }
+
+    .event{
+      border-left:4px solid var(--accent);
+      background:var(--soft);
+      padding:12px 14px;
+      border-radius:0 12px 12px 0;
+      color:var(--ink);
+      font-size:14px;
+      line-height:1.6;
+    }
+
     .grid-2{
       display:grid;
       grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:14px;
-    }
-
-    .grid-3{
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
       gap:14px;
     }
 
@@ -193,118 +230,9 @@
       line-height:1.35;
     }
 
-    .ok{color:var(--ok)}
-    .warn{color:var(--warn)}
-    .danger{color:var(--danger)}
-
-    .step-list{
-      display:grid;
-      gap:12px;
-    }
-
-    .step{
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px;
-      background:#fff;
-    }
-
-    .step-head{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      margin-bottom:8px;
-    }
-
-    .step-num{
-      width:34px;
-      height:34px;
-      border-radius:12px;
-      background:var(--accent);
-      color:#fff;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight:700;
-      flex:0 0 auto;
-    }
-
-    .step h4{
-      margin:0;
-      font-size:18px;
-    }
-
-    .step p{
-      margin:0;
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.6;
-    }
-
-    .prompt-box{
-      background:#fff;
-      border:1px dashed var(--line);
-      border-radius:16px;
-      padding:16px;
-      margin-top:14px;
-    }
-
-    .prompt-box .label{
-      display:block;
-      color:var(--muted);
-      font-size:12px;
-      margin-bottom:8px;
-      text-transform:uppercase;
-    }
-
-    .prompt-text{
-      font-size:18px;
-      line-height:1.6;
-      font-weight:700;
-    }
-
-    .input-zone{
-      display:grid;
-      gap:12px;
-      margin-top:14px;
-    }
-
-    textarea{
-      width:100%;
-      min-height:120px;
-      resize:vertical;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:14px;
-      font:inherit;
-      color:var(--ink);
-      background:#fff;
-    }
-
-    .choice-row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .timeline{
-      display:grid;
-      gap:10px;
-    }
-
-    .event{
-      border-left:4px solid var(--accent);
-      background:var(--soft);
-      padding:12px 14px;
-      border-radius:0 12px 12px 0;
-      color:var(--ink);
-      font-size:14px;
-      line-height:1.6;
-    }
-
     .metric-list{
       display:grid;
-      gap:10px;
+      gap:12px;
     }
 
     .metric{
@@ -325,7 +253,7 @@
 
     .bar{
       height:12px;
-      background:#e9f3f5;
+      background:#eaf3f5;
       border-radius:999px;
       overflow:hidden;
     }
@@ -333,7 +261,50 @@
     .fill{
       height:100%;
       background:linear-gradient(90deg,var(--accent),var(--accent-2));
-      width:35%;
+      width:20%;
+    }
+
+    .result-box{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:16px;
+      min-height:150px;
+      line-height:1.7;
+      color:var(--ink);
+    }
+
+    .table-box{
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:16px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:#fff;
+      min-width:700px;
+    }
+
+    th, td{
+      padding:12px;
+      border-bottom:1px solid var(--line);
+      text-align:left;
+      vertical-align:top;
+      font-size:14px;
+    }
+
+    th{
+      background:var(--soft);
+      color:var(--ink);
+    }
+
+    .final-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
     }
 
     .screen-box{
@@ -341,7 +312,7 @@
       color:#d6fff6;
       border-radius:16px;
       padding:16px;
-      min-height:240px;
+      min-height:220px;
       font-family:Consolas, Monaco, monospace;
       font-size:12px;
       line-height:1.5;
@@ -355,19 +326,107 @@
       font-size:13px;
     }
 
-    @media (max-width: 1100px){
-      .layout{
-        grid-template-columns:1fr;
-      }
+    /* MODAIS */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(7, 21, 26, .45);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      z-index:999;
     }
 
-    @media (max-width: 700px){
-      .grid-2, .grid-3{
-        grid-template-columns:1fr;
-      }
-      .hero h2{
-        font-size:28px;
-      }
+    .modal-backdrop.show{
+      display:flex;
+    }
+
+    .modal{
+      width:100%;
+      max-width:620px;
+      background:#fff;
+      border-radius:22px;
+      border:1px solid var(--line);
+      box-shadow:0 18px 42px rgba(0,0,0,.12);
+      overflow:hidden;
+    }
+
+    .modal-head{
+      padding:18px 20px;
+      border-bottom:1px solid var(--line);
+      background:var(--soft);
+    }
+
+    .modal-head h4{
+      margin:0 0 6px;
+      font-size:24px;
+    }
+
+    .modal-head p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.6;
+    }
+
+    .modal-body{
+      padding:20px;
+    }
+
+    .modal-status{
+      background:#fff;
+      border:1px dashed var(--line);
+      border-radius:16px;
+      padding:14px;
+      margin-bottom:14px;
+    }
+
+    .modal-status .label{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:8px;
+      text-transform:uppercase;
+    }
+
+    .modal-text{
+      font-size:18px;
+      line-height:1.6;
+      font-weight:700;
+    }
+
+    .mic-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+
+    .transcript{
+      margin-top:14px;
+      background:var(--soft);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      min-height:90px;
+      line-height:1.7;
+      color:var(--ink);
+    }
+
+    .modal-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    @media (max-width:1100px){
+      .layout{grid-template-columns:1fr}
+    }
+
+    @media (max-width:700px){
+      .grid-2{grid-template-columns:1fr}
+      .hero h2{font-size:28px}
     }
   </style>
 </head>
@@ -376,7 +435,7 @@
     <section class="topbar">
       <div class="brand">
         <h1>Elayon • Avaliação Pessoal</h1>
-        <p>Cockpit integral da interação inicial guiada antes do acesso às ferramentas</p>
+        <p>Entrada guiada antes da liberação das ferramentas</p>
       </div>
 
       <div class="actions">
@@ -387,222 +446,312 @@
     </section>
 
     <section class="hero">
-      <div class="badge">CRS ativo • cockpit sequencial • leitura assistida</div>
-      <h2>Interação inicial antes da liberação das ferramentas</h2>
+      <div class="badge">Cockpit integral • pop-up guiado • leitura final assistida</div>
+      <h2>Avaliação inicial com cockpit completo</h2>
       <p>
-        Este cockpit organiza toda a entrada do usuário em uma sequência guiada. A IA apresenta,
-        conduz os testes, abre espaço para fala, leitura e contagem, enquanto o sistema preenche
-        em tempo real as métricas operacionais que serão lidas ao final antes da resposta consolidada.
+        A interação se desdobra em etapas curtas e intuitivas. A IA conduz por pop-ups,
+        o usuário responde por voz, e o cockpit vai sendo preenchido em tempo real até a leitura final.
       </p>
 
       <div class="hero-buttons">
-        <button class="btn" type="button">Iniciar avaliação</button>
-        <button class="btn secondary" type="button">Parar</button>
-        <button class="btn secondary" type="button">Resetar sessão</button>
+        <button class="btn" id="btnAbrirFluxo" type="button">Iniciar avaliação</button>
+        <button class="btn secondary" type="button">Parar sessão</button>
+        <button class="btn secondary" type="button">Resetar cockpit</button>
       </div>
     </section>
 
     <section class="layout">
       <div class="stack">
-
         <section class="card">
-          <h3>Sequência de testes</h3>
+          <h3>Instrução e progresso</h3>
           <p class="sub">
-            Fluxo macro da interação. Cada etapa alimenta o cockpit e prepara a leitura final.
+            Esta área mostra a última orientação dada pela IA e o estágio atual da interação.
           </p>
 
-          <div class="step-list">
-            <div class="step">
-              <div class="step-head">
-                <div class="step-num">1</div>
-                <h4>Apresentação e confirmação inicial</h4>
-              </div>
-              <p>A IA se apresenta, pede confirmação simples de início e aguarda aceite por voz ou botão.</p>
-            </div>
-
-            <div class="step">
-              <div class="step-head">
-                <div class="step-num">2</div>
-                <h4>Leitura guiada</h4>
-              </div>
-              <p>O sistema exibe um texto curto e libera o microfone para leitura acompanhada.</p>
-            </div>
-
-            <div class="step">
-              <div class="step-head">
-                <div class="step-num">3</div>
-                <h4>Contagem e identificação</h4>
-              </div>
-              <p>O usuário conta de 1 a 10 e, ao final, diz seu nome completo para fechamento do teste.</p>
-            </div>
-          </div>
-
           <div class="prompt-box">
-            <span class="label">Instrução atual da IA</span>
+            <span class="label">Última instrução</span>
             <div class="prompt-text">
-              Bom dia. Tudo bem para começarmos? Quando ouvir o bip, responda apenas sim ou não.
+              A avaliação ainda não começou. Quando quiser, clique em “Iniciar avaliação”.
             </div>
           </div>
 
-          <div class="input-zone">
-            <div class="choice-row">
-              <button class="btn" type="button">Sim</button>
-              <button class="btn secondary" type="button">Não</button>
-              <button class="btn secondary" type="button">Repetir instrução</button>
-            </div>
-
-            <textarea placeholder="Transcrição captada, resposta intermediária ou texto de leitura exibido aqui..."></textarea>
+          <div class="flow-row">
+            <button class="btn" type="button">Aceitar etapa</button>
+            <button class="btn secondary" type="button">Encerrar sessão</button>
           </div>
         </section>
 
         <section class="card">
-          <h3>Timeline viva da sessão</h3>
+          <h3>Timeline da sessão</h3>
           <p class="sub">
-            Linha do tempo dos atos da IA, respostas do usuário e eventos técnicos relevantes.
+            Registro visual das ações da IA, respostas do usuário e eventos técnicos.
           </p>
 
           <div class="timeline">
-            <div class="event">[00:00] sistema pronto • sessão iniciada</div>
-            <div class="event">[00:03] IA apresentou a abertura inicial</div>
-            <div class="event">[00:07] microfone liberado para resposta de aceite</div>
-            <div class="event">[00:11] resposta captada • confirmação pendente</div>
-            <div class="event">[00:16] etapa 2 preparada • leitura guiada pronta</div>
+            <div class="event">[00:00] sistema pronto • aguardando início da avaliação</div>
+            <div class="event">[00:00] pop-up inicial ainda não aberto</div>
+            <div class="event">[00:00] cockpit vazio • sem métricas preenchidas</div>
           </div>
         </section>
 
         <section class="card">
-          <h3>Leitura consolidada para resposta final</h3>
+          <h3>Resultado heurístico final</h3>
           <p class="sub">
-            Este bloco reúne a síntese operacional que a IA poderá ler ao final antes de responder ao usuário.
+            Ao fim da avaliação, o sistema exibe as observações consolidadas: destaque positivo, ponto de melhoria e orientação final.
           </p>
 
-          <div class="grid-2">
-            <div class="mini">
-              <span class="k">Estado geral</span>
-              <div class="v ok">Estável</div>
-            </div>
-            <div class="mini">
-              <span class="k">Liberação da catraca</span>
-              <div class="v warn">Em análise</div>
-            </div>
-            <div class="mini">
-              <span class="k">Continuidade</span>
-              <div class="v">Moderada</div>
-            </div>
-            <div class="mini">
-              <span class="k">Clareza textual</span>
-              <div class="v">Boa</div>
-            </div>
+          <div class="result-box">
+            O resultado final aparecerá aqui após a conclusão dos testes.
+          </div>
+
+          <div class="final-actions">
+            <button class="btn" type="button">Salvar sessão</button>
+            <button class="btn secondary" type="button">Gerar relatório</button>
+            <button class="btn secondary" type="button">Exportar relatório</button>
           </div>
         </section>
 
+        <section class="card">
+          <h3>Tabela heurística fixa</h3>
+          <p class="sub">
+            Este bloco serve de base para o backend JSON: 7 respostas para o melhor indicador e 7 respostas para o pior indicador.
+          </p>
+
+          <div class="table-box">
+            <table>
+              <thead>
+                <tr>
+                  <th>Métrica</th>
+                  <th>Quando for a mais alta</th>
+                  <th>Quando for a mais baixa</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Presença</td>
+                  <td>Boa ancoragem inicial. O usuário demonstrou chegada consistente ao processo.</td>
+                  <td>Baixa ancoragem inicial. Vale fortalecer a chegada antes de avançar.</td>
+                </tr>
+                <tr>
+                  <td>Clareza</td>
+                  <td>Boa nitidez de expressão. A organização da fala apareceu com força.</td>
+                  <td>A clareza ficou reduzida. Pode ser útil repetir com mais calma.</td>
+                </tr>
+                <tr>
+                  <td>Ritmo</td>
+                  <td>Ritmo equilibrado. A sessão mostrou boa progressão temporal.</td>
+                  <td>Ritmo irregular. Há sinal de oscilação na sustentação da fala.</td>
+                </tr>
+                <tr>
+                  <td>Firmeza</td>
+                  <td>Boa firmeza vocal e textual. A resposta ganhou sustentação.</td>
+                  <td>Firmeza baixa. O sistema sugere mais estabilidade antes de concluir.</td>
+                </tr>
+                <tr>
+                  <td>Continuidade</td>
+                  <td>Continuidade elevada. A sessão fluiu com boa conexão entre etapas.</td>
+                  <td>Continuidade baixa. Houve quebras perceptíveis no percurso da interação.</td>
+                </tr>
+                <tr>
+                  <td>Estabilidade</td>
+                  <td>Boa estabilidade geral. A sessão apresentou manutenção coerente do estado.</td>
+                  <td>Estabilidade reduzida. Recomenda-se nova tentativa com menos ruído.</td>
+                </tr>
+                <tr>
+                  <td>Oscilação</td>
+                  <td>Oscilação baixa, o que favorece leitura mais segura do processo.</td>
+                  <td>Oscilação alta. O sistema identifica variação expressiva ao longo da sessão.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
 
       <div class="stack">
-
         <section class="card">
           <h3>Estado do cockpit</h3>
           <p class="sub">
-            Visão rápida de tudo que a sessão já preencheu.
+            Status vivo dos elementos principais da sessão.
           </p>
 
           <div class="grid-2">
             <div class="mini">
               <span class="k">Sistema</span>
-              <div class="v ok">ON</div>
+              <div class="v">ON</div>
             </div>
             <div class="mini">
               <span class="k">Microfone</span>
-              <div class="v warn">Aguardando</div>
+              <div class="v">Aguardando</div>
             </div>
             <div class="mini">
               <span class="k">Etapa atual</span>
-              <div class="v">1 de 3</div>
+              <div class="v">0 de 3</div>
             </div>
             <div class="mini">
               <span class="k">CRS</span>
-              <div class="v ok">Ativo</div>
+              <div class="v">Ativo</div>
             </div>
           </div>
         </section>
 
         <section class="card">
-          <h3>Métricas vivas</h3>
+          <h3>Sete métricas principais</h3>
           <p class="sub">
-            Barras de acompanhamento preenchidas ao longo da interação.
+            Essas barras serão preenchidas ao longo da avaliação.
           </p>
 
           <div class="metric-list">
             <div class="metric">
-              <div class="metric-top"><span>Presença</span><span>35%</span></div>
-              <div class="bar"><div class="fill" style="width:35%"></div></div>
+              <div class="metric-top"><span>Presença</span><span>18%</span></div>
+              <div class="bar"><div class="fill" style="width:18%"></div></div>
             </div>
-
             <div class="metric">
-              <div class="metric-top"><span>Clareza</span><span>48%</span></div>
-              <div class="bar"><div class="fill" style="width:48%"></div></div>
-            </div>
-
-            <div class="metric">
-              <div class="metric-top"><span>Ritmo</span><span>42%</span></div>
-              <div class="bar"><div class="fill" style="width:42%"></div></div>
-            </div>
-
-            <div class="metric">
-              <div class="metric-top"><span>Firmeza</span><span>31%</span></div>
-              <div class="bar"><div class="fill" style="width:31%"></div></div>
-            </div>
-
-            <div class="metric">
-              <div class="metric-top"><span>Continuidade</span><span>54%</span></div>
-              <div class="bar"><div class="fill" style="width:54%"></div></div>
-            </div>
-
-            <div class="metric">
-              <div class="metric-top"><span>Oscilação</span><span>22%</span></div>
+              <div class="metric-top"><span>Clareza</span><span>22%</span></div>
               <div class="bar"><div class="fill" style="width:22%"></div></div>
+            </div>
+            <div class="metric">
+              <div class="metric-top"><span>Ritmo</span><span>20%</span></div>
+              <div class="bar"><div class="fill" style="width:20%"></div></div>
+            </div>
+            <div class="metric">
+              <div class="metric-top"><span>Firmeza</span><span>16%</span></div>
+              <div class="bar"><div class="fill" style="width:16%"></div></div>
+            </div>
+            <div class="metric">
+              <div class="metric-top"><span>Continuidade</span><span>24%</span></div>
+              <div class="bar"><div class="fill" style="width:24%"></div></div>
+            </div>
+            <div class="metric">
+              <div class="metric-top"><span>Estabilidade</span><span>19%</span></div>
+              <div class="bar"><div class="fill" style="width:19%"></div></div>
+            </div>
+            <div class="metric">
+              <div class="metric-top"><span>Oscilação</span><span>14%</span></div>
+              <div class="bar"><div class="fill" style="width:14%"></div></div>
             </div>
           </div>
         </section>
 
         <section class="card">
-          <h3>Painel multimodal</h3>
+          <h3>Painel visual para leitura posterior</h3>
           <p class="sub">
-            Espaço para tudo o que a IA vai ler visualmente depois.
+            Área pensada para os prints que a IA poderá interpretar depois junto com o JSON.
           </p>
 
-          <div class="grid-3">
-            <div class="mini">
-              <span class="k">Volume</span>
-              <div class="v">Baixo</div>
-            </div>
-            <div class="mini">
-              <span class="k">Pausas</span>
-              <div class="v">Regulares</div>
-            </div>
-            <div class="mini">
-              <span class="k">Resposta</span>
-              <div class="v">Compatível</div>
-            </div>
-          </div>
-
-          <div style="margin-top:14px;" class="screen-box">
-heatmap_temporal: ativo
-transcricao: parcial
-leitura_guiada: pronta
-contagem_1_10: pendente
-nome_completo: pendente
-estado_heuristico: em preenchimento
-decisao_preliminar: aguardando consolidacao
+          <div class="screen-box">
+etapa: aguardando_inicio
+instrucao: nao_emitida
+microfone: bloqueado
+ping: inativo
+texto_guiado: vazio
+resposta_usuario: nao_captada
+silencio_final_3s: nao_iniciado
+decisao_heuristica: pendente
+liberacao_catraca: em_analise
           </div>
         </section>
-
       </div>
     </section>
 
     <div class="footer">
-      Elayon • cockpit integral de avaliação pessoal antes da liberação das ferramentas
+      Elayon • avaliação pessoal com cockpit integral antes da resposta final
     </div>
   </main>
-</body>
-</html>
+
+  <!-- MODAL 1 -->
+  <div class="modal-backdrop show" id="modalEtapa1">
+    <div class="modal">
+      <div class="modal-head">
+        <h4>Etapa 1 • Início da avaliação</h4>
+        <p>A IA se apresenta e pergunta se o usuário deseja começar.</p>
+      </div>
+      <div class="modal-body">
+        <div class="modal-status">
+          <span class="label">Instrução da IA</span>
+          <div class="modal-text">
+            Bom dia. Tudo bem para começarmos? Quando estiver pronto, pressione iniciar microfone. Depois do ping, responda.
+          </div>
+        </div>
+
+        <div class="mic-row">
+          <button class="btn" type="button">Iniciar</button>
+          <button class="btn secondary" type="button">Iniciar microfone</button>
+        </div>
+
+        <div class="transcript">
+          A transcrição parcial da resposta aparecerá aqui.
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn" type="button">Avançar</button>
+          <button class="btn secondary" type="button">Encerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2 -->
+  <div class="modal-backdrop" id="modalEtapa2">
+    <div class="modal">
+      <div class="modal-head">
+        <h4>Etapa 2 • Leitura guiada</h4>
+        <p>O usuário lê um texto curto, com o microfone liberado após a instrução.</p>
+      </div>
+      <div class="modal-body">
+        <div class="modal-status">
+          <span class="label">Texto para leitura</span>
+          <div class="modal-text">
+            Leia o texto abaixo com calma e clareza. Ao terminar, permaneça três segundos em silêncio.
+          </div>
+        </div>
+
+        <div class="prompt-box" style="margin-bottom:0;">
+          <span class="label">Texto exibido</span>
+          <div class="prompt-text">
+            Eu estou presente, consciente do meu tempo e disposto a seguir com atenção.
+          </div>
+        </div>
+
+        <div class="mic-row">
+          <button class="btn secondary" type="button">Iniciar microfone</button>
+        </div>
+
+        <div class="transcript">
+          A leitura captada será mostrada aqui.
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn" type="button">Avançar</button>
+          <button class="btn secondary" type="button">Encerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3 -->
+  <div class="modal-backdrop" id="modalEtapa3">
+    <div class="modal">
+      <div class="modal-head">
+        <h4>Etapa 3 • Contagem e identificação</h4>
+        <p>Ao final da contagem, o usuário diz seu nome completo.</p>
+      </div>
+      <div class="modal-body">
+        <div class="modal-status">
+          <span class="label">Instrução final</span>
+          <div class="modal-text">
+            Conte de um a dez. Ao terminar, diga seu nome completo e permaneça três segundos em silêncio.
+          </div>
+        </div>
+
+        <div class="mic-row">
+          <button class="btn secondary" type="button">Iniciar microfone</button>
+        </div>
+
+        <div class="transcript">
+          A contagem e o nome completo captados aparecerão aqui.
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn" type="button">Concluir avaliação</button>
+          <button cl
