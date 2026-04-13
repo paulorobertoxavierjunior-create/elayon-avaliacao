@@ -102,7 +102,10 @@ function processarResultadoFinal(data) {
     document.getElementById('area-leitura').classList.add('hidden');
     document.getElementById('interacao-ia').classList.remove('hidden');
     
-    const feedbackFinal = `${data.heuristica} Liberado seu acesso. Tenha um bom estado de presença. Melhorar sempre. — Paulo Roberto Xavier Junior.`;
+    const feedbackFinal = `${data.heuristica} Liberado seu acesso. Tenha um bom estado de presença. 
+
+
+Melhoria continua, plenitude e harmonia. — Sistemas Elayon`;
     
     document.getElementById('ia-texto-legenda').innerText = feedbackFinal;
     falarIA(feedbackFinal);
