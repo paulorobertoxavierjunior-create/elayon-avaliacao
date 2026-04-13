@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELAYON | Avaliação de Estado</title>
+    <script src="https://paulorobertoxavierjunior-create.github.io/elayon-cadastro/js/config.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    
+    <script type="module">
+        import { supabase } from 'https://paulorobertoxavierjunior-create.github.io/elayon-cadastro/js/config.js';
+        
+        async function checkSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                // Ejeção imediata para o cadastro caso não haja sessão
+                window.location.replace("https://paulorobertoxavierjunior-create.github.io/elayon-cadastro/index.html");
+            }
+        }
+        checkSession();
+    </script>
+</head>
+<body>
+
+    <div class="glass-container" id="app-container">
+        <header>
+            <div class="status-bar">
+                <span id="operator-name">Operador: Carregando...</span>
+                <span id="status-tag">STATUS: EM AVALIAÇÃO</span>
+            </div>
+        </header>
+
+        <main id="fluxo-avaliacao">
+            <section id="step-zero" class="step active">
+                <h1 class="tech-title">Protocolo de Presença</h1>
+                <p>Clique abaixo para iniciar o reconhecimento de voz e calibração de estado.</p>
+                <button id="btn-iniciar" class="btn-glow">INICIAR PROTOCOLO</button>
+            </section>
+
+            <section id="interacao-ia" class="step hidden">
+                <div id="ia-feedback" class="pulse-ring"></div>
+                <p id="ia-texto-legenda">Aguardando comando...</p>
+                
+                <button id="btn-mic" class="btn-mic hidden">
+                    <span class="mic-icon">🎤</span>
+                </button>
+            </section>
+
+            <section id="area-leitura" class="step hidden">
+                <div class="scroll-text">
+                    <h3>Texto de Calibração Operacional</h3>
+                    <p>1. A consciência tecnológica exige um estado de alerta contínuo, onde o silêncio entre os processos é tão vital quanto a execução dos comandos propriamente ditos.</p>
+                    <p>2. Ao observar o ritmo da própria voz, o operador identifica os padrões de hesitação que podem comprometer a simbiose entre o homem e a arquitetura digital.</p>
+                    <p>3. O foco não reside apenas no objetivo final, mas na manutenção da presença durante cada linha de raciocínio, evitando que a distração fragilize a segurança do sistema.</p>
+                    <p>4. No ecossistema Elayon, a precisão cirúrgica é o resultado de uma mente estabilizada, capaz de navegar por fluxos complexos sem perder a conexão com a realidade imediata.</p>
+                    <p>5. Concluo esta leitura afirmando meu compromisso com a clareza, a prontidão e a evolução constante dentro deste laboratório de consciência e tecnologia.</p>
+                </div>
+                <p class="alert">Desligue o microfone manualmente após concluir a leitura.</p>
+                <button id="btn-concluir-leitura" class="btn-glow">CONCLUÍDO / AVANÇAR</button>
+            </section>
+        </main>
+
+        <footer>
+            <p class="author-tag">Elayon Core | Desenvolvido por Paulo Roberto Xavier Junior</p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
