@@ -261,7 +261,8 @@
     .fill{
       height:100%;
       background:linear-gradient(90deg,var(--accent),var(--accent-2));
-      width:20%;
+      width:0%;
+      transition:width .35s ease;
     }
 
     .result-box{
@@ -326,7 +327,6 @@
       font-size:13px;
     }
 
-    /* MODAIS */
     .modal-backdrop{
       position:fixed;
       inset:0;
@@ -435,7 +435,7 @@
     <section class="topbar">
       <div class="brand">
         <h1>Elayon • Avaliação Pessoal</h1>
-        <p>Entrada guiada antes da liberação das ferramentas</p>
+        <p>Entrada guiada com voz real antes da liberação das ferramentas</p>
       </div>
 
       <div class="actions">
@@ -446,17 +446,17 @@
     </section>
 
     <section class="hero">
-      <div class="badge">Cockpit integral • pop-up guiado • leitura final assistida</div>
-      <h2>Avaliação inicial com cockpit completo</h2>
+      <div class="badge">TTS + microfone + cockpit + heurística</div>
+      <h2>Avaliação inicial com interação real</h2>
       <p>
-        A interação se desdobra em etapas curtas e intuitivas. A IA conduz por pop-ups,
-        o usuário responde por voz, e o cockpit vai sendo preenchido em tempo real até a leitura final.
+        A IA conduz a sessão por etapas, fala as instruções, libera o microfone na hora certa
+        e o cockpit vai sendo preenchido até a leitura final.
       </p>
 
       <div class="hero-buttons">
         <button class="btn" id="btnAbrirFluxo" type="button">Iniciar avaliação</button>
-        <button class="btn secondary" type="button">Parar sessão</button>
-        <button class="btn secondary" type="button">Resetar cockpit</button>
+        <button class="btn secondary" id="btnPararTudo" type="button">Parar sessão</button>
+        <button class="btn secondary" id="btnResetarCockpit" type="button">Resetar cockpit</button>
       </div>
     </section>
 
@@ -464,43 +464,34 @@
       <div class="stack">
         <section class="card">
           <h3>Instrução e progresso</h3>
-          <p class="sub">
-            Esta área mostra a última orientação dada pela IA e o estágio atual da interação.
-          </p>
+          <p class="sub">Mostra a instrução atual da IA e o estágio da sessão.</p>
 
           <div class="prompt-box">
             <span class="label">Última instrução</span>
-            <div class="prompt-text">
-              A avaliação ainda não começou. Quando quiser, clique em “Iniciar avaliação”.
+            <div class="prompt-text" id="promptAtual">
+              A avaliação ainda não começou. Clique em “Iniciar avaliação”.
             </div>
           </div>
 
           <div class="flow-row">
-            <button class="btn" type="button">Aceitar etapa</button>
-            <button class="btn secondary" type="button">Encerrar sessão</button>
+            <button class="btn" id="btnAvancoManual" type="button">Avançar</button>
+            <button class="btn secondary" id="btnEncerrarSessao" type="button">Encerrar sessão</button>
           </div>
         </section>
 
         <section class="card">
           <h3>Timeline da sessão</h3>
-          <p class="sub">
-            Registro visual das ações da IA, respostas do usuário e eventos técnicos.
-          </p>
-
-          <div class="timeline">
+          <p class="sub">Registro das ações da IA, respostas do usuário e eventos técnicos.</p>
+          <div class="timeline" id="timeline">
             <div class="event">[00:00] sistema pronto • aguardando início da avaliação</div>
-            <div class="event">[00:00] pop-up inicial ainda não aberto</div>
-            <div class="event">[00:00] cockpit vazio • sem métricas preenchidas</div>
           </div>
         </section>
 
         <section class="card">
           <h3>Resultado heurístico final</h3>
-          <p class="sub">
-            Ao fim da avaliação, o sistema exibe as observações consolidadas: destaque positivo, ponto de melhoria e orientação final.
-          </p>
+          <p class="sub">Síntese do melhor indicador, do ponto de melhoria e da orientação final.</p>
 
-          <div class="result-box">
+          <div class="result-box" id="resultadoFinal">
             O resultado final aparecerá aqui após a conclusão dos testes.
           </div>
 
@@ -513,9 +504,7 @@
 
         <section class="card">
           <h3>Tabela heurística fixa</h3>
-          <p class="sub">
-            Este bloco serve de base para o backend JSON: 7 respostas para o melhor indicador e 7 respostas para o pior indicador.
-          </p>
+          <p class="sub">Base fixa para as respostas de destaque positivo e ponto de melhoria.</p>
 
           <div class="table-box">
             <table>
@@ -527,41 +516,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Presença</td>
-                  <td>Boa ancoragem inicial. O usuário demonstrou chegada consistente ao processo.</td>
-                  <td>Baixa ancoragem inicial. Vale fortalecer a chegada antes de avançar.</td>
-                </tr>
-                <tr>
-                  <td>Clareza</td>
-                  <td>Boa nitidez de expressão. A organização da fala apareceu com força.</td>
-                  <td>A clareza ficou reduzida. Pode ser útil repetir com mais calma.</td>
-                </tr>
-                <tr>
-                  <td>Ritmo</td>
-                  <td>Ritmo equilibrado. A sessão mostrou boa progressão temporal.</td>
-                  <td>Ritmo irregular. Há sinal de oscilação na sustentação da fala.</td>
-                </tr>
-                <tr>
-                  <td>Firmeza</td>
-                  <td>Boa firmeza vocal e textual. A resposta ganhou sustentação.</td>
-                  <td>Firmeza baixa. O sistema sugere mais estabilidade antes de concluir.</td>
-                </tr>
-                <tr>
-                  <td>Continuidade</td>
-                  <td>Continuidade elevada. A sessão fluiu com boa conexão entre etapas.</td>
-                  <td>Continuidade baixa. Houve quebras perceptíveis no percurso da interação.</td>
-                </tr>
-                <tr>
-                  <td>Estabilidade</td>
-                  <td>Boa estabilidade geral. A sessão apresentou manutenção coerente do estado.</td>
-                  <td>Estabilidade reduzida. Recomenda-se nova tentativa com menos ruído.</td>
-                </tr>
-                <tr>
-                  <td>Oscilação</td>
-                  <td>Oscilação baixa, o que favorece leitura mais segura do processo.</td>
-                  <td>Oscilação alta. O sistema identifica variação expressiva ao longo da sessão.</td>
-                </tr>
+                <tr><td>Presença</td><td>Boa ancoragem inicial e chegada consistente ao processo.</td><td>Baixa ancoragem inicial. Vale fortalecer a chegada antes de avançar.</td></tr>
+                <tr><td>Clareza</td><td>Boa nitidez de expressão e organização da fala.</td><td>A clareza ficou reduzida. Pode ser útil repetir com mais calma.</td></tr>
+                <tr><td>Ritmo</td><td>Ritmo equilibrado e progressão temporal adequada.</td><td>Ritmo irregular com oscilação na sustentação da fala.</td></tr>
+                <tr><td>Firmeza</td><td>Boa firmeza vocal e textual, com sustentação consistente.</td><td>Firmeza baixa. O sistema sugere mais estabilidade antes de concluir.</td></tr>
+                <tr><td>Continuidade</td><td>Continuidade elevada entre as etapas.</td><td>Continuidade baixa com quebras perceptíveis.</td></tr>
+                <tr><td>Estabilidade</td><td>Boa estabilidade geral durante a sessão.</td><td>Estabilidade reduzida. Recomenda-se nova tentativa com menos ruído.</td></tr>
+                <tr><td>Oscilação</td><td>Oscilação baixa, favorecendo leitura segura.</td><td>Oscilação alta. Houve variação expressiva ao longo da sessão.</td></tr>
               </tbody>
             </table>
           </div>
@@ -571,82 +532,43 @@
       <div class="stack">
         <section class="card">
           <h3>Estado do cockpit</h3>
-          <p class="sub">
-            Status vivo dos elementos principais da sessão.
-          </p>
+          <p class="sub">Status vivo dos elementos principais da sessão.</p>
 
           <div class="grid-2">
-            <div class="mini">
-              <span class="k">Sistema</span>
-              <div class="v">ON</div>
-            </div>
-            <div class="mini">
-              <span class="k">Microfone</span>
-              <div class="v">Aguardando</div>
-            </div>
-            <div class="mini">
-              <span class="k">Etapa atual</span>
-              <div class="v">0 de 3</div>
-            </div>
-            <div class="mini">
-              <span class="k">CRS</span>
-              <div class="v">Ativo</div>
-            </div>
+            <div class="mini"><span class="k">Sistema</span><div class="v" id="stSistema">ON</div></div>
+            <div class="mini"><span class="k">Microfone</span><div class="v" id="stMic">Aguardando</div></div>
+            <div class="mini"><span class="k">Etapa atual</span><div class="v" id="stEtapa">0 de 3</div></div>
+            <div class="mini"><span class="k">CRS</span><div class="v" id="stCrs">Ativo</div></div>
           </div>
         </section>
 
         <section class="card">
           <h3>Sete métricas principais</h3>
-          <p class="sub">
-            Essas barras serão preenchidas ao longo da avaliação.
-          </p>
+          <p class="sub">Barras preenchidas ao longo da avaliação.</p>
 
           <div class="metric-list">
-            <div class="metric">
-              <div class="metric-top"><span>Presença</span><span>18%</span></div>
-              <div class="bar"><div class="fill" style="width:18%"></div></div>
-            </div>
-            <div class="metric">
-              <div class="metric-top"><span>Clareza</span><span>22%</span></div>
-              <div class="bar"><div class="fill" style="width:22%"></div></div>
-            </div>
-            <div class="metric">
-              <div class="metric-top"><span>Ritmo</span><span>20%</span></div>
-              <div class="bar"><div class="fill" style="width:20%"></div></div>
-            </div>
-            <div class="metric">
-              <div class="metric-top"><span>Firmeza</span><span>16%</span></div>
-              <div class="bar"><div class="fill" style="width:16%"></div></div>
-            </div>
-            <div class="metric">
-              <div class="metric-top"><span>Continuidade</span><span>24%</span></div>
-              <div class="bar"><div class="fill" style="width:24%"></div></div>
-            </div>
-            <div class="metric">
-              <div class="metric-top"><span>Estabilidade</span><span>19%</span></div>
-              <div class="bar"><div class="fill" style="width:19%"></div></div>
-            </div>
-            <div class="metric">
-              <div class="metric-top"><span>Oscilação</span><span>14%</span></div>
-              <div class="bar"><div class="fill" style="width:14%"></div></div>
-            </div>
+            <div class="metric"><div class="metric-top"><span>Presença</span><span id="valPresenca">0%</span></div><div class="bar"><div class="fill" id="barPresenca"></div></div></div>
+            <div class="metric"><div class="metric-top"><span>Clareza</span><span id="valClareza">0%</span></div><div class="bar"><div class="fill" id="barClareza"></div></div></div>
+            <div class="metric"><div class="metric-top"><span>Ritmo</span><span id="valRitmo">0%</span></div><div class="bar"><div class="fill" id="barRitmo"></div></div></div>
+            <div class="metric"><div class="metric-top"><span>Firmeza</span><span id="valFirmeza">0%</span></div><div class="bar"><div class="fill" id="barFirmeza"></div></div></div>
+            <div class="metric"><div class="metric-top"><span>Continuidade</span><span id="valContinuidade">0%</span></div><div class="bar"><div class="fill" id="barContinuidade"></div></div></div>
+            <div class="metric"><div class="metric-top"><span>Estabilidade</span><span id="valEstabilidade">0%</span></div><div class="bar"><div class="fill" id="barEstabilidade"></div></div></div>
+            <div class="metric"><div class="metric-top"><span>Oscilação</span><span id="valOscilacao">0%</span></div><div class="bar"><div class="fill" id="barOscilacao"></div></div></div>
           </div>
         </section>
 
         <section class="card">
           <h3>Painel visual para leitura posterior</h3>
-          <p class="sub">
-            Área pensada para os prints que a IA poderá interpretar depois junto com o JSON.
-          </p>
+          <p class="sub">Área pensada para print e leitura junto com o JSON final.</p>
 
-          <div class="screen-box">
+          <div class="screen-box" id="painelTecnico">
 etapa: aguardando_inicio
 instrucao: nao_emitida
 microfone: bloqueado
-ping: inativo
+tts: pronto
 texto_guiado: vazio
-resposta_usuario: nao_captada
-silencio_final_3s: nao_iniciado
+transcricao: nao_captada
+silencio_final_3s: pendente
 decisao_heuristica: pendente
 liberacao_catraca: em_analise
           </div>
@@ -655,109 +577,47 @@ liberacao_catraca: em_analise
     </section>
 
     <div class="footer">
-      Elayon • avaliação pessoal com cockpit integral antes da resposta final
+      Elayon • avaliação pessoal com interação real por voz antes da resposta final
     </div>
   </main>
 
-  <!-- MODAL 1 -->
-  <div class="modal-backdrop show" id="modalEtapa1">
+  <!-- MODAL ÚNICO DINÂMICO -->
+  <div class="modal-backdrop" id="modalFluxo">
     <div class="modal">
       <div class="modal-head">
-        <h4>Etapa 1 • Início da avaliação</h4>
-        <p>A IA se apresenta e pergunta se o usuário deseja começar.</p>
+        <h4 id="modalTitulo">Etapa</h4>
+        <p id="modalSubtitulo">A IA conduzirá esta fase da interação.</p>
       </div>
       <div class="modal-body">
         <div class="modal-status">
           <span class="label">Instrução da IA</span>
-          <div class="modal-text">
-            Bom dia. Tudo bem para começarmos? Quando estiver pronto, pressione iniciar microfone. Depois do ping, responda.
+          <div class="modal-text" id="modalInstrucao">
+            Aguardando início.
           </div>
         </div>
 
-        <div class="mic-row">
-          <button class="btn" type="button">Iniciar</button>
-          <button class="btn secondary" type="button">Iniciar microfone</button>
-        </div>
-
-        <div class="transcript">
-          A transcrição parcial da resposta aparecerá aqui.
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn" type="button">Avançar</button>
-          <button class="btn secondary" type="button">Encerrar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL 2 -->
-  <div class="modal-backdrop" id="modalEtapa2">
-    <div class="modal">
-      <div class="modal-head">
-        <h4>Etapa 2 • Leitura guiada</h4>
-        <p>O usuário lê um texto curto, com o microfone liberado após a instrução.</p>
-      </div>
-      <div class="modal-body">
-        <div class="modal-status">
+        <div class="prompt-box" id="caixaTextoLeitura" style="display:none; margin-bottom:0;">
           <span class="label">Texto para leitura</span>
-          <div class="modal-text">
-            Leia o texto abaixo com calma e clareza. Ao terminar, permaneça três segundos em silêncio.
-          </div>
-        </div>
-
-        <div class="prompt-box" style="margin-bottom:0;">
-          <span class="label">Texto exibido</span>
-          <div class="prompt-text">
-            Eu estou presente, consciente do meu tempo e disposto a seguir com atenção.
-          </div>
+          <div class="prompt-text" id="textoLeitura"></div>
         </div>
 
         <div class="mic-row">
-          <button class="btn secondary" type="button">Iniciar microfone</button>
+          <button class="btn" id="btnFalarInstrucao" type="button">Ouvir instrução</button>
+          <button class="btn secondary" id="btnIniciarMic" type="button" disabled>Iniciar microfone</button>
         </div>
 
-        <div class="transcript">
-          A leitura captada será mostrada aqui.
+        <div class="transcript" id="transcricaoAtual">
+          A transcrição aparecerá aqui.
         </div>
 
         <div class="modal-actions">
-          <button class="btn" type="button">Avançar</button>
-          <button class="btn secondary" type="button">Encerrar</button>
+          <button class="btn" id="btnConcluirEtapa" type="button" disabled>Concluir etapa</button>
+          <button class="btn secondary" id="btnEncerrarModal" type="button">Encerrar</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- MODAL 3 -->
-  <div class="modal-backdrop" id="modalEtapa3">
-    <div class="modal">
-      <div class="modal-head">
-        <h4>Etapa 3 • Contagem e identificação</h4>
-        <p>Ao final da contagem, o usuário diz seu nome completo.</p>
-      </div>
-      <div class="modal-body">
-        <div class="modal-status">
-          <span class="label">Instrução final</span>
-          <div class="modal-text">
-            Conte de um a dez. Ao terminar, diga seu nome completo e permaneça três segundos em silêncio.
-          </div>
-        </div>
-
-        <div class="mic-row">
-          <button class="btn secondary" type="button">Iniciar microfone</button>
-        </div>
-
-        <div class="transcript">
-          A contagem e o nome completo captados aparecerão aqui.
-        </div>
-
-           <div class="modal-actions">
-          <button class="btn" type="button">Concluir avaliação</button>
-          <button class="btn secondary" type="button">Encerrar</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <script src="cockpit.js"></script>
 </body>
 </html>
