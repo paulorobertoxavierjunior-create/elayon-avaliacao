@@ -3,231 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELAYON | Simbiose CRS</title>
-    
+    <title>ELAYON CORE | Protocolo de Acesso</title>
     <style>
         :root {
-            --bg-deep: #06141b;
+            --bg: #040d12;
             --mint: #66c7c0;
-            --glass: rgba(255, 255, 255, 0.05);
-            --border: rgba(255, 255, 255, 0.1);
+            --dark-mint: #1a3c3a;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(102, 199, 192, 0.2);
             --text: #d8eaee;
+            --hazard: #ffcc00;
         }
 
-        body, html {
-            margin: 0; padding: 0;
-            background: var(--bg-deep);
-            color: var(--text);
-            font-family: 'Segoe UI', sans-serif;
-            overflow: hidden; height: 100vh;
+        * { box-sizing: border-box; transition: all 0.3s ease; }
+        body { 
+            background: var(--bg); color: var(--text); 
+            font-family: 'Courier New', monospace; margin: 0; 
+            height: 100vh; overflow: hidden;
         }
 
-        /* --- Interface de Vidro --- */
-        .shell {
-            display: flex; flex-direction: column;
-            height: 100vh; padding: 20px; box-sizing: border-box;
-            backdrop-filter: blur(10px);
+        /* --- Layout de Grade Operacional --- */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            grid-template-rows: 60px 1fr 200px;
+            gap: 10px; padding: 10px; height: 100vh;
         }
 
-        .header {
-            display: flex; justify-content: space-between;
-            padding: 10px 20px; border: 1px solid var(--border);
-            border-radius: 15px; background: var(--glass);
-        }
-
-        /* --- Painel de Visualização (Gráfico) --- */
-        .viz-terminal {
-            flex: 1; margin: 20px 0;
+        .panel {
+            background: var(--glass);
             border: 1px solid var(--border);
-            border-radius: 20px; background: rgba(0,0,0,0.3);
-            position: relative; display: flex; flex-direction: column;
-            overflow: hidden;
+            border-radius: 4px; padding: 15px;
+            position: relative; overflow: hidden;
         }
 
-        #canvas-espectro {
-            width: 100%; height: 120px;
-            border-bottom: 1px solid var(--border);
+        /* --- Header --- */
+        header { 
+            grid-column: 1 / span 3; display: flex; 
+            justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--mint); padding: 0 20px;
         }
 
-        /* --- O Corpo do Texto (Interativo) --- */
-        .leitura-container {
-            flex: 1; padding: 30px;
-            overflow-y: auto; font-size: 1.4rem;
-            line-height: 1.8; text-align: left;
+        /* --- Ferramenta 1: Espectro de Frequência (Topo Central) --- */
+        .viz-main { grid-column: 2; display: flex; flex-direction: column; gap: 10px; }
+        #canvas-wave { width: 100%; height: 100px; background: rgba(0,0,0,0.5); }
+
+        /* --- Ferramenta 2: O Corpo do Texto (Leitura) --- */
+        .reading-area {
+            flex: 1; font-size: 1.5rem; line-height: 1.6;
+            padding: 20px; overflow-y: auto; text-align: justify;
+        }
+        .word { color: rgba(255,255,255,0.1); margin-right: 8px; display: inline-block; }
+        .word.active { color: var(--mint); text-shadow: 0 0 10px var(--mint); transform: scale(1.1); }
+
+        /* --- Ferramenta 3: Métricas CRS (Lateral Esquerda) --- */
+        .metrics-left { grid-column: 1; display: flex; flex-direction: column; gap: 10px; }
+        .stat-box { border-left: 3px solid var(--mint); padding-left: 10px; margin-bottom: 20px; }
+        .stat-val { font-size: 1.8rem; font-weight: bold; color: var(--mint); display: block; }
+        .stat-label { font-size: 0.7rem; opacity: 0.6; text-transform: uppercase; }
+
+        /* --- Ferramenta 4: Monitoramento de Fluxo (Lateral Direita) --- */
+        .metrics-right { grid-column: 3; }
+        .radar-box { height: 150px; border: 1px dashed var(--border); margin-bottom: 20px; }
+
+        /* --- Ferramenta 5: Relatório Final e Botão de Ação --- */
+        .footer-report { 
+            grid-column: 1 / span 3; display: grid; 
+            grid-template-columns: 1fr 300px; gap: 20px;
+        }
+        .report-text { 
+            background: rgba(0,0,0,0.4); border-radius: 8px; padding: 15px;
+            font-size: 0.9rem; border: 1px solid var(--dark-mint);
         }
 
-        .leitura-container span {
-            transition: all 0.3s; color: rgba(255,255,255,0.2);
+        /* --- Botões de Protocolo --- */
+        .btn-protocol {
+            width: 100%; height: 100%; background: var(--dark-mint);
+            border: 1px solid var(--mint); color: var(--mint);
+            font-weight: bold; cursor: pointer; text-transform: uppercase;
+        }
+        .btn-protocol:hover { background: var(--mint); color: var(--bg); box-shadow: 0 0 20px var(--mint); }
+
+        /* --- Overlay de Inicialização --- */
+        #boot-screen {
+            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
         }
 
-        .palavra-ativa {
-            color: var(--mint) !important;
-            text-shadow: 0 0 15px var(--mint);
-        }
-
-        /* --- Relatório de Tempo Real --- */
-        .dock-relatorio {
-            height: 180px; display: grid; grid-template-columns: repeat(4, 1fr);
-            gap: 15px; padding: 15px; background: var(--glass);
-            border: 1px solid var(--border); border-radius: 20px;
-        }
-
-        .metric-card {
-            background: rgba(0,0,0,0.2); border-radius: 12px;
-            padding: 15px; display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            border: 1px solid transparent; transition: 0.5s;
-        }
-
-        .metric-card.active { border-color: var(--mint); box-shadow: 0 0 10px var(--mint); }
-
-        .metric-val { font-size: 1.5rem; font-weight: bold; color: var(--mint); }
-        .metric-label { font-size: 0.7rem; text-transform: uppercase; opacity: 0.6; }
-
-        /* --- Botões e Modais --- */
-        .overlay {
-            position: fixed; inset: 0; background: rgba(6, 20, 27, 0.95);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 100; transition: 0.5s;
-        }
-
-        .btn-start {
-            padding: 20px 40px; border: 2px solid var(--mint);
-            background: none; color: var(--mint);
-            font-size: 1.2rem; cursor: pointer; border-radius: 50px;
-            box-shadow: 0 0 20px var(--mint);
-        }
-
-        .hidden { display: none !important; opacity: 0; }
+        .blink { animation: blinker 1s linear infinite; color: var(--hazard); }
+        @keyframes blinker { 50% { opacity: 0; } }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="welcome-screen" class="overlay">
-        <div style="text-align: center;">
-            <h1 style="color: var(--mint); letter-spacing: 5px;">ELAYON CRS</h1>
-            <p>Aguardando Prontidão do Operador...</p>
-            <button class="btn-start" onclick="iniciarSistema()">INICIAR PROTOCOLO</button>
-        </div>
+    <div id="boot-screen">
+        <h2 class="blink">AGUARDANDO CONEXÃO DO OPERADOR...</h2>
+        <button class="btn-protocol" style="width: 250px; height: 60px;" onclick="iniciarProtocolo()">Iniciar Protocolo ELAYON</button>
     </div>
 
-    <div class="shell">
-        <div class="header">
-            <span>SISTEMA: OPERACIONAL</span>
-            <span id="relogio">00:00:00</span>
-            <span style="color: var(--mint)">SESSÃO: CALIBRAÇÃO RÍTMICA</span>
-        </div>
+    <div class="dashboard">
+        <header>
+            <div style="font-weight: bold; letter-spacing: 3px;">ELAYON :: CORE_PROCESSOR_V3</div>
+            <div id="timer">00:00:00</div>
+            <div style="color: var(--hazard);">STATUS: EM ANÁLISE RÍTMICA</div>
+        </header>
 
-        <div class="viz-terminal">
-            <canvas id="canvas-espectro"></canvas>
-            
-            <div id="area-texto" class="leitura-container">
+        <aside class="panel metrics-left">
+            <div class="stat-box">
+                <span class="stat-label">Latência de Resposta</span>
+                <span class="stat-val" id="m-latencia">0ms</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Índice de Silêncio</span>
+                <span class="stat-val" id="m-silencio">0%</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Pausas Detectadas</span>
+                <span class="stat-val" id="m-pausas">0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">Estabilidade Muscular (Vocal)</span>
+                <span class="stat-val" id="m-estabilidade">100%</span>
+            </div>
+        </aside>
+
+        <main class="viz-main">
+            <div class="panel" style="padding: 0;">
+                <canvas id="canvas-wave"></canvas>
+            </div>
+            <div class="panel reading-area" id="area-leitura">
                 </div>
-        </div>
+        </main>
 
-        <div class="dock-relatorio">
-            <div class="metric-card" id="card-silencio">
-                <span class="metric-val" id="val-silencio">0%</span>
-                <span class="metric-label">Silêncio (CRS)</span>
+        <aside class="panel metrics-right">
+            <div class="stat-label">Distribuição Rítmica</div>
+            <div class="radar-box" id="flux-graph">
+                <div style="padding: 10px; font-size: 0.6rem; color: var(--mint);">[ SCANNER ATIVO: Capturando micro-hesitações... ]</div>
             </div>
-            <div class="metric-card" id="card-fragmento">
-                <span class="metric-val" id="val-fragmento">0</span>
-                <span class="metric-label">Fragmentos</span>
+            <div class="stat-box">
+                <span class="stat-label">Frequência Dominante</span>
+                <span class="stat-val">-- Hz</span>
             </div>
-            <div class="metric-card" id="card-ritmo">
-                <span class="metric-val" id="val-ritmo">0.0</span>
-                <span class="metric-label">Estabilidade (Hz)</span>
+            <div class="stat-box" id="alerta-box">
+                <span class="stat-label">Alinhamento Operacional</span>
+                <span class="stat-val" style="font-size: 1.2rem; color: var(--hazard);">CALIBRANDO</span>
             </div>
-            <div class="metric-card" id="card-status">
-                <span class="metric-val" id="val-status" style="font-size: 0.9rem;">AGUARDANDO</span>
-                <span class="metric-label">Diagnóstico de Fluxo</span>
+        </aside>
+
+        <footer class="footer-report">
+            <div class="panel report-text" id="relatorio-ia">
+                [ AGUARDANDO CONCLUSÃO DA LEITURA PARA GERAR DIAGNÓSTICO HEURÍSTICO... ]
             </div>
-        </div>
+            <div class="panel" style="padding: 0;">
+                <button class="btn-protocol" onclick="gerarRelatorioComplexo()">
+                    GERAR ANÁLISE COMPLEXA<br>
+                    <small>(Requer Token Elayon)</small>
+                </button>
+            </div>
+        </footer>
     </div>
 
     <script>
-        const textoOriginal = "A consciência tecnológica exige um estado de alerta contínuo, onde o silêncio entre os processos é tão vital quanto a execução dos comandos propriamente ditos. Ao observar o ritmo da própria voz, o operador identifica os padrões de hesitação que podem comprometer a simbiose entre o homem e a arquitetura digital.";
+        const textoProtocolo = "O operador deve manter o ritmo constante enquanto a arquitetura digital calibra a latência entre a vontade e a execução. No ecossistema Elayon, cada milissegundo de silêncio é um vetor de análise para a presença absoluta.";
         
-        let recognizer;
-        let animationId;
-        const canvas = document.getElementById('canvas-espectro');
-        const ctx = canvas.getContext('2d');
+        let start_time;
+        let pauses = 0;
 
-        // Inicializa o texto com spans
-        function prepararTexto() {
-            const container = document.getElementById('area-texto');
-            container.innerHTML = textoOriginal.split(' ').map(p => `<span>${p}</span>`).join(' ');
+        function iniciarProtocolo() {
+            document.getElementById('boot-screen').classList.add('hidden');
+            prepararLeitura();
+            iniciarAudioViz();
+            iniciarVoz();
+            start_time = Date.now();
         }
 
-        // Simulação do Gráfico de Espectro
-        function desenharOnda() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.beginPath();
-            ctx.strokeStyle = '#66c7c0';
-            ctx.lineWidth = 2;
-            
-            for (let i = 0; i < canvas.width; i++) {
-                let y = (canvas.height / 2) + Math.sin(i * 0.05 + Date.now() * 0.01) * Math.random() * 20;
-                if (i === 0) ctx.moveTo(i, y); else ctx.lineTo(i, y);
-            }
-            ctx.stroke();
-            animationId = requestAnimationFrame(desenharOnda);
+        function prepararLeitura() {
+            const area = document.getElementById('area-leitura');
+            area.innerHTML = textoProtocolo.split(' ').map(w => `<span class="word">${w}</span>`).join('');
         }
 
-        async function iniciarSistema() {
-            document.getElementById('welcome-screen').classList.add('hidden');
-            prepararTexto();
-            desenharOnda();
-            iniciarEscuta();
-            
-            // Inicia Relógio
-            setInterval(() => {
-                document.getElementById('relogio').innerText = new Date().toLocaleTimeString();
-            }, 1000);
-        }
+        function iniciarVoz() {
+            const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const rec = new Recognition();
+            rec.lang = 'pt-BR';
+            rec.continuous = true;
+            rec.interimResults = true;
 
-        function iniciarEscuta() {
-            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!Speech) return alert("Navegador sem suporte a voz.");
-
-            recognizer = new Speech();
-            recognizer.continuous = true;
-            recognizer.interimResults = true;
-            recognizer.lang = 'pt-BR';
-
-            recognizer.onresult = (event) => {
-                let interina = event.results[event.results.length - 1][0].transcript.toLowerCase();
+            rec.onresult = (event) => {
+                const results = event.results[event.results.length - 1];
+                const fala = results[0].transcript.toLowerCase();
                 
-                // Métrica de "Fragmento" (se houver muitas palavras curtas ou repetições)
-                document.getElementById('val-fragmento').innerText = event.results.length;
-
-                // "Pintura" do Texto
-                const spans = document.querySelectorAll('#area-texto span');
-                spans.forEach(span => {
-                    if (interina.includes(span.innerText.toLowerCase())) {
-                        span.className = 'palavra-ativa';
+                // Pintura do Texto em Tempo Real
+                document.querySelectorAll('.word').forEach(span => {
+                    if (fala.includes(span.innerText.toLowerCase())) {
+                        span.classList.add('active');
                     }
                 });
 
-                // Atualização Dinâmica do Diagnóstico
-                atualizarDiagnostico(event.results.length);
+                // Simulação de Métricas em Tempo Real
+                document.getElementById('m-pausas').innerText = event.results.length;
+                document.getElementById('m-latencia').innerText = Math.floor(Math.random() * 500) + "ms";
             };
 
-            recognizer.start();
+            rec.start();
         }
 
-        function atualizarDiagnostico(fluxo) {
-            const status = document.getElementById('val-status');
-            if (fluxo > 10) {
-                status.innerText = "ALINHADO";
-                status.style.color = "#66c7c0";
-                document.getElementById('card-status').classList.add('active');
-            } else {
-                status.innerText = "ANALISANDO...";
+        function iniciarAudioViz() {
+            const canvas = document.getElementById('canvas-wave');
+            const ctx = canvas.getContext('2d');
+            function draw() {
+                ctx.clearRect(0,0,canvas.width, canvas.height);
+                ctx.strokeStyle = '#66c7c0';
+                ctx.beginPath();
+                ctx.moveTo(0, 50);
+                for(let i=0; i<canvas.width; i+=5) {
+                    ctx.lineTo(i, 50 + Math.sin(i*0.1 + Date.now()*0.01) * (Math.random() * 30));
+                }
+                ctx.stroke();
+                requestAnimationFrame(draw);
             }
+            draw();
+        }
+
+        function gerarRelatorioComplexo() {
+            const rel = document.getElementById('relatorio-ia');
+            rel.innerHTML = `<strong>DIAGNÓSTICO CRS:</strong> Operador demonstra flutuação na latência pré-motora. Estabilidade vocal mantida em 92%. Sincronia texto-fala apresenta hiatos de 400ms. <br><br> <span style="color:var(--mint)">[ SISTEMA PRONTO PARA INTEGRAÇÃO COM IA DE CONVERSAÇÃO ]</span>`;
         }
     </script>
 </body>
 </html>
-
-        
