@@ -3,69 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELAYON | Avaliação de Estado</title>
-    <script src="https://paulorobertoxavierjunior-create.github.io/elayon-cadastro/js/config.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <title>ELAYON | Simbiose CRS</title>
     
-    <script type="module">
-        import { supabase } from 'https://paulorobertoxavierjunior-create.github.io/elayon-cadastro/js/config.js';
-        
-        async function checkSession() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                // Ejeção imediata para o cadastro caso não haja sessão
-                window.location.replace("https://paulorobertoxavierjunior-create.github.io/elayon-cadastro/index.html");
-            }
+    <style>
+        :root {
+            --bg-deep: #06141b;
+            --mint: #66c7c0;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #d8eaee;
         }
-        checkSession();
-    </script>
+
+        body, html {
+            margin: 0; padding: 0;
+            background: var(--bg-deep);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden; height: 100vh;
+        }
+
+        /* --- Interface de Vidro --- */
+        .shell {
+            display: flex; flex-direction: column;
+            height: 100vh; padding: 20px; box-sizing: border-box;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            display: flex; justify-content: space-between;
+            padding: 10px 20px; border: 1px solid var(--border);
+            border-radius: 15px; background: var(--glass);
+        }
+
+        /* --- Painel de Visualização (Gráfico) --- */
+        .viz-terminal {
+            flex: 1; margin: 20px 0;
+            border: 1px solid var(--border);
+            border-radius: 20px; background: rgba(0,0,0,0.3);
+            position: relative; display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+
+        #canvas-espectro {
+            width: 100%; height: 120px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* --- O Corpo do Texto (Interativo) --- */
+        .leitura-container {
+            flex: 1; padding: 30px;
+            overflow-y: auto; font-size: 1.4rem;
+            line-height: 1.8; text-align: left;
+        }
+
+        .leitura-container span {
+            transition: all 0.3s; color: rgba(255,255,255,0.2);
+        }
+
+        .palavra-ativa {
+            color: var(--mint) !important;
+            text-shadow: 0 0 15px var(--mint);
+        }
+
+        /* --- Relatório de Tempo Real --- */
+        .dock-relatorio {
+            height: 180px; display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 15px; padding: 15px; background: var(--glass);
+            border: 1px solid var(--border); border-radius: 20px;
+        }
+
+        .metric-card {
+            background: rgba(0,0,0,0.2); border-radius: 12px;
+            padding: 15px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            border: 1px solid transparent; transition: 0.5s;
+        }
+
+        .metric-card.active { border-color: var(--mint); box-shadow: 0 0 10px var(--mint); }
+
+        .metric-val { font-size: 1.5rem; font-weight: bold; color: var(--mint); }
+        .metric-label { font-size: 0.7rem; text-transform: uppercase; opacity: 0.6; }
+
+        /* --- Botões e Modais --- */
+        .overlay {
+            position: fixed; inset: 0; background: rgba(6, 20, 27, 0.95);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 100; transition: 0.5s;
+        }
+
+        .btn-start {
+            padding: 20px 40px; border: 2px solid var(--mint);
+            background: none; color: var(--mint);
+            font-size: 1.2rem; cursor: pointer; border-radius: 50px;
+            box-shadow: 0 0 20px var(--mint);
+        }
+
+        .hidden { display: none !important; opacity: 0; }
+    </style>
 </head>
 <body>
 
-    <div class="glass-container" id="app-container">
-        <header>
-            <div class="status-bar">
-                <span id="operator-name">Operador: Carregando...</span>
-                <span id="status-tag">STATUS: EM AVALIAÇÃO</span>
-            </div>
-        </header>
-
-        <main id="fluxo-avaliacao">
-            <section id="step-zero" class="step active">
-                <h1 class="tech-title">Protocolo de Presença</h1>
-                <p>Clique abaixo para iniciar o reconhecimento de voz e calibração de estado.</p>
-                <button id="btn-iniciar" class="btn-glow">INICIAR PROTOCOLO</button>
-            </section>
-
-            <section id="interacao-ia" class="step hidden">
-                <div id="ia-feedback" class="pulse-ring"></div>
-                <p id="ia-texto-legenda">Aguardando comando...</p>
-                
-                <button id="btn-mic" class="btn-mic hidden">
-                    <span class="mic-icon">🎤</span>
-                </button>
-            </section>
-
-            <section id="area-leitura" class="step hidden">
-                <div class="scroll-text">
-                    <h3>Texto de Calibração Operacional</h3>
-                    <p>1. A consciência tecnológica exige um estado de alerta contínuo, onde o silêncio entre os processos é tão vital quanto a execução dos comandos propriamente ditos.</p>
-                    <p>2. Ao observar o ritmo da própria voz, o operador identifica os padrões de hesitação que podem comprometer a simbiose entre o homem e a arquitetura digital.</p>
-                    <p>3. O foco não reside apenas no objetivo final, mas na manutenção da presença durante cada linha de raciocínio, evitando que a distração fragilize a segurança do sistema.</p>
-                    <p>4. No ecossistema Elayon, a precisão cirúrgica é o resultado de uma mente estabilizada, capaz de navegar por fluxos complexos sem perder a conexão com a realidade imediata.</p>
-                    <p>5. Concluo esta leitura afirmando meu compromisso com a clareza, a prontidão e a evolução constante dentro deste laboratório de consciência e tecnologia.</p>
-                </div>
-                <p class="alert">Desligue o microfone manualmente após concluir a leitura.</p>
-                <button id="btn-concluir-leitura" class="btn-glow">CONCLUÍDO / AVANÇAR</button>
-            </section>
-        </main>
-
-        <footer>
-            <p class="author-tag">Elayon Core | Desenvolvido por Paulo Xavier</p>
-        </footer>
+    <div id="welcome-screen" class="overlay">
+        <div style="text-align: center;">
+            <h1 style="color: var(--mint); letter-spacing: 5px;">ELAYON CRS</h1>
+            <p>Aguardando Prontidão do Operador...</p>
+            <button class="btn-start" onclick="iniciarSistema()">INICIAR PROTOCOLO</button>
+        </div>
     </div>
 
-    <script type="module" src="js/app.js"></script>
+    <div class="shell">
+        <div class="header">
+            <span>SISTEMA: OPERACIONAL</span>
+            <span id="relogio">00:00:00</span>
+            <span style="color: var(--mint)">SESSÃO: CALIBRAÇÃO RÍTMICA</span>
+        </div>
 
+        <div class="viz-terminal">
+            <canvas id="canvas-espectro"></canvas>
+            
+            <div id="area-texto" class="leitura-container">
+                </div>
+        </div>
+
+        <div class="dock-relatorio">
+            <div class="metric-card" id="card-silencio">
+                <span class="metric-val" id="val-silencio">0%</span>
+                <span class="metric-label">Silêncio (CRS)</span>
+            </div>
+            <div class="metric-card" id="card-fragmento">
+                <span class="metric-val" id="val-fragmento">0</span>
+                <span class="metric-label">Fragmentos</span>
+            </div>
+            <div class="metric-card" id="card-ritmo">
+                <span class="metric-val" id="val-ritmo">0.0</span>
+                <span class="metric-label">Estabilidade (Hz)</span>
+            </div>
+            <div class="metric-card" id="card-status">
+                <span class="metric-val" id="val-status" style="font-size: 0.9rem;">AGUARDANDO</span>
+                <span class="metric-label">Diagnóstico de Fluxo</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const textoOriginal = "A consciência tecnológica exige um estado de alerta contínuo, onde o silêncio entre os processos é tão vital quanto a execução dos comandos propriamente ditos. Ao observar o ritmo da própria voz, o operador identifica os padrões de hesitação que podem comprometer a simbiose entre o homem e a arquitetura digital.";
+        
+        let recognizer;
+        let animationId;
+        const canvas = document.getElementById('canvas-espectro');
+        const ctx = canvas.getContext('2d');
+
+        // Inicializa o texto com spans
+        function prepararTexto() {
+            const container = document.getElementById('area-texto');
+            container.innerHTML = textoOriginal.split(' ').map(p => `<span>${p}</span>`).join(' ');
+        }
+
+        // Simulação do Gráfico de Espectro
+        function desenharOnda() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.strokeStyle = '#66c7c0';
+            ctx.lineWidth = 2;
+            
+            for (let i = 0; i < canvas.width; i++) {
+                let y = (canvas.height / 2) + Math.sin(i * 0.05 + Date.now() * 0.01) * Math.random() * 20;
+                if (i === 0) ctx.moveTo(i, y); else ctx.lineTo(i, y);
+            }
+            ctx.stroke();
+            animationId = requestAnimationFrame(desenharOnda);
+        }
+
+        async function iniciarSistema() {
+            document.getElementById('welcome-screen').classList.add('hidden');
+            prepararTexto();
+            desenharOnda();
+            iniciarEscuta();
+            
+            // Inicia Relógio
+            setInterval(() => {
+                document.getElementById('relogio').innerText = new Date().toLocaleTimeString();
+            }, 1000);
+        }
+
+        function iniciarEscuta() {
+            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!Speech) return alert("Navegador sem suporte a voz.");
+
+            recognizer = new Speech();
+            recognizer.continuous = true;
+            recognizer.interimResults = true;
+            recognizer.lang = 'pt-BR';
+
+            recognizer.onresult = (event) => {
+                let interina = event.results[event.results.length - 1][0].transcript.toLowerCase();
+                
+                // Métrica de "Fragmento" (se houver muitas palavras curtas ou repetições)
+                document.getElementById('val-fragmento').innerText = event.results.length;
+
+                // "Pintura" do Texto
+                const spans = document.querySelectorAll('#area-texto span');
+                spans.forEach(span => {
+                    if (interina.includes(span.innerText.toLowerCase())) {
+                        span.className = 'palavra-ativa';
+                    }
+                });
+
+                // Atualização Dinâmica do Diagnóstico
+                atualizarDiagnostico(event.results.length);
+            };
+
+            recognizer.start();
+        }
+
+        function atualizarDiagnostico(fluxo) {
+            const status = document.getElementById('val-status');
+            if (fluxo > 10) {
+                status.innerText = "ALINHADO";
+                status.style.color = "#66c7c0";
+                document.getElementById('card-status').classList.add('active');
+            } else {
+                status.innerText = "ANALISANDO...";
+            }
+        }
+    </script>
 </body>
 </html>
+
+        
