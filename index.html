@@ -1,150 +1,608 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>ELAYON | Flight Deck</title>
-    <style>
-        :root { --mint: #66c7c0; --bg: #02080a; --glass: rgba(102, 199, 192, 0.05); --border: rgba(102, 199, 192, 0.2); }
-        body { background: var(--bg); color: var(--mint); font-family: 'Orbitron', 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; height: 100vh; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elayon • Avaliação Pessoal</title>
+  <style>
+    :root{
+      --bg:#edf5f6;
+      --card:#ffffff;
+      --ink:#173b42;
+      --muted:#5f7b80;
+      --line:#d7e7ea;
+      --soft:#f7fbfc;
+      --accent:#6ec1c8;
+      --accent-2:#7bd490;
+      --ok:#2f9e44;
+      --warn:#d98e04;
+      --danger:#c92a2a;
+      --shadow:0 10px 28px rgba(14,50,56,.08);
+      --radius:20px;
+    }
 
-        /* --- Layout Painel de Avião --- */
-        .cockpit { display: grid; grid-template-columns: 250px 1fr 250px; grid-template-rows: 60px 1fr 180px; gap: 10px; width: 100%; padding: 10px; }
-        .module { background: var(--glass); border: 1px solid var(--border); border-radius: 4px; padding: 10px; position: relative; }
-        
-        /* --- Mostradores e Botões Estáticos --- */
-        header { grid-column: 1 / span 3; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--mint); }
-        .led { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #333; margin-right: 5px; }
-        .led-on { background: var(--mint); box-shadow: 0 0 10px var(--mint); }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(180deg,#edf5f6 0%, #eef6f7 100%);
+      color:var(--ink);
+    }
 
-        /* --- Área de Interação Central --- */
-        .main-display { grid-column: 2; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-        #ai-text { font-size: 1.5rem; margin-bottom: 30px; max-width: 600px; min-height: 100px; }
-        
-        /* --- Controles Simbióticos --- */
-        .control-group { display: flex; gap: 20px; }
-        .btn-aviacao { 
-            background: #111; border: 2px solid var(--mint); color: var(--mint); padding: 15px 30px; 
-            font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
-        }
-        .btn-aviacao:hover { background: var(--mint); color: #000; }
-        .btn-danger { border-color: #ff3300; color: #ff3300; }
+    .app{
+      max-width:1400px;
+      margin:0 auto;
+      padding:20px;
+    }
 
-        /* --- Ferramentas Laterais (Instrumentação) --- */
-        .side-tools { display: flex; flex-direction: column; gap: 8px; }
-        .tool-btn { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--mint); font-size: 0.7rem; padding: 10px; text-align: left; }
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:18px;
+    }
 
-        /* --- JSON Output (O "Print" para a IA Externa) --- */
-        .black-box { grid-column: 1 / span 3; display: grid; grid-template-columns: 1fr 300px; gap: 10px; }
-        #json-output { background: #000; border: 1px solid var(--dark-mint); font-family: monospace; font-size: 0.8rem; padding: 10px; color: #0f0; overflow: auto; }
+    .brand h1{
+      margin:0;
+      font-size:30px;
+    }
 
-        .hidden { display: none; }
-    </style>
+    .brand p{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:44px;
+      padding:0 16px;
+      border:none;
+      border-radius:12px;
+      background:var(--accent);
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .btn.secondary{
+      background:#fff;
+      color:var(--ink);
+      border:1px solid var(--line);
+    }
+
+    .btn.ghost{
+      background:transparent;
+      border:1px solid var(--line);
+      color:var(--ink);
+    }
+
+    .hero{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:24px;
+      margin-bottom:18px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      min-height:30px;
+      padding:0 12px;
+      border-radius:999px;
+      background:var(--soft);
+      border:1px solid var(--line);
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:12px;
+    }
+
+    .hero h2{
+      margin:0 0 10px;
+      font-size:36px;
+      line-height:1.05;
+    }
+
+    .hero p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:17px;
+      max-width:960px;
+    }
+
+    .hero-buttons{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:18px;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap:18px;
+    }
+
+    .stack{
+      display:grid;
+      gap:18px;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:20px;
+    }
+
+    .card h3{
+      margin:0 0 8px;
+      font-size:24px;
+    }
+
+    .card p.sub{
+      margin:0 0 16px;
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    .grid-2{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .grid-3{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .mini{
+      background:var(--soft);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+    }
+
+    .mini .k{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:8px;
+      text-transform:uppercase;
+    }
+
+    .mini .v{
+      font-size:20px;
+      font-weight:700;
+      line-height:1.35;
+    }
+
+    .ok{color:var(--ok)}
+    .warn{color:var(--warn)}
+    .danger{color:var(--danger)}
+
+    .step-list{
+      display:grid;
+      gap:12px;
+    }
+
+    .step{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      background:#fff;
+    }
+
+    .step-head{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:8px;
+    }
+
+    .step-num{
+      width:34px;
+      height:34px;
+      border-radius:12px;
+      background:var(--accent);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      flex:0 0 auto;
+    }
+
+    .step h4{
+      margin:0;
+      font-size:18px;
+    }
+
+    .step p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.6;
+    }
+
+    .prompt-box{
+      background:#fff;
+      border:1px dashed var(--line);
+      border-radius:16px;
+      padding:16px;
+      margin-top:14px;
+    }
+
+    .prompt-box .label{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:8px;
+      text-transform:uppercase;
+    }
+
+    .prompt-text{
+      font-size:18px;
+      line-height:1.6;
+      font-weight:700;
+    }
+
+    .input-zone{
+      display:grid;
+      gap:12px;
+      margin-top:14px;
+    }
+
+    textarea{
+      width:100%;
+      min-height:120px;
+      resize:vertical;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      font:inherit;
+      color:var(--ink);
+      background:#fff;
+    }
+
+    .choice-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .timeline{
+      display:grid;
+      gap:10px;
+    }
+
+    .event{
+      border-left:4px solid var(--accent);
+      background:var(--soft);
+      padding:12px 14px;
+      border-radius:0 12px 12px 0;
+      color:var(--ink);
+      font-size:14px;
+      line-height:1.6;
+    }
+
+    .metric-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .metric{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+    }
+
+    .metric-top{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:8px;
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .bar{
+      height:12px;
+      background:#e9f3f5;
+      border-radius:999px;
+      overflow:hidden;
+    }
+
+    .fill{
+      height:100%;
+      background:linear-gradient(90deg,var(--accent),var(--accent-2));
+      width:35%;
+    }
+
+    .screen-box{
+      background:#08151a;
+      color:#d6fff6;
+      border-radius:16px;
+      padding:16px;
+      min-height:240px;
+      font-family:Consolas, Monaco, monospace;
+      font-size:12px;
+      line-height:1.5;
+      white-space:pre-wrap;
+    }
+
+    .footer{
+      margin-top:22px;
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    @media (max-width: 1100px){
+      .layout{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width: 700px){
+      .grid-2, .grid-3{
+        grid-template-columns:1fr;
+      }
+      .hero h2{
+        font-size:28px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <main class="app">
+    <section class="topbar">
+      <div class="brand">
+        <h1>Elayon • Avaliação Pessoal</h1>
+        <p>Cockpit integral da interação inicial guiada antes do acesso às ferramentas</p>
+      </div>
 
-<div class="cockpit">
-    <header>
-        <div>SYSTEM: ELAYON_FLIGHT_DECK_V1</div>
-        <div id="status-display"><span class="led led-on"></span> OPERACIONAL</div>
-        <div id="timer">00:00:00</div>
-    </header>
+      <div class="actions">
+        <button class="btn secondary" type="button">← Voltar</button>
+        <button class="btn ghost" type="button">Perfil</button>
+        <button class="btn ghost" type="button">Sair</button>
+      </div>
+    </section>
 
-    <aside class="module side-tools">
-        <div style="font-size: 0.6rem; margin-bottom: 10px; opacity: 0.6;">INSTRUMENTAÇÃO CRS</div>
-        <div class="tool-btn">LATENCY_SCANNER: 0ms</div>
-        <div class="tool-btn">SILENCE_VALVE: ACTIVE</div>
-        <div class="tool-btn">RHYTHM_PUMP: STABLE</div>
-        <div class="tool-btn">ANAMNESIS_FLOW: 0.0</div>
-        <hr style="border: 0; border-top: 1px solid var(--border); width: 100%;">
-        <div class="tool-btn">PSI-Q ANALYZER</div>
-        <div class="tool-btn">HEALTH_BIOMETRY</div>
-        <div class="tool-btn">SUPPORT_VIRTUAL</div>
-    </aside>
+    <section class="hero">
+      <div class="badge">CRS ativo • cockpit sequencial • leitura assistida</div>
+      <h2>Interação inicial antes da liberação das ferramentas</h2>
+      <p>
+        Este cockpit organiza toda a entrada do usuário em uma sequência guiada. A IA apresenta,
+        conduz os testes, abre espaço para fala, leitura e contagem, enquanto o sistema preenche
+        em tempo real as métricas operacionais que serão lidas ao final antes da resposta consolidada.
+      </p>
 
-    <main class="module main-display">
-        <div id="ai-text">Iniciando sistema... Aguarde o protocolo de voz da IA.</div>
-        
-        <div id="step-controls" class="control-group">
-            <button class="btn-aviacao" onclick="avançarPasso()">INICIAR</button>
-        </div>
-    </main>
+      <div class="hero-buttons">
+        <button class="btn" type="button">Iniciar avaliação</button>
+        <button class="btn secondary" type="button">Parar</button>
+        <button class="btn secondary" type="button">Resetar sessão</button>
+      </div>
+    </section>
 
-    <aside class="module side-tools">
-        <div style="font-size: 0.6rem; margin-bottom: 10px; opacity: 0.6;">SUBSISTEMAS</div>
-        <button class="tool-btn">ELAYON_Health</button>
-        <button class="tool-btn">ELAYON_PsiQ</button>
-        <button class="tool-btn">ELAYON_Mechanics</button>
-        <button class="tool-btn">ELAYON_PC</button>
-        <div style="flex-grow: 1;"></div>
-        <button class="btn-aviacao btn-danger" style="padding: 10px; font-size: 0.6rem;">EMERGENCY RESET</button>
-    </aside>
+    <section class="layout">
+      <div class="stack">
 
-    <footer class="black-box">
-        <div class="module" id="json-output">
-            { "protocol": "waiting", "state": "standby", "metrics": {} }
-        </div>
-        <div class="module" style="display: flex; align-items: center; justify-content: center; text-align: center;">
-            <div style="font-size: 0.7rem;">ESTADO ANÍMICO REGISTRADO<br><span style="font-size: 1.2rem;" id="mood-label">---</span></div>
-        </div>
-    </footer>
-</div>
+        <section class="card">
+          <h3>Sequência de testes</h3>
+          <p class="sub">
+            Fluxo macro da interação. Cada etapa alimenta o cockpit e prepara a leitura final.
+          </p>
 
-<script>
-    let currentStep = 0;
-    const aiText = document.getElementById('ai-text');
-    const controls = document.getElementById('step-controls');
-    const jsonOut = document.getElementById('json-output');
+          <div class="step-list">
+            <div class="step">
+              <div class="step-head">
+                <div class="step-num">1</div>
+                <h4>Apresentação e confirmação inicial</h4>
+              </div>
+              <p>A IA se apresenta, pede confirmação simples de início e aguarda aceite por voz ou botão.</p>
+            </div>
 
-    const roteiro = [
-        { text: "Olá, Paulo. O sistema Elayon está pronto. Podemos avançar?", buttons: ["SIM", "NÃO"] },
-        { text: "Por favor, informe sua apresentação e idade para calibragem.", inputs: true },
-        { text: "Leia o seguinte texto: 'O silêncio não é ausência de som, mas a presença de conexão. No ritmo da fala, revelamos a verdade do propósito.'", confirm: "silence" },
-        { text: "Avaliação concluída. Tudo OK? Caso precise, use PsiQ ou Health. Pronto para acessar seu painel?", buttons: ["SIM"] },
-        { text: "Obrigado. Conexão simbiótica estabelecida. Bye bye.", final: true }
-    ];
+            <div class="step">
+              <div class="step-head">
+                <div class="step-num">2</div>
+                <h4>Leitura guiada</h4>
+              </div>
+              <p>O sistema exibe um texto curto e libera o microfone para leitura acompanhada.</p>
+            </div>
 
-    function atualizarPainel(data) {
-        jsonOut.innerText = JSON.stringify(data, null, 2);
-    }
+            <div class="step">
+              <div class="step-head">
+                <div class="step-num">3</div>
+                <h4>Contagem e identificação</h4>
+              </div>
+              <p>O usuário conta de 1 a 10 e, ao final, diz seu nome completo para fechamento do teste.</p>
+            </div>
+          </div>
 
-    function avançarPasso() {
-        if (currentStep >= roteiro.length) return;
-        
-        let p = roteiro[currentStep];
-        aiText.innerText = p.text;
-        controls.innerHTML = "";
+          <div class="prompt-box">
+            <span class="label">Instrução atual da IA</span>
+            <div class="prompt-text">
+              Bom dia. Tudo bem para começarmos? Quando ouvir o bip, responda apenas sim ou não.
+            </div>
+          </div>
 
-        if (p.buttons) {
-            p.buttons.forEach(b => {
-                let btn = document.createElement('button');
-                btn.className = "btn-aviacao";
-                btn.innerText = b;
-                btn.onclick = () => {
-                    if (b === "NÃO" || b === "RECOMEÇAR") { currentStep = 0; avançarPasso(); }
-                    else { currentStep++; avançarPasso(); }
-                };
-                controls.appendChild(btn);
-            });
-        } else if (p.inputs) {
-            // Simulação de entrada por voz confirmada em 3s de silêncio
-            setTimeout(() => { 
-                aiText.innerText = "Captado. Calibrando em 3s...";
-                setTimeout(() => { currentStep++; avançarPasso(); }, 3000);
-            }, 2000);
-        } else if (p.confirm === "silence") {
-            // Simulação do teste de leitura de 600 caracteres
-            setTimeout(() => { currentStep++; avançarPasso(); }, 5000);
-        } else if (p.final) {
-            atualizarPainel({
-                "session": "active",
-                "hesitation_index": 0.12,
-                "distraction_level": "low",
-                "animic_state": "focused",
-                "simbiose_status": 100
-            });
-            document.getElementById('mood-label').innerText = "ESTÁVEL";
-        }
-    }
-</script>
+          <div class="input-zone">
+            <div class="choice-row">
+              <button class="btn" type="button">Sim</button>
+              <button class="btn secondary" type="button">Não</button>
+              <button class="btn secondary" type="button">Repetir instrução</button>
+            </div>
+
+            <textarea placeholder="Transcrição captada, resposta intermediária ou texto de leitura exibido aqui..."></textarea>
+          </div>
+        </section>
+
+        <section class="card">
+          <h3>Timeline viva da sessão</h3>
+          <p class="sub">
+            Linha do tempo dos atos da IA, respostas do usuário e eventos técnicos relevantes.
+          </p>
+
+          <div class="timeline">
+            <div class="event">[00:00] sistema pronto • sessão iniciada</div>
+            <div class="event">[00:03] IA apresentou a abertura inicial</div>
+            <div class="event">[00:07] microfone liberado para resposta de aceite</div>
+            <div class="event">[00:11] resposta captada • confirmação pendente</div>
+            <div class="event">[00:16] etapa 2 preparada • leitura guiada pronta</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h3>Leitura consolidada para resposta final</h3>
+          <p class="sub">
+            Este bloco reúne a síntese operacional que a IA poderá ler ao final antes de responder ao usuário.
+          </p>
+
+          <div class="grid-2">
+            <div class="mini">
+              <span class="k">Estado geral</span>
+              <div class="v ok">Estável</div>
+            </div>
+            <div class="mini">
+              <span class="k">Liberação da catraca</span>
+              <div class="v warn">Em análise</div>
+            </div>
+            <div class="mini">
+              <span class="k">Continuidade</span>
+              <div class="v">Moderada</div>
+            </div>
+            <div class="mini">
+              <span class="k">Clareza textual</span>
+              <div class="v">Boa</div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <div class="stack">
+
+        <section class="card">
+          <h3>Estado do cockpit</h3>
+          <p class="sub">
+            Visão rápida de tudo que a sessão já preencheu.
+          </p>
+
+          <div class="grid-2">
+            <div class="mini">
+              <span class="k">Sistema</span>
+              <div class="v ok">ON</div>
+            </div>
+            <div class="mini">
+              <span class="k">Microfone</span>
+              <div class="v warn">Aguardando</div>
+            </div>
+            <div class="mini">
+              <span class="k">Etapa atual</span>
+              <div class="v">1 de 3</div>
+            </div>
+            <div class="mini">
+              <span class="k">CRS</span>
+              <div class="v ok">Ativo</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h3>Métricas vivas</h3>
+          <p class="sub">
+            Barras de acompanhamento preenchidas ao longo da interação.
+          </p>
+
+          <div class="metric-list">
+            <div class="metric">
+              <div class="metric-top"><span>Presença</span><span>35%</span></div>
+              <div class="bar"><div class="fill" style="width:35%"></div></div>
+            </div>
+
+            <div class="metric">
+              <div class="metric-top"><span>Clareza</span><span>48%</span></div>
+              <div class="bar"><div class="fill" style="width:48%"></div></div>
+            </div>
+
+            <div class="metric">
+              <div class="metric-top"><span>Ritmo</span><span>42%</span></div>
+              <div class="bar"><div class="fill" style="width:42%"></div></div>
+            </div>
+
+            <div class="metric">
+              <div class="metric-top"><span>Firmeza</span><span>31%</span></div>
+              <div class="bar"><div class="fill" style="width:31%"></div></div>
+            </div>
+
+            <div class="metric">
+              <div class="metric-top"><span>Continuidade</span><span>54%</span></div>
+              <div class="bar"><div class="fill" style="width:54%"></div></div>
+            </div>
+
+            <div class="metric">
+              <div class="metric-top"><span>Oscilação</span><span>22%</span></div>
+              <div class="bar"><div class="fill" style="width:22%"></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h3>Painel multimodal</h3>
+          <p class="sub">
+            Espaço para tudo o que a IA vai ler visualmente depois.
+          </p>
+
+          <div class="grid-3">
+            <div class="mini">
+              <span class="k">Volume</span>
+              <div class="v">Baixo</div>
+            </div>
+            <div class="mini">
+              <span class="k">Pausas</span>
+              <div class="v">Regulares</div>
+            </div>
+            <div class="mini">
+              <span class="k">Resposta</span>
+              <div class="v">Compatível</div>
+            </div>
+          </div>
+
+          <div style="margin-top:14px;" class="screen-box">
+heatmap_temporal: ativo
+transcricao: parcial
+leitura_guiada: pronta
+contagem_1_10: pendente
+nome_completo: pendente
+estado_heuristico: em preenchimento
+decisao_preliminar: aguardando consolidacao
+          </div>
+        </section>
+
+      </div>
+    </section>
+
+    <div class="footer">
+      Elayon • cockpit integral de avaliação pessoal antes da liberação das ferramentas
+    </div>
+  </main>
 </body>
 </html>
