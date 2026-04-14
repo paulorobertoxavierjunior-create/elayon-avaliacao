@@ -8,7 +8,7 @@ const TESTES = [
     context: "abertura inicial da avaliação",
     sourceText: "resposta curta de aceite"
   },
-  {
+  { 
     titulo: "Etapa 2 • Leitura guiada",
     subtitulo: "O usuário lê um texto curto com clareza e calma.",
     instrucao: "Agora leia o texto abaixo. Ao terminar, fique três segundos em silêncio e avançaremos para o próximo estágio.",
