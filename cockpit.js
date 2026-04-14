@@ -5,7 +5,7 @@ const TESTES = [
   {
     titulo: "Etapa 1 • Abertura",
     subtitulo: "Entrada inicial do usuário no sistema.",
-    instrucao: "Olá, bem-vindo aos sistemas Elayon. Responda da forma que achar melhor e, ao terminar, fique quatro segundos em silêncio.",
+    instrucao: "Olá, bem-vindo aos sistemas Elayon. Responda da forma que achar melhor: Como está o seu dia? Responda e depois fique quatro segundos em silêncio.",
     texto: "",
     tipo: "resposta_curta",
     context: "abertura inicial da avaliação",
