@@ -1,17 +1,20 @@
+const PRE_START_DELAY = 800;
+const SILENCE_MS = 4000;
+
 const TESTES = [
   {
-    titulo: "Etapa 1 • Início da avaliação",
-    subtitulo: "A IA se apresenta e pede confirmação simples para começar.",
-    instrucao: "Bom dia. Tudo bem para começarmos? Quando ouvir o bip, responda. Ao terminar, fique três segundos em silêncio.",
+    titulo: "Etapa 1 • Abertura",
+    subtitulo: "Entrada inicial do usuário no sistema.",
+    instrucao: "Olá, bem-vindo aos sistemas Elayon. Responda da forma que achar melhor e, ao terminar, fique quatro segundos em silêncio.",
     texto: "",
     tipo: "resposta_curta",
     context: "abertura inicial da avaliação",
-    sourceText: "resposta curta de aceite"
+    sourceText: "resposta inicial espontânea"
   },
   {
     titulo: "Etapa 2 • Leitura guiada",
-    subtitulo: "O usuário lê um texto curto com clareza e calma.",
-    instrucao: "Agora leia o texto abaixo. Ao terminar, fique três segundos em silêncio e avançaremos para o próximo estágio.",
+    subtitulo: "Leitura de um texto curto com calma e clareza.",
+    instrucao: "Leia o texto abaixo. Ao terminar, fique quatro segundos em silêncio.",
     texto: "Eu estou presente, consciente do meu tempo e disposto a seguir com atenção.",
     tipo: "leitura",
     context: "leitura guiada da avaliação",
@@ -19,8 +22,8 @@ const TESTES = [
   },
   {
     titulo: "Etapa 3 • Contagem e identificação",
-    subtitulo: "O usuário conta de um a dez e no final diz seu nome completo.",
-    instrucao: "Agora conte de um até dez. No final, diga o seu nome completo. Depois, fique três segundos em silêncio.",
+    subtitulo: "Contagem e nome completo.",
+    instrucao: "Agora conte de um até dez. No final, diga o seu nome completo. Depois, fique quatro segundos em silêncio.",
     texto: "",
     tipo: "contagem",
     context: "contagem final e identificação",
@@ -99,6 +102,15 @@ function fecharModal() {
   el("modalFluxo").classList.remove("show");
 }
 
+function showConfirm(show = true) {
+  el("confirmBox").classList.toggle("show", show);
+}
+
+function setListening(active, text = "Microfone aguardando.") {
+  el("pulseMic").classList.toggle("on", active);
+  el("listeningLabel").textContent = text;
+}
+
 function preencherMetricasPorAnalise(analysis, etapa) {
   const silence = Number(analysis?.metrics_received?.silence_pct ?? 0);
   const pauses = Number(analysis?.metrics_received?.pause_count ?? 0);
@@ -162,7 +174,7 @@ function consolidarHeuristica() {
     microfone: "encerrado",
     tts: "finalizado",
     transcricao: dadosSessao.length ? "captada" : "nao_captada",
-    silencio_final_3s: "concluido",
+    silencio_final_4s: "concluido",
     decisao_heuristica: "gerada",
     liberacao_catraca: "pronta_para_analise"
   });
@@ -179,9 +191,11 @@ function carregarEtapa(indice) {
   el("modalSubtitulo").textContent = etapa.subtitulo;
   el("modalInstrucao").textContent = etapa.instrucao;
   el("transcricaoAtual").textContent = "A transcrição aparecerá aqui.";
-  el("btnConcluirEtapa").disabled = true;
-  el("btnIniciarMic").disabled = true;
   transcriptAtual = "";
+
+  el("btnResponder").disabled = true;
+  showConfirm(false);
+  setListening(false);
 
   if (etapa.texto) {
     el("caixaTextoLeitura").style.display = "block";
@@ -193,16 +207,21 @@ function carregarEtapa(indice) {
 
   abrirModal();
   addTimeline(`Etapa ${indice + 1} preparada.`);
+
+  // fala automática ao entrar
+  ouvirInstrucaoAtual();
 }
 
 async function ouvirInstrucaoAtual() {
   const etapa = TESTES[etapaAtual];
   addTimeline(`IA iniciou fala da etapa ${etapaAtual + 1}.`);
+  setListening(false, "IA emitindo instrução.");
 
   try {
     await window.ELAYON_TUNNEL.tts.speak(etapa.instrucao);
-    el("btnIniciarMic").disabled = false;
-    addTimeline("Instrução concluída. Microfone liberado.");
+    el("btnResponder").disabled = false;
+    addTimeline("Instrução concluída. Resposta liberada.");
+    setListening(false, "Pronto para responder.");
     setPainelTecnico({
       etapa: etapaAtual + 1,
       instrucao: "emitida",
@@ -210,24 +229,28 @@ async function ouvirInstrucaoAtual() {
       tts: "concluido",
       texto_guiado: etapa.texto ? "visivel" : "nao",
       transcricao: "pendente",
-      silencio_final_3s: "pendente",
+      silencio_final_4s: "pendente",
       decisao_heuristica: "pendente",
       liberacao_catraca: "em_analise"
     });
   } catch (e) {
     addTimeline(`Falha no TTS: ${e.message}`);
+    setListening(false, "Falha ao emitir instrução.");
   }
 }
 
-async function iniciarMicrofone() {
-  const etapa = TESTES[etapaAtual];
-  el("btnIniciarMic").disabled = true;
+async function iniciarResposta() {
+  el("btnResponder").disabled = true;
+  showConfirm(false);
   setStatusMic("Ouvindo");
+  setListening(true, "Microfone aberto. Responda agora.");
   addTimeline("Microfone iniciado.");
 
   try {
+    await new Promise(resolve => setTimeout(resolve, PRE_START_DELAY));
+
     const heard = await window.ELAYON_TUNNEL.stt.listenOnce({
-      silenceMs: 3000,
+      silenceMs: SILENCE_MS,
       onPartial: (data) => {
         el("transcricaoAtual").textContent = data.text || "Aguardando fala...";
       }
@@ -236,21 +259,24 @@ async function iniciarMicrofone() {
     transcriptAtual = heard.final || heard.text || "";
     el("transcricaoAtual").textContent = transcriptAtual || "Nenhuma fala captada.";
     setStatusMic("Silêncio / Finalizado");
-    el("btnConcluirEtapa").disabled = false;
+    setListening(false, "Captação finalizada.");
 
     addTimeline(
       transcriptAtual
         ? "Fala captada com sucesso."
         : "Captação finalizada sem texto reconhecido."
     );
+
+    showConfirm(true);
   } catch (e) {
     setStatusMic("Erro");
+    setListening(false, "Erro na captação.");
     addTimeline(`Erro na transcrição: ${e.message}`);
-    el("btnConcluirEtapa").disabled = false;
+    showConfirm(true);
   }
 }
 
-async function concluirEtapa() {
+async function confirmarResposta() {
   const etapa = TESTES[etapaAtual];
 
   const payload = window.ELAYON_TUNNEL.crs.buildPayload(transcriptAtual, {
@@ -288,19 +314,29 @@ async function concluirEtapa() {
     tts: "pronto",
     texto_guiado: etapa.texto ? "utilizado" : "nao",
     transcricao: transcriptAtual ? "captada" : "vazia",
-    silencio_final_3s: "concluido",
+    silencio_final_4s: "concluido",
     decisao_heuristica: analysis?.heuristica ? "parcial_gerada" : "pendente",
     liberacao_catraca: "em_analise"
   });
 
+  showConfirm(false);
+
   if (etapaAtual < TESTES.length - 1) {
-    fecharModal();
     carregarEtapa(etapaAtual + 1);
     return;
   }
 
   fecharModal();
   consolidarHeuristica();
+}
+
+function refazerResposta() {
+  showConfirm(false);
+  transcriptAtual = "";
+  el("transcricaoAtual").textContent = "Resposta descartada. Pressione responder para refazer.";
+  el("btnResponder").disabled = false;
+  addTimeline("Usuário optou por refazer a resposta.");
+  setListening(false, "Pronto para nova resposta.");
 }
 
 function resetCockpit() {
@@ -331,10 +367,13 @@ function resetCockpit() {
     tts: "pronto",
     texto_guiado: "vazio",
     transcricao: "nao_captada",
-    silencio_final_3s: "pendente",
+    silencio_final_4s: "pendente",
     decisao_heuristica: "pendente",
     liberacao_catraca: "em_analise"
   });
+
+  showConfirm(false);
+  setListening(false);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -346,6 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try { await window.ELAYON_TUNNEL.tts.stop(); } catch {}
     fecharModal();
     addTimeline("Sessão interrompida manualmente.");
+    setListening(false, "Sessão interrompida.");
   });
 
   el("btnResetarCockpit").addEventListener("click", resetCockpit);
@@ -353,15 +393,19 @@ document.addEventListener("DOMContentLoaded", () => {
   el("btnEncerrarSessao").addEventListener("click", () => {
     fecharModal();
     addTimeline("Sessão encerrada pelo usuário.");
+    setListening(false, "Sessão encerrada.");
   });
 
-  el("btnFalarInstrucao").addEventListener("click", ouvirInstrucaoAtual);
-  el("btnIniciarMic").addEventListener("click", iniciarMicrofone);
-  el("btnConcluirEtapa").addEventListener("click", concluirEtapa);
+  el("btnOuvirInstrucao").addEventListener("click", ouvirInstrucaoAtual);
+  el("btnRepetirInstrucao").addEventListener("click", ouvirInstrucaoAtual);
+  el("btnResponder").addEventListener("click", iniciarResposta);
+  el("btnConfirmarResposta").addEventListener("click", confirmarResposta);
+  el("btnRefazerResposta").addEventListener("click", refazerResposta);
 
   el("btnEncerrarModal").addEventListener("click", () => {
     fecharModal();
     addTimeline("Modal encerrado.");
+    setListening(false, "Modal encerrado.");
   });
 
   el("btnAvancoManual").addEventListener("click", () => {
