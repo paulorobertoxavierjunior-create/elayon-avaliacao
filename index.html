@@ -1,106 +1,87 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Elayon • Check Lab</title>
-
-<style>
-body {
-    font-family: Arial;
-    background: #0f172a;
-    color: white;
-    padding: 20px;
-}
-
-h1 { margin-bottom: 20px; }
-
-.item {
-    padding: 12px;
-    margin-bottom: 8px;
-    border-radius: 8px;
-}
-
-.ok { background: #065f46; }
-.fail { background: #7f1d1d; }
-
-button {
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check Túnel Elayon</title>
+  <style>
+    body { font-family: Arial; background:#081018; color:#fff; padding:20px; }
+    button { margin:6px 6px 6px 0; padding:12px 16px; border:none; border-radius:8px; cursor:pointer; }
+    pre { background:#111a22; padding:16px; border-radius:12px; white-space:pre-wrap; }
+  </style>
 </head>
-
 <body>
+  <h1>Check do Túnel</h1>
 
-<h1>🧪 Elayon Lab Check</h1>
+  <button id="btnHealth">Healthcheck</button>
+  <button id="btnTTS">Testar TTS</button>
+  <button id="btnMic">Testar Microfone</button>
+  <button id="btnSTT">Testar Transcrição</button>
+  <button id="btnLoop">Testar Loop</button>
 
-<div id="results"></div>
+  <pre id="out">Aguardando...</pre>
 
-<button onclick="testarExecucao()">Testar Execução</button>
+  <script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/base.js"></script>
+  <script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/tunnel-lab.js"></script>
 
-<!-- ===== CARREGA LAB ===== -->
-<script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/base.js"></script>
-<script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/teste-tts.js"></script>
-<script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/teste-microfone.js"></script>
-<script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/teste-transcricao.js"></script>
-<script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/teste-loop.js"></script>
-<script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/teste-crs.js"></script>
+  <script>
+    const out = document.getElementById("out");
 
-<script>
-
-// 🔎 LISTA DE FUNÇÕES ESPERADAS
-const funcoes = [
-    "ttsFalar",
-    "microfoneIniciar",
-    "transcricaoIniciar",
-    "loopExecutar",
-    "crsExecutar"
-];
-
-function checkLab() {
-    const container = document.getElementById("results");
-
-    funcoes.forEach(fn => {
-        const existe = window.ElayonLab && typeof window.ElayonLab[fn] === "function";
-
-        const div = document.createElement("div");
-        div.className = "item " + (existe ? "ok" : "fail");
-        div.innerText = `${existe ? "✅" : "❌"} ${fn}`;
-
-        container.appendChild(div);
-    });
-}
-
-// ▶️ TESTE REAL
-async function testarExecucao() {
-    try {
-        if (window.ElayonLab?.ttsFalar) {
-            await window.ElayonLab.ttsFalar("Teste de voz funcionando.");
-        }
-
-        if (window.ElayonLab?.microfoneIniciar) {
-            console.log("🎤 Microfone OK");
-        }
-
-        if (window.ElayonLab?.transcricaoIniciar) {
-            console.log("🧠 Transcrição OK");
-        }
-
-        alert("Teste disparado. Veja console também.");
-    } catch (e) {
-        console.error(e);
-        alert("Erro na execução");
+    function print(obj) {
+      out.textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
     }
-}
 
-// 🚀 INICIAR
-checkLab();
+    document.getElementById("btnHealth").addEventListener("click", async () => {
+      try {
+        const r = await window.ELAYON_TUNNEL.healthcheck();
+        print(r);
+      } catch (e) {
+        print(e.message);
+      }
+    });
 
-</script>
+    document.getElementById("btnTTS").addEventListener("click", async () => {
+      try {
+        const r = await window.ELAYON_TUNNEL.tts.speak("Teste de voz do túnel Elayon.");
+        print(r);
+      } catch (e) {
+        print(e.message);
+      }
+    });
 
+    document.getElementById("btnMic").addEventListener("click", async () => {
+      try {
+        const r = await window.ELAYON_TUNNEL.mic.open();
+        print(r);
+      } catch (e) {
+        print(e.message);
+      }
+    });
+
+    document.getElementById("btnSTT").addEventListener("click", async () => {
+      try {
+        const r = await window.ELAYON_TUNNEL.stt.listenOnce({
+          silenceMs: 3000,
+          onPartial: (data) => print(data)
+        });
+        print(r);
+      } catch (e) {
+        print(e.message);
+      }
+    });
+
+    document.getElementById("btnLoop").addEventListener("click", async () => {
+      try {
+        const r = await window.ELAYON_TUNNEL.loop.runStep({
+          instruction: "Bom dia. Quando ouvir o bip, diga apenas sim.",
+          context: "teste de conexão do túnel",
+          sourceText: "resposta curta"
+        });
+        print(r);
+      } catch (e) {
+        print(e.message);
+      }
+    });
+  </script>
 </body>
 </html>
