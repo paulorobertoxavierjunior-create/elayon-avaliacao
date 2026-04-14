@@ -1,73 +1,67 @@
 const PRE_START_DELAY = 800;
 const SILENCE_MS = 4000;
-
-const TESTES = [
-  {
-    titulo: "Etapa 1 • Abertura",
-    subtitulo: "Entrada inicial do usuário no sistema.",
-    instrucao: "Olá, bem-vindo aos sistemas Elayon. Responda da forma que achar melhor: Como está o seu dia? Responda e depois fique quatro segundos em silêncio.",
-    texto: "",
-    tipo: "resposta_curta",
-    context: "abertura inicial da avaliação",
-    sourceText: "resposta inicial espontânea"
-  },
-  {
-    titulo: "Etapa 2 • Leitura guiada",
-    subtitulo: "Leitura de um texto curto com calma e clareza.",
-    instrucao: "Leia o texto abaixo. Ao terminar, fique quatro segundos em silêncio.",
-    texto: "Eu estou presente, consciente do meu tempo e disposto a seguir com atenção.",
-    tipo: "leitura",
-    context: "leitura guiada da avaliação",
-    sourceText: "texto guiado de leitura"
-  },
-  {
-    titulo: "Etapa 3 • Contagem e identificação",
-    subtitulo: "Contagem e nome completo.",
-    instrucao: "Agora conte de um até dez. No final, diga o seu nome completo. Depois, fique quatro segundos em silêncio.",
-    texto: "",
-    tipo: "contagem",
-    context: "contagem final e identificação",
-    sourceText: "contagem de um a dez e nome completo"
-  }
-];
-
-const HEURISTICA = {
-  presenca: {
-    alta: "Boa ancoragem inicial e chegada consistente ao processo.",
-    baixa: "Baixa ancoragem inicial. Vale fortalecer a chegada antes de avançar."
-  },
-  clareza: {
-    alta: "Boa nitidez de expressão e organização da fala.",
-    baixa: "A clareza ficou reduzida. Pode ser útil repetir com mais calma."
-  },
-  ritmo: {
-    alta: "Ritmo equilibrado e progressão temporal adequada.",
-    baixa: "Ritmo irregular com oscilação na sustentação da fala."
-  },
-  firmeza: {
-    alta: "Boa firmeza vocal e textual, com sustentação consistente.",
-    baixa: "Firmeza baixa. O sistema sugere mais estabilidade antes de concluir."
-  },
-  continuidade: {
-    alta: "Continuidade elevada entre as etapas.",
-    baixa: "Continuidade baixa com quebras perceptíveis."
-  },
-  estabilidade: {
-    alta: "Boa estabilidade geral durante a sessão.",
-    baixa: "Estabilidade reduzida. Recomenda-se nova tentativa com menos ruído."
-  },
-  oscilacao: {
-    alta: "Oscilação baixa, favorecendo leitura segura.",
-    baixa: "Oscilação alta. Houve variação expressiva ao longo da sessão."
-  }
-};
+const DISPLAY_TIMER_SECONDS = 10;
 
 let etapaAtual = -1;
 let transcriptAtual = "";
 let dadosSessao = [];
 let ultimaAnalise = null;
+let ultimoRelatorio = null;
+let timerVisual = null;
 
 const el = (id) => document.getElementById(id);
+
+function temaAtual() {
+  return (el("inpTema").value || "").trim();
+}
+
+function contextoAtual() {
+  return (el("inpContexto").value || "").trim();
+}
+
+function getJanelaRelatoriosTexto() {
+  const sessoes = obterJanelaSessoes();
+  return sessoes.map((s, i) => {
+    const idx = i + 1;
+    return {
+      indice: idx,
+      timestamp: s.timestamp,
+      resumo: s.relatorio?.resumo_conversacional || "sem resumo",
+      heuristica: s.relatorio?.heuristica || "sem heurística"
+    };
+  });
+}
+
+const TESTES = [
+  {
+    titulo: "Etapa 1 • Abertura",
+    subtitulo: "O usuário entra no tema e começa a se expressar.",
+    getInstrucao: () => {
+      const tema = temaAtual() || "o tema que você quiser trazer";
+      return `Olá, bem-vindo aos sistemas Elayon. Fale sobre ${tema}. Ao terminar, fique quatro segundos em silêncio.`;
+    },
+    texto: "",
+    tipo: "abertura"
+  },
+  {
+    titulo: "Etapa 2 • Continuidade",
+    subtitulo: "A IA acompanha o mesmo assunto e aprofunda a expressão.",
+    getInstrucao: () => {
+      return `Agora continue. Quero te ouvir um pouco mais sobre esse assunto. Fale com calma e, ao terminar, fique quatro segundos em silêncio.`;
+    },
+    texto: "",
+    tipo: "continuidade"
+  },
+  {
+    titulo: "Etapa 3 • Consolidação",
+    subtitulo: "Fechamento da sessão no mesmo eixo temático.",
+    getInstrucao: () => {
+      return `Para fechar esta sessão, diga o que neste assunto merece mais atenção agora. Ao terminar, fique quatro segundos em silêncio.`;
+    },
+    texto: "",
+    tipo: "fechamento"
+  }
+];
 
 function addTimeline(texto) {
   const item = document.createElement("div");
@@ -90,7 +84,7 @@ function setStatusEtapa(texto) {
 
 function setPainelTecnico(obj) {
   el("painelTecnico").textContent = Object.entries(obj)
-    .map(([k, v]) => `${k}: ${v}`)
+    .map(([k, v]) => `${k}: ${typeof v === "string" ? v : JSON.stringify(v)}`)
     .join("\n");
 }
 
@@ -109,6 +103,24 @@ function showConfirm(show = true) {
 function setListening(active, text = "Microfone aguardando.") {
   el("pulseMic").classList.toggle("on", active);
   el("listeningLabel").textContent = text;
+}
+
+function iniciarTimerVisual() {
+  let restante = DISPLAY_TIMER_SECONDS;
+  el("timerFalando").textContent = String(restante);
+
+  clearInterval(timerVisual);
+  timerVisual = setInterval(() => {
+    restante -= 1;
+    el("timerFalando").textContent = String(Math.max(restante, 0));
+    if (restante <= 0) {
+      clearInterval(timerVisual);
+    }
+  }, 1000);
+}
+
+function pararTimerVisual() {
+  clearInterval(timerVisual);
 }
 
 function preencherMetricasPorAnalise(analysis, etapa) {
@@ -143,53 +155,75 @@ function preencherMetricasPorAnalise(analysis, etapa) {
   });
 }
 
-function consolidarHeuristica() {
-  const metricas = {
-    presenca: parseInt(el("valPresenca").textContent),
-    clareza: parseInt(el("valClareza").textContent),
-    ritmo: parseInt(el("valRitmo").textContent),
-    firmeza: parseInt(el("valFirmeza").textContent),
-    continuidade: parseInt(el("valContinuidade").textContent),
-    estabilidade: parseInt(el("valEstabilidade").textContent),
-    oscilacao: parseInt(el("valOscilacao").textContent)
+function montarRelatorioSessao(analysis, payload, transcricao) {
+  const janela = getJanelaRelatoriosTexto();
+  const diagnostico = analysis?.diagnostico || {};
+  const heuristica = analysis?.heuristica || "";
+  const summary = analysis?.user_report?.summary || "";
+
+  const relatorio = {
+    timestamp: new Date().toISOString(),
+    tema: temaAtual(),
+    contexto: contextoAtual(),
+    transcricao,
+    payload,
+    diagnostico,
+    heuristica,
+    resumo_conversacional: summary,
+    sessoes_anteriores: janela
   };
 
-  const maior = Object.entries(metricas).sort((a, b) => b[1] - a[1])[0][0];
-  const menor = Object.entries(metricas).sort((a, b) => a[1] - b[1])[0][0];
+  return relatorio;
+}
 
-  const extra = ultimaAnalise?.heuristica
-    ? `<br><br><strong>Leitura CRS:</strong> ${ultimaAnalise.heuristica}`
-    : "";
+function renderRelatorio(relatorio) {
+  el("resultadoFinal").textContent =
+`Tema: ${relatorio.tema || "não definido"}
+Contexto: ${relatorio.contexto || "não definido"}
 
-  el("resultadoFinal").innerHTML = `
-    <strong>Destaque positivo:</strong> ${HEURISTICA[maior].alta}<br><br>
-    <strong>Ponto de melhoria:</strong> ${HEURISTICA[menor].baixa}<br><br>
-    <strong>Orientação final:</strong> A sessão foi concluída. Revise os indicadores antes de seguir para a próxima etapa.
-    ${extra}
-  `;
+Resumo:
+${relatorio.resumo_conversacional || "sem resumo"}
 
-  setPainelTecnico({
-    etapa: "concluida",
-    instrucao: "finalizada",
-    microfone: "encerrado",
-    tts: "finalizado",
-    transcricao: dadosSessao.length ? "captada" : "nao_captada",
-    silencio_final_4s: "concluido",
-    decisao_heuristica: "gerada",
-    liberacao_catraca: "pronta_para_analise"
-  });
+Heurística:
+${relatorio.heuristica || "sem heurística"}
+
+Diagnóstico:
+${relatorio.diagnostico?.estado || "sem estado"} • ${relatorio.diagnostico?.feedback || "sem feedback"}
+
+Sessões anteriores consideradas:
+${relatorio.sessoes_anteriores.length}`;
+}
+
+function renderListaRelatorios() {
+  const lista = obterRelatorios();
+  const alvo = el("listaRelatorios");
+
+  if (!lista.length) {
+    alvo.innerHTML = `<div class="relatorio-item">Nenhum relatório salvo ainda.</div>`;
+    return;
+  }
+
+  alvo.innerHTML = lista.slice().reverse().map((item, idx) => `
+    <div class="relatorio-item">
+      <strong>Relatório ${lista.length - idx}</strong>
+      <div><b>Tema:</b> ${item.tema || "não definido"}</div>
+      <div><b>Resumo:</b> ${item.resumo_conversacional || "sem resumo"}</div>
+      <div><b>Data:</b> ${new Date(item.timestamp).toLocaleString("pt-BR")}</div>
+    </div>
+  `).join("");
 }
 
 function carregarEtapa(indice) {
   etapaAtual = indice;
   const etapa = TESTES[indice];
+  const instrucao = etapa.getInstrucao();
 
   setStatusEtapa(`${indice + 1} de 3`);
-  setPrompt(etapa.instrucao);
+  setPrompt(instrucao);
 
   el("modalTitulo").textContent = etapa.titulo;
   el("modalSubtitulo").textContent = etapa.subtitulo;
-  el("modalInstrucao").textContent = etapa.instrucao;
+  el("modalInstrucao").textContent = instrucao;
   el("transcricaoAtual").textContent = "A transcrição aparecerá aqui.";
   transcriptAtual = "";
 
@@ -207,18 +241,18 @@ function carregarEtapa(indice) {
 
   abrirModal();
   addTimeline(`Etapa ${indice + 1} preparada.`);
-
-  // fala automática ao entrar
   ouvirInstrucaoAtual();
 }
 
 async function ouvirInstrucaoAtual() {
   const etapa = TESTES[etapaAtual];
+  const instrucao = etapa.getInstrucao();
+
   addTimeline(`IA iniciou fala da etapa ${etapaAtual + 1}.`);
   setListening(false, "IA emitindo instrução.");
 
   try {
-    await window.ELAYON_TUNNEL.tts.speak(etapa.instrucao);
+    await window.ELAYON_TUNNEL.tts.speak(instrucao);
     el("btnResponder").disabled = false;
     addTimeline("Instrução concluída. Resposta liberada.");
     setListening(false, "Pronto para responder.");
@@ -227,11 +261,12 @@ async function ouvirInstrucaoAtual() {
       instrucao: "emitida",
       microfone: "liberado",
       tts: "concluido",
-      texto_guiado: etapa.texto ? "visivel" : "nao",
+      tema: temaAtual() || "vazio",
+      contexto: contextoAtual() || "vazio",
       transcricao: "pendente",
       silencio_final_4s: "pendente",
-      decisao_heuristica: "pendente",
-      liberacao_catraca: "em_analise"
+      relatorio: "pendente",
+      historico_ultimas_3: getJanelaRelatoriosTexto()
     });
   } catch (e) {
     addTimeline(`Falha no TTS: ${e.message}`);
@@ -244,6 +279,7 @@ async function iniciarResposta() {
   showConfirm(false);
   setStatusMic("Ouvindo");
   setListening(true, "Microfone aberto. Responda agora.");
+  iniciarTimerVisual();
   addTimeline("Microfone iniciado.");
 
   try {
@@ -260,6 +296,7 @@ async function iniciarResposta() {
     el("transcricaoAtual").textContent = transcriptAtual || "Nenhuma fala captada.";
     setStatusMic("Silêncio / Finalizado");
     setListening(false, "Captação finalizada.");
+    pararTimerVisual();
 
     addTimeline(
       transcriptAtual
@@ -271,6 +308,7 @@ async function iniciarResposta() {
   } catch (e) {
     setStatusMic("Erro");
     setListening(false, "Erro na captação.");
+    pararTimerVisual();
     addTimeline(`Erro na transcrição: ${e.message}`);
     showConfirm(true);
   }
@@ -278,10 +316,11 @@ async function iniciarResposta() {
 
 async function confirmarResposta() {
   const etapa = TESTES[etapaAtual];
+  const instrucao = etapa.getInstrucao();
 
   const payload = window.ELAYON_TUNNEL.crs.buildPayload(transcriptAtual, {
-    context: etapa.context,
-    source_text: etapa.texto || etapa.sourceText || etapa.instrucao
+    context: `${contextoAtual()} | etapa ${etapaAtual + 1} | tema ${temaAtual()}`,
+    source_text: etapa.texto || instrucao
   });
 
   addTimeline(`Enviando etapa ${etapaAtual + 1} para análise do CRS.`);
@@ -299,7 +338,7 @@ async function confirmarResposta() {
   dadosSessao.push({
     etapa: etapaAtual + 1,
     tipo: etapa.tipo,
-    instrucao: etapa.instrucao,
+    instrucao,
     transcricao: transcriptAtual,
     payload,
     analysis
@@ -307,16 +346,20 @@ async function confirmarResposta() {
 
   preencherMetricasPorAnalise(analysis || {}, etapaAtual + 1);
 
+  ultimoRelatorio = montarRelatorioSessao(analysis || {}, payload, transcriptAtual);
+  renderRelatorio(ultimoRelatorio);
+
   setPainelTecnico({
     etapa: etapaAtual + 1,
     instrucao: "concluida",
     microfone: "encerrado",
     tts: "pronto",
-    texto_guiado: etapa.texto ? "utilizado" : "nao",
+    tema: temaAtual() || "vazio",
+    contexto: contextoAtual() || "vazio",
     transcricao: transcriptAtual ? "captada" : "vazia",
     silencio_final_4s: "concluido",
-    decisao_heuristica: analysis?.heuristica ? "parcial_gerada" : "pendente",
-    liberacao_catraca: "em_analise"
+    relatorio: ultimoRelatorio,
+    historico_ultimas_3: getJanelaRelatoriosTexto()
   });
 
   showConfirm(false);
@@ -327,7 +370,7 @@ async function confirmarResposta() {
   }
 
   fecharModal();
-  consolidarHeuristica();
+  addTimeline("Sessão concluída. Relatório atualizado.");
 }
 
 function refazerResposta() {
@@ -339,21 +382,62 @@ function refazerResposta() {
   setListening(false, "Pronto para nova resposta.");
 }
 
+function salvarSessaoAtual() {
+  if (!ultimoRelatorio) {
+    addTimeline("Nenhum relatório disponível para salvar.");
+    return;
+  }
+
+  const sessao = {
+    timestamp: new Date().toISOString(),
+    tema: temaAtual(),
+    contexto: contextoAtual(),
+    etapas: dadosSessao,
+    relatorio: ultimoRelatorio
+  };
+
+  salvarSessao(sessao);
+  salvarRelatorio(ultimoRelatorio);
+  renderListaRelatorios();
+  addTimeline("Sessão salva com sucesso.");
+}
+
+function exportarRelatorioAtual() {
+  if (!ultimoRelatorio) {
+    addTimeline("Nenhum relatório disponível para exportar.");
+    return;
+  }
+
+  const blob = new Blob([JSON.stringify(ultimoRelatorio, null, 2)], {
+    type: "application/json"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `elayon-relatorio-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  addTimeline("Relatório exportado em JSON.");
+}
+
 function resetCockpit() {
   etapaAtual = -1;
   dadosSessao = [];
   transcriptAtual = "";
   ultimaAnalise = null;
+  ultimoRelatorio = null;
 
-  setPrompt("A avaliação ainda não começou. Clique em “Iniciar avaliação”.");
+  setPrompt("A sessão ainda não começou. Defina tema e contexto, depois clique em “Iniciar sessão”.");
   setStatusMic("Aguardando");
   setStatusEtapa("0 de 3");
 
   el("resultadoFinal").textContent =
-    "O resultado final aparecerá aqui após a conclusão dos testes.";
+    "O relatório atual aparecerá aqui após as interações.";
 
   el("timeline").innerHTML =
-    `<div class="event">[00:00] sistema pronto • aguardando início da avaliação</div>`;
+    `<div class="event">[00:00] sistema pronto • aguardando início da sessão</div>`;
 
   ["Presenca","Clareza","Ritmo","Firmeza","Continuidade","Estabilidade","Oscilacao"].forEach(id => {
     el(`val${id}`).textContent = "0%";
@@ -365,27 +449,37 @@ function resetCockpit() {
     instrucao: "nao_emitida",
     microfone: "bloqueado",
     tts: "pronto",
-    texto_guiado: "vazio",
+    tema: temaAtual() || "vazio",
+    contexto: contextoAtual() || "vazio",
     transcricao: "nao_captada",
     silencio_final_4s: "pendente",
-    decisao_heuristica: "pendente",
-    liberacao_catraca: "em_analise"
+    relatorio: "pendente",
+    historico_ultimas_3: getJanelaRelatoriosTexto()
   });
 
   showConfirm(false);
   setListening(false);
+  pararTimerVisual();
+  renderListaRelatorios();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   resetCockpit();
 
-  el("btnAbrirFluxo").addEventListener("click", () => carregarEtapa(0));
+  el("btnAbrirFluxo").addEventListener("click", () => {
+    if (!temaAtual()) {
+      addTimeline("Defina um tema antes de iniciar.");
+      return;
+    }
+    carregarEtapa(0);
+  });
 
   el("btnPararTudo").addEventListener("click", async () => {
     try { await window.ELAYON_TUNNEL.tts.stop(); } catch {}
     fecharModal();
     addTimeline("Sessão interrompida manualmente.");
     setListening(false, "Sessão interrompida.");
+    pararTimerVisual();
   });
 
   el("btnResetarCockpit").addEventListener("click", resetCockpit);
@@ -394,6 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
     fecharModal();
     addTimeline("Sessão encerrada pelo usuário.");
     setListening(false, "Sessão encerrada.");
+    pararTimerVisual();
   });
 
   el("btnOuvirInstrucao").addEventListener("click", ouvirInstrucaoAtual);
@@ -406,9 +501,21 @@ document.addEventListener("DOMContentLoaded", () => {
     fecharModal();
     addTimeline("Modal encerrado.");
     setListening(false, "Modal encerrado.");
+    pararTimerVisual();
   });
 
   el("btnAvancoManual").addEventListener("click", () => {
-    if (etapaAtual === -1) carregarEtapa(0);
+    if (etapaAtual === -1 && temaAtual()) carregarEtapa(0);
   });
+
+  el("btnSalvarSessao").addEventListener("click", salvarSessaoAtual);
+  el("btnGerarRelatorio").addEventListener("click", () => {
+    if (ultimoRelatorio) {
+      renderRelatorio(ultimoRelatorio);
+      addTimeline("Relatório regenerado na tela.");
+    } else {
+      addTimeline("Ainda não há relatório para gerar.");
+    }
+  });
+  el("btnExportarRelatorio").addEventListener("click", exportarRelatorioAtual);
 });
