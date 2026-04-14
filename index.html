@@ -6,9 +6,6 @@
   <title>Elayon • Avaliação Pessoal</title>
 
   <style>
-    /* =========================================================
-       BLOCO 1 — BASE VISUAL
-    ========================================================= */
     :root{
       --bg:#eef6f7;
       --card:#ffffff;
@@ -26,7 +23,6 @@
     }
 
     *{box-sizing:border-box}
-
     body{
       margin:0;
       font-family:Arial, Helvetica, sans-serif;
@@ -40,9 +36,6 @@
       padding:20px;
     }
 
-    /* =========================================================
-       BLOCO 2 — TOPO
-    ========================================================= */
     .topbar{
       display:flex;
       justify-content:space-between;
@@ -111,9 +104,11 @@
       border:1px solid var(--line);
     }
 
-    /* =========================================================
-       BLOCO 3 — HERO
-    ========================================================= */
+    .btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
     .hero{
       background:var(--card);
       border:1px solid var(--line);
@@ -157,9 +152,6 @@
       margin-top:18px;
     }
 
-    /* =========================================================
-       BLOCO 4 — LAYOUT PRINCIPAL
-    ========================================================= */
     .layout{
       display:grid;
       grid-template-columns:1.15fr .85fr;
@@ -190,9 +182,6 @@
       line-height:1.7;
     }
 
-    /* =========================================================
-       BLOCO 5 — INSTRUÇÃO / PROGRESSO
-    ========================================================= */
     .prompt-box{
       background:#fff;
       border:1px dashed var(--line);
@@ -221,12 +210,12 @@
       gap:10px;
     }
 
-    /* =========================================================
-       BLOCO 6 — TIMELINE
-    ========================================================= */
     .timeline{
       display:grid;
       gap:10px;
+      max-height:520px;
+      overflow:auto;
+      padding-right:4px;
     }
 
     .event{
@@ -239,9 +228,6 @@
       line-height:1.6;
     }
 
-    /* =========================================================
-       BLOCO 7 — STATUS E MÉTRICAS
-    ========================================================= */
     .grid-2{
       display:grid;
       grid-template-columns:repeat(2,minmax(0,1fr));
@@ -304,9 +290,6 @@
       transition:width .35s ease;
     }
 
-    /* =========================================================
-       BLOCO 8 — RESULTADO / TABELA / PAINEL TÉCNICO
-    ========================================================= */
     .result-box{
       background:#fff;
       border:1px solid var(--line);
@@ -369,9 +352,6 @@
       font-size:13px;
     }
 
-    /* =========================================================
-       BLOCO 9 — MODAL
-    ========================================================= */
     .modal-backdrop{
       position:fixed;
       inset:0;
@@ -389,7 +369,7 @@
 
     .modal{
       width:100%;
-      max-width:620px;
+      max-width:680px;
       background:#fff;
       border-radius:22px;
       border:1px solid var(--line);
@@ -458,11 +438,56 @@
       color:var(--ink);
     }
 
-    .modal-actions{
+    .confirm-box{
+      margin-top:14px;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      display:none;
+    }
+
+    .confirm-box.show{
+      display:block;
+    }
+
+    .confirm-box p{
+      margin:0 0 12px;
+      font-weight:700;
+    }
+
+    .confirm-actions{
       display:flex;
       gap:10px;
       flex-wrap:wrap;
-      margin-top:16px;
+    }
+
+    .listening{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      margin-top:10px;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .pulse{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background:var(--accent);
+      animation:pulse 1s infinite;
+      display:none;
+    }
+
+    .pulse.on{
+      display:inline-block;
+    }
+
+    @keyframes pulse {
+      0% { transform:scale(1); opacity:1; }
+      50% { transform:scale(1.6); opacity:.45; }
+      100% { transform:scale(1); opacity:1; }
     }
 
     @media (max-width:1100px){
@@ -472,15 +497,12 @@
     @media (max-width:700px){
       .grid-2{grid-template-columns:1fr}
       .hero h2{font-size:28px}
+      .brand h1{font-size:24px}
     }
   </style>
 </head>
 <body>
   <main class="app">
-
-    <!-- ======================================================
-         BLOCO 10 — TOPO
-    ======================================================= -->
     <section class="topbar">
       <div class="brand">
         <img src="2_20260310_145449_0001.png" alt="Logo Elayon">
@@ -497,9 +519,6 @@
       </div>
     </section>
 
-    <!-- ======================================================
-         BLOCO 11 — HERO
-    ======================================================= -->
     <section class="hero">
       <div class="badge">Túnel ativo • TTS • microfone • transcrição • CRS</div>
       <h2>Avaliação inicial com interação real</h2>
@@ -515,13 +534,8 @@
       </div>
     </section>
 
-    <!-- ======================================================
-         BLOCO 12 — LAYOUT PRINCIPAL
-    ======================================================= -->
     <section class="layout">
       <div class="stack">
-
-        <!-- BLOCO 12A — INSTRUÇÃO -->
         <section class="card">
           <h3>Instrução e progresso</h3>
           <p class="sub">Mostra a instrução atual da IA e o estágio da sessão.</p>
@@ -539,7 +553,6 @@
           </div>
         </section>
 
-        <!-- BLOCO 12B — TIMELINE -->
         <section class="card">
           <h3>Timeline da sessão</h3>
           <p class="sub">Registro das ações da IA, respostas do usuário e eventos técnicos.</p>
@@ -548,7 +561,6 @@
           </div>
         </section>
 
-        <!-- BLOCO 12C — RESULTADO -->
         <section class="card">
           <h3>Resultado heurístico final</h3>
           <p class="sub">Síntese do melhor indicador, do ponto de melhoria e da orientação final.</p>
@@ -564,7 +576,6 @@
           </div>
         </section>
 
-        <!-- BLOCO 12D — TABELA HEURÍSTICA -->
         <section class="card">
           <h3>Tabela heurística fixa</h3>
           <p class="sub">Base fixa para as respostas de destaque positivo e ponto de melhoria.</p>
@@ -593,8 +604,6 @@
       </div>
 
       <div class="stack">
-
-        <!-- BLOCO 12E — STATUS -->
         <section class="card">
           <h3>Estado do cockpit</h3>
           <p class="sub">Status vivo dos elementos principais da sessão.</p>
@@ -607,7 +616,6 @@
           </div>
         </section>
 
-        <!-- BLOCO 12F — MÉTRICAS -->
         <section class="card">
           <h3>Sete métricas principais</h3>
           <p class="sub">Barras preenchidas ao longo da avaliação.</p>
@@ -623,7 +631,6 @@
           </div>
         </section>
 
-        <!-- BLOCO 12G — PAINEL TÉCNICO -->
         <section class="card">
           <h3>Painel visual para leitura posterior</h3>
           <p class="sub">Área pensada para print e leitura junto com o JSON final.</p>
@@ -635,7 +642,7 @@ microfone: bloqueado
 tts: pronto
 texto_guiado: vazio
 transcricao: nao_captada
-silencio_final_3s: pendente
+silencio_final_4s: pendente
 decisao_heuristica: pendente
 liberacao_catraca: em_analise
           </div>
@@ -648,9 +655,6 @@ liberacao_catraca: em_analise
     </div>
   </main>
 
-  <!-- ======================================================
-       BLOCO 13 — MODAL ÚNICO DINÂMICO
-  ======================================================= -->
   <div class="modal-backdrop" id="modalFluxo">
     <div class="modal">
       <div class="modal-head">
@@ -671,25 +675,35 @@ liberacao_catraca: em_analise
         </div>
 
         <div class="mic-row">
-          <button class="btn" id="btnFalarInstrucao" type="button">Ouvir instrução</button>
-          <button class="btn secondary" id="btnIniciarMic" type="button" disabled>Iniciar microfone</button>
+          <button class="btn" id="btnOuvirInstrucao" type="button">Ouvir instrução</button>
+          <button class="btn secondary" id="btnResponder" type="button" disabled>Responder</button>
+          <button class="btn secondary" id="btnRepetirInstrucao" type="button">Repetir instrução</button>
+        </div>
+
+        <div class="listening">
+          <span class="pulse" id="pulseMic"></span>
+          <span id="listeningLabel">Microfone aguardando.</span>
         </div>
 
         <div class="transcript" id="transcricaoAtual">
           A transcrição aparecerá aqui.
         </div>
 
+        <div class="confirm-box" id="confirmBox">
+          <p>Confirma sua resposta?</p>
+          <div class="confirm-actions">
+            <button class="btn" id="btnConfirmarResposta" type="button">Sim</button>
+            <button class="btn secondary" id="btnRefazerResposta" type="button">Não</button>
+          </div>
+        </div>
+
         <div class="modal-actions">
-          <button class="btn" id="btnConcluirEtapa" type="button" disabled>Concluir etapa</button>
           <button class="btn secondary" id="btnEncerrarModal" type="button">Encerrar</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ======================================================
-       BLOCO 14 — SCRIPTS
-  ======================================================= -->
   <script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/base.js"></script>
   <script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/tunnel-lab.js"></script>
   <script src="cockpit.js"></script>
