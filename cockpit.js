@@ -11,6 +11,13 @@ let timerVisual = null;
 
 const el = (id) => document.getElementById(id);
 
+function log(msg) {
+  const box = el("logsBox");
+  const line = `[${new Date().toLocaleTimeString("pt-BR")}] ${msg}`;
+  box.textContent += `\n${line}`;
+  box.scrollTop = box.scrollHeight;
+}
+
 function temaAtual() {
   return (el("inpTema").value || "").trim();
 }
@@ -21,21 +28,18 @@ function contextoAtual() {
 
 function getJanelaRelatoriosTexto() {
   const sessoes = obterJanelaSessoes();
-  return sessoes.map((s, i) => {
-    const idx = i + 1;
-    return {
-      indice: idx,
-      timestamp: s.timestamp,
-      resumo: s.relatorio?.resumo_conversacional || "sem resumo",
-      heuristica: s.relatorio?.heuristica || "sem heurística"
-    };
-  });
+  return sessoes.map((s, i) => ({
+    indice: i + 1,
+    timestamp: s.timestamp,
+    resumo: s.relatorio?.resumo_conversacional || "sem resumo",
+    heuristica: s.relatorio?.heuristica || "sem heurística"
+  }));
 }
 
 const TESTES = [
   {
     titulo: "Etapa 1 • Abertura",
-    subtitulo: "O usuário entra no tema e começa a se expressar.",
+    subtitulo: "Chegada ao tema.",
     getInstrucao: () => {
       const tema = temaAtual() || "o tema que você quiser trazer";
       return `Olá, bem-vindo aos sistemas Elayon. Fale sobre ${tema}. Ao terminar, fique quatro segundos em silêncio.`;
@@ -45,7 +49,7 @@ const TESTES = [
   },
   {
     titulo: "Etapa 2 • Continuidade",
-    subtitulo: "A IA acompanha o mesmo assunto e aprofunda a expressão.",
+    subtitulo: "Aprofundamento do mesmo assunto.",
     getInstrucao: () => {
       return `Agora continue. Quero te ouvir um pouco mais sobre esse assunto. Fale com calma e, ao terminar, fique quatro segundos em silêncio.`;
     },
@@ -54,7 +58,7 @@ const TESTES = [
   },
   {
     titulo: "Etapa 3 • Consolidação",
-    subtitulo: "Fechamento da sessão no mesmo eixo temático.",
+    subtitulo: "Fechamento do eixo temático.",
     getInstrucao: () => {
       return `Para fechar esta sessão, diga o que neste assunto merece mais atenção agora. Ao terminar, fique quatro segundos em silêncio.`;
     },
@@ -68,6 +72,7 @@ function addTimeline(texto) {
   item.className = "event";
   item.textContent = `[${new Date().toLocaleTimeString("pt-BR")}] ${texto}`;
   el("timeline").prepend(item);
+  log(texto);
 }
 
 function setPrompt(texto) {
@@ -90,14 +95,17 @@ function setPainelTecnico(obj) {
 
 function abrirModal() {
   el("modalFluxo").classList.add("show");
+  log("modal aberto");
 }
 
 function fecharModal() {
   el("modalFluxo").classList.remove("show");
+  log("modal fechado");
 }
 
 function showConfirm(show = true) {
   el("confirmBox").classList.toggle("show", show);
+  log(show ? "bloco de confirmação exibido" : "bloco de confirmação oculto");
 }
 
 function setListening(active, text = "Microfone aguardando.") {
@@ -113,9 +121,7 @@ function iniciarTimerVisual() {
   timerVisual = setInterval(() => {
     restante -= 1;
     el("timerFalando").textContent = String(Math.max(restante, 0));
-    if (restante <= 0) {
-      clearInterval(timerVisual);
-    }
+    if (restante <= 0) clearInterval(timerVisual);
   }, 1000);
 }
 
@@ -153,6 +159,8 @@ function preencherMetricasPorAnalise(analysis, etapa) {
     el(`val${suffix}`).textContent = `${val}%`;
     el(`bar${suffix}`).style.width = `${val}%`;
   });
+
+  log(`métricas integradas atualizadas | silêncio=${silence} | pausas=${pauses}`);
 }
 
 function montarRelatorioSessao(analysis, payload, transcricao) {
@@ -161,7 +169,7 @@ function montarRelatorioSessao(analysis, payload, transcricao) {
   const heuristica = analysis?.heuristica || "";
   const summary = analysis?.user_report?.summary || "";
 
-  const relatorio = {
+  return {
     timestamp: new Date().toISOString(),
     tema: temaAtual(),
     contexto: contextoAtual(),
@@ -172,8 +180,6 @@ function montarRelatorioSessao(analysis, payload, transcricao) {
     resumo_conversacional: summary,
     sessoes_anteriores: janela
   };
-
-  return relatorio;
 }
 
 function renderRelatorio(relatorio) {
@@ -240,7 +246,7 @@ function carregarEtapa(indice) {
   }
 
   abrirModal();
-  addTimeline(`Etapa ${indice + 1} preparada.`);
+  addTimeline(`etapa ${indice + 1} preparada`);
   ouvirInstrucaoAtual();
 }
 
@@ -248,14 +254,15 @@ async function ouvirInstrucaoAtual() {
   const etapa = TESTES[etapaAtual];
   const instrucao = etapa.getInstrucao();
 
-  addTimeline(`IA iniciou fala da etapa ${etapaAtual + 1}.`);
+  addTimeline(`IA iniciou fala da etapa ${etapaAtual + 1}`);
   setListening(false, "IA emitindo instrução.");
 
   try {
     await window.ELAYON_TUNNEL.tts.speak(instrucao);
     el("btnResponder").disabled = false;
-    addTimeline("Instrução concluída. Resposta liberada.");
+    addTimeline("instrução concluída, resposta liberada");
     setListening(false, "Pronto para responder.");
+
     setPainelTecnico({
       etapa: etapaAtual + 1,
       instrucao: "emitida",
@@ -269,7 +276,7 @@ async function ouvirInstrucaoAtual() {
       historico_ultimas_3: getJanelaRelatoriosTexto()
     });
   } catch (e) {
-    addTimeline(`Falha no TTS: ${e.message}`);
+    addTimeline(`falha no TTS: ${e.message}`);
     setListening(false, "Falha ao emitir instrução.");
   }
 }
@@ -280,7 +287,7 @@ async function iniciarResposta() {
   setStatusMic("Ouvindo");
   setListening(true, "Microfone aberto. Responda agora.");
   iniciarTimerVisual();
-  addTimeline("Microfone iniciado.");
+  addTimeline("microfone iniciado");
 
   try {
     await new Promise(resolve => setTimeout(resolve, PRE_START_DELAY));
@@ -300,8 +307,8 @@ async function iniciarResposta() {
 
     addTimeline(
       transcriptAtual
-        ? "Fala captada com sucesso."
-        : "Captação finalizada sem texto reconhecido."
+        ? "fala captada com sucesso"
+        : "captação finalizada sem texto reconhecido"
     );
 
     showConfirm(true);
@@ -309,7 +316,7 @@ async function iniciarResposta() {
     setStatusMic("Erro");
     setListening(false, "Erro na captação.");
     pararTimerVisual();
-    addTimeline(`Erro na transcrição: ${e.message}`);
+    addTimeline(`erro na transcrição: ${e.message}`);
     showConfirm(true);
   }
 }
@@ -323,16 +330,16 @@ async function confirmarResposta() {
     source_text: etapa.texto || instrucao
   });
 
-  addTimeline(`Enviando etapa ${etapaAtual + 1} para análise do CRS.`);
+  addTimeline(`enviando etapa ${etapaAtual + 1} para análise do CRS`);
 
   let analysis = null;
 
   try {
     analysis = await window.ELAYON_TUNNEL.crs.analyze(payload);
     ultimaAnalise = analysis;
-    addTimeline("Resposta do CRS recebida.");
+    addTimeline("resposta do CRS recebida");
   } catch (e) {
-    addTimeline(`Falha no CRS: ${e.message}`);
+    addTimeline(`falha no CRS: ${e.message}`);
   }
 
   dadosSessao.push({
@@ -370,7 +377,7 @@ async function confirmarResposta() {
   }
 
   fecharModal();
-  addTimeline("Sessão concluída. Relatório atualizado.");
+  addTimeline("sessão concluída, relatório atualizado");
 }
 
 function refazerResposta() {
@@ -378,13 +385,13 @@ function refazerResposta() {
   transcriptAtual = "";
   el("transcricaoAtual").textContent = "Resposta descartada. Pressione responder para refazer.";
   el("btnResponder").disabled = false;
-  addTimeline("Usuário optou por refazer a resposta.");
+  addTimeline("usuário optou por refazer a resposta");
   setListening(false, "Pronto para nova resposta.");
 }
 
 function salvarSessaoAtual() {
   if (!ultimoRelatorio) {
-    addTimeline("Nenhum relatório disponível para salvar.");
+    addTimeline("nenhum relatório disponível para salvar");
     return;
   }
 
@@ -399,12 +406,12 @@ function salvarSessaoAtual() {
   salvarSessao(sessao);
   salvarRelatorio(ultimoRelatorio);
   renderListaRelatorios();
-  addTimeline("Sessão salva com sucesso.");
+  addTimeline("sessão salva com sucesso");
 }
 
 function exportarRelatorioAtual() {
   if (!ultimoRelatorio) {
-    addTimeline("Nenhum relatório disponível para exportar.");
+    addTimeline("nenhum relatório disponível para exportar");
     return;
   }
 
@@ -419,7 +426,7 @@ function exportarRelatorioAtual() {
   a.click();
   URL.revokeObjectURL(url);
 
-  addTimeline("Relatório exportado em JSON.");
+  addTimeline("relatório exportado em JSON");
 }
 
 function resetCockpit() {
@@ -461,6 +468,7 @@ function resetCockpit() {
   setListening(false);
   pararTimerVisual();
   renderListaRelatorios();
+  log("cockpit resetado");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -468,7 +476,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   el("btnAbrirFluxo").addEventListener("click", () => {
     if (!temaAtual()) {
-      addTimeline("Defina um tema antes de iniciar.");
+      addTimeline("defina um tema antes de iniciar");
       return;
     }
     carregarEtapa(0);
@@ -477,7 +485,7 @@ document.addEventListener("DOMContentLoaded", () => {
   el("btnPararTudo").addEventListener("click", async () => {
     try { await window.ELAYON_TUNNEL.tts.stop(); } catch {}
     fecharModal();
-    addTimeline("Sessão interrompida manualmente.");
+    addTimeline("sessão interrompida manualmente");
     setListening(false, "Sessão interrompida.");
     pararTimerVisual();
   });
@@ -486,7 +494,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   el("btnEncerrarSessao").addEventListener("click", () => {
     fecharModal();
-    addTimeline("Sessão encerrada pelo usuário.");
+    addTimeline("sessão encerrada pelo usuário");
     setListening(false, "Sessão encerrada.");
     pararTimerVisual();
   });
@@ -499,7 +507,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   el("btnEncerrarModal").addEventListener("click", () => {
     fecharModal();
-    addTimeline("Modal encerrado.");
+    addTimeline("modal encerrado");
     setListening(false, "Modal encerrado.");
     pararTimerVisual();
   });
@@ -512,9 +520,9 @@ document.addEventListener("DOMContentLoaded", () => {
   el("btnGerarRelatorio").addEventListener("click", () => {
     if (ultimoRelatorio) {
       renderRelatorio(ultimoRelatorio);
-      addTimeline("Relatório regenerado na tela.");
+      addTimeline("relatório regenerado na tela");
     } else {
-      addTimeline("Ainda não há relatório para gerar.");
+      addTimeline("ainda não há relatório para gerar");
     }
   });
   el("btnExportarRelatorio").addEventListener("click", exportarRelatorioAtual);
