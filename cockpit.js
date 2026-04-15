@@ -102,7 +102,7 @@ O CRS apenas capta padrões de ritmo e silêncio, sem interferir no conteúdo da
 
 Use este momento com atenção e presença.
 
-melhores sua postura e quando estiver pronto, pressione "Responder" para iniciar e discursar sobre seu tema e contexto.`;
+Melhore sua postura, respire e quando estiver pronto pra falar sobre o tema e o contexto, pressione "Responder" para iniciar.`;
 
 
 
