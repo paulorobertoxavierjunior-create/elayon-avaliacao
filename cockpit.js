@@ -314,7 +314,7 @@ async function ouvirInstrucaoAtual() {
   setListening(false, "IA emitindo instrução.");
 
   try {
-    await window.ELAYON_TUNNEL.tts.speak(instrucao);
+    await falarComEscritaProgressiva(instrucao, "modalInstrucao");
     el("btnResponder").disabled = false;
     addTimeline("instrução concluída, resposta liberada");
     setListening(false, "Pronto para responder.");
