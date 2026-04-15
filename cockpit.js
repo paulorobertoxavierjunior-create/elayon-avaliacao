@@ -9,6 +9,62 @@ let ultimaAnalise = null;
 let ultimoRelatorio = null;
 let timerVisual = null;
 
+// ================================
+// IA HUMANA — FALA + ESCRITA JUNTA
+// ================================
+
+function escreverTextoProgressivo(texto, alvoId, velocidade = 32) {
+  return new Promise((resolve) => {
+    const alvo = document.getElementById(alvoId);
+    if (!alvo) return resolve();
+
+    alvo.textContent = "";
+    let i = 0;
+
+    function tick() {
+      if (i < texto.length) {
+        alvo.textContent += texto[i];
+        i++;
+        setTimeout(tick, velocidade);
+      } else {
+        resolve();
+      }
+    }
+
+    tick();
+  });
+}
+
+async function falarComEscritaProgressiva(texto, alvoId) {
+  const alvo = document.getElementById(alvoId);
+  if (alvo) alvo.textContent = "";
+
+  const escrita = escreverTextoProgressivo(texto, alvoId);
+  const fala = window.ELAYON_TUNNEL.tts.speak(texto);
+
+  await Promise.allSettled([fala, escrita]);
+}
+
+// ================================
+// PROTOCOLO INICIAL
+// ================================
+
+const PROTOCOLO_USO = `Olá. Bem-vindo aos sistemas Elayon.
+
+Esta é uma sessão de observação da sua própria fala.
+
+Você é totalmente responsável pelo que diz, pelo tempo que utiliza e pela forma como conduz esta experiência.
+
+O sistema não interpreta, não julga e não influencia suas respostas.
+
+O CRS apenas capta padrões de ritmo e silêncio, sem interferir no conteúdo da sua fala.
+
+Os dados gerados servem exclusivamente como base de reflexão.
+
+Use este momento com atenção e presença.
+
+Quando estiver pronto, pressione "Responder" para iniciar.`;
+
 const el = (id) => document.getElementById(id);
 
 function log(msg) {
