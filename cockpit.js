@@ -782,4 +782,4 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   el("btnExportarRelatorio")?.addEventListener("click", exportarRelatorioAtual);
-});
+}); 
