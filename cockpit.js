@@ -100,11 +100,11 @@ O sistema não interpreta, não julga e não influencia suas respostas.
 
 O CRS apenas capta padrões de ritmo e silêncio, sem interferir no conteúdo da sua fala.
 
-Os dados gerados servem exclusivamente como base de reflexão.
-
 Use este momento com atenção e presença.
 
-Quando estiver pronto, pressione "Responder" para iniciar.`;
+melhores sua postura e quando estiver pronto, pressione "Responder" para iniciar e discursar sobre seu tema e contexto.`;
+
+
 
 // ===================================
 // ETAPAS
