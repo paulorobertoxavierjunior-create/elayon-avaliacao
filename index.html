@@ -17,6 +17,8 @@
       --accent-2:#7bd490;
       --shadow:0 10px 28px rgba(14,50,56,.08);
       --radius:20px;
+      --dark:#08151a;
+      --dark2:#0f2028;
     }
 
     *{box-sizing:border-box}
@@ -29,7 +31,7 @@
     }
 
     .app{
-      max-width:1320px;
+      max-width:1340px;
       margin:0 auto;
       padding:20px;
     }
@@ -152,7 +154,7 @@
 
     .layout{
       display:grid;
-      grid-template-columns:1.1fr .9fr;
+      grid-template-columns:1.08fr .92fr;
       gap:18px;
     }
 
@@ -200,30 +202,13 @@
       font-size:18px;
       line-height:1.6;
       font-weight:700;
+      white-space:pre-wrap;
     }
 
     .flow-row{
       display:flex;
       flex-wrap:wrap;
       gap:10px;
-    }
-
-    .timeline{
-      display:grid;
-      gap:10px;
-      max-height:460px;
-      overflow:auto;
-      padding-right:4px;
-    }
-
-    .event{
-      border-left:4px solid var(--accent);
-      background:var(--soft);
-      padding:12px 14px;
-      border-radius:0 12px 12px 0;
-      color:var(--ink);
-      font-size:14px;
-      line-height:1.6;
     }
 
     .grid-2{
@@ -288,19 +273,37 @@
       transition:width .35s ease;
     }
 
+    .timeline{
+      display:grid;
+      gap:10px;
+      max-height:340px;
+      overflow:auto;
+      padding-right:4px;
+    }
+
+    .event{
+      border-left:4px solid var(--accent);
+      background:var(--soft);
+      padding:12px 14px;
+      border-radius:0 12px 12px 0;
+      color:var(--ink);
+      font-size:14px;
+      line-height:1.6;
+    }
+
     .result-box{
       background:#fff;
       border:1px solid var(--line);
       border-radius:16px;
       padding:16px;
-      min-height:170px;
+      min-height:180px;
       line-height:1.7;
       color:var(--ink);
       white-space:pre-wrap;
     }
 
     .screen-box{
-      background:#08151a;
+      background:var(--dark);
       color:#d6fff6;
       border-radius:16px;
       padding:16px;
@@ -309,6 +312,21 @@
       font-size:12px;
       line-height:1.5;
       white-space:pre-wrap;
+    }
+
+    .logs-box{
+      background:var(--dark2);
+      color:#e8fff6;
+      border-radius:16px;
+      padding:16px;
+      min-height:260px;
+      max-height:420px;
+      overflow:auto;
+      font-family:Consolas, Monaco, monospace;
+      font-size:12px;
+      line-height:1.55;
+      white-space:pre-wrap;
+      border:1px solid #18333d;
     }
 
     .final-actions{
@@ -352,7 +370,7 @@
 
     .modal{
       width:100%;
-      max-width:720px;
+      max-width:760px;
       background:#fff;
       border-radius:22px;
       border:1px solid var(--line);
@@ -417,7 +435,7 @@
       border:1px solid var(--line);
       border-radius:16px;
       padding:14px;
-      min-height:110px;
+      min-height:120px;
       line-height:1.7;
       color:var(--ink);
       white-space:pre-wrap;
@@ -513,7 +531,7 @@
         <img src="2_20260310_145449_0001.png" alt="Logo Elayon">
         <div>
           <h1>Elayon • Presença</h1>
-          <p>Sessão guiada de presença, fala e relatório contínuo</p>
+          <p>Preparação paciente da fala, relatório contínuo e logs de sessão</p>
         </div>
       </div>
 
@@ -525,21 +543,23 @@
     </section>
 
     <section class="hero">
-      <div class="badge">Presença • Túnel ativo • Relatório contínuo</div>
-      <h2>Sessão com memória curta e retorno orientado</h2>
+      <div class="badge">Presença • Tempo humano • Blocos de análise</div>
+      <h2>Uma sessão simples para levar a sério</h2>
       <p>
-        O sistema escuta, organiza a fala em relatório técnico e entrega esse relatório para a camada de IA conversacional responder melhor ao humano.
+        Tire um tempo para si mesmo. Quanto mais calma houver no corpo e na fala,
+        mais fiel será a leitura da sua expressão. Esta sessão não é para acertar.
+        É para se observar.
       </p>
 
       <div class="grid-2" style="margin-top:18px;">
         <div>
-          <label for="inpTema" style="display:block;font-weight:700;margin-bottom:8px;">Tema da sessão</label>
-          <input id="inpTema" type="text" placeholder="Ex.: trabalho, estudo, decisão, rotina..."
+          <label for="inpTema" style="display:block;font-weight:700;margin-bottom:8px;">Tema</label>
+          <input id="inpTema" type="text" placeholder="Ex.: trabalho, decisão, estudo, rotina"
                  style="width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);border-radius:12px;">
         </div>
         <div>
-          <label for="inpContexto" style="display:block;font-weight:700;margin-bottom:8px;">Contexto inicial</label>
-          <input id="inpContexto" type="text" placeholder="Ex.: quero pensar com calma sobre isso"
+          <label for="inpContexto" style="display:block;font-weight:700;margin-bottom:8px;">Contexto</label>
+          <input id="inpContexto" type="text" placeholder="Ex.: quero pensar melhor sobre isso"
                  style="width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);border-radius:12px;">
         </div>
       </div>
@@ -554,8 +574,8 @@
     <section class="layout">
       <div class="stack">
         <section class="card">
-          <h3>Instrução e progresso</h3>
-          <p class="sub">Mostra a instrução atual da IA e o estágio da sessão.</p>
+          <h3>Instrução atual</h3>
+          <p class="sub">O texto da sessão aparece aqui conforme a etapa avança.</p>
 
           <div class="prompt-box">
             <span class="label">Última instrução</span>
@@ -572,7 +592,7 @@
 
         <section class="card">
           <h3>Timeline da sessão</h3>
-          <p class="sub">Registro das ações da IA, respostas do usuário e eventos técnicos.</p>
+          <p class="sub">Registro do que aconteceu na sessão.</p>
           <div class="timeline" id="timeline">
             <div class="event">[00:00] sistema pronto • aguardando início da sessão</div>
           </div>
@@ -580,7 +600,7 @@
 
         <section class="card">
           <h3>Relatório atual</h3>
-          <p class="sub">Este relatório é o objeto principal que a IA conversacional deve ler.</p>
+          <p class="sub">Este é o bloco que a IA deve ler, e não o bruto da interação.</p>
 
           <div class="result-box" id="resultadoFinal">
             O relatório atual aparecerá aqui após as interações.
@@ -595,7 +615,7 @@
 
         <section class="card">
           <h3>Relatórios salvos</h3>
-          <p class="sub">Até 10 relatórios ficam armazenados localmente.</p>
+          <p class="sub">Até 10 relatórios ficam disponíveis localmente.</p>
           <div class="relatorios-lista" id="listaRelatorios">
             <div class="relatorio-item">Nenhum relatório salvo ainda.</div>
           </div>
@@ -605,7 +625,7 @@
       <div class="stack">
         <section class="card">
           <h3>Estado do cockpit</h3>
-          <p class="sub">Status vivo dos elementos principais da sessão.</p>
+          <p class="sub">Status vivo dos elementos da sessão.</p>
 
           <div class="grid-2">
             <div class="mini"><span class="k">Sistema</span><div class="v" id="stSistema">ON</div></div>
@@ -616,8 +636,8 @@
         </section>
 
         <section class="card">
-          <h3>Sete métricas principais</h3>
-          <p class="sub">Barras preenchidas ao longo da sessão.</p>
+          <h3>Métricas integradas</h3>
+          <p class="sub">Blocos resumidos da sessão, sem expor leitura subjetiva ao usuário.</p>
 
           <div class="metric-list">
             <div class="metric"><div class="metric-top"><span>Presença</span><span id="valPresenca">0%</span></div><div class="bar"><div class="fill" id="barPresenca"></div></div></div>
@@ -632,8 +652,7 @@
 
         <section class="card">
           <h3>Painel técnico</h3>
-          <p class="sub">Painel para print, leitura posterior e inspeção do JSON.</p>
-
+          <p class="sub">Área para prints e leitura posterior do estado interno.</p>
           <div class="screen-box" id="painelTecnico">
 etapa: aguardando_inicio
 instrucao: nao_emitida
@@ -647,11 +666,17 @@ relatorio: pendente
 historico_ultimas_3: pendente
           </div>
         </section>
+
+        <section class="card">
+          <h3>Logs da interação</h3>
+          <p class="sub">Trilha detalhada da mecanização da sessão.</p>
+          <div class="logs-box" id="logsBox">[logs] sistema pronto</div>
+        </section>
       </div>
     </section>
 
     <div class="footer">
-      Elayon • a fala entra, o relatório organiza, a IA responde melhor
+      Elayon • a sessão prepara o humano, o relatório prepara a IA
     </div>
   </main>
 
@@ -659,16 +684,16 @@ historico_ultimas_3: pendente
     <div class="modal">
       <div class="modal-head">
         <h4 id="modalTitulo">Etapa</h4>
-        <p id="modalSubtitulo">A IA conduzirá esta fase da interação.</p>
+        <p id="modalSubtitulo">A sessão está em andamento.</p>
       </div>
       <div class="modal-body">
         <div class="modal-status">
-          <span class="label">Instrução da IA</span>
+          <span class="label">Instrução</span>
           <div class="modal-text" id="modalInstrucao">Aguardando início.</div>
         </div>
 
         <div class="prompt-box" id="caixaTextoLeitura" style="display:none; margin-bottom:0;">
-          <span class="label">Texto para leitura</span>
+          <span class="label">Texto de apoio</span>
           <div class="prompt-text" id="textoLeitura"></div>
         </div>
 
