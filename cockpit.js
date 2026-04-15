@@ -54,7 +54,7 @@ function getJanelaRelatoriosTexto() {
 function escreverTextoProgressivo(texto, alvoId, velocidade = 32) {
   return new Promise((resolve) => {
     const alvo = document.getElementById(alvoId);
-    if (!alvo) {
+    if (!alvo) { 
       resolve();
       return;
     }
