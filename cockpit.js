@@ -1,7 +1,7 @@
 const PRE_START_DELAY = 800;
 const SILENCE_MS = 4000;
 const DISPLAY_TIMER_SECONDS = 10;
-
+let confirmandoResposta = false;
 let etapaAtual = -1;
 let transcriptAtual = "";
 let dadosSessao = [];
