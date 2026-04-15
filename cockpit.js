@@ -535,6 +535,18 @@ document.addEventListener("DOMContentLoaded", () => {
       addTimeline("defina um tema antes de iniciar");
       return;
     }
+
+el("modalTitulo").textContent = "Protocolo de uso";
+el("modalSubtitulo").textContent = "Leitura inicial da sessão";
+
+abrirModal();
+
+await falarComEscritaProgressiva(PROTOCOLO_USO, "modalInstrucao");
+
+el("btnResponder").disabled = false;
+
+log("protocolo inicial concluído");
+
     carregarEtapa(0);
   });
 
