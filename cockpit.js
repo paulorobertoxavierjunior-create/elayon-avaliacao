@@ -1,9 +1,11 @@
 // ======================================
 // SISTEMAS ELAYON — PRESENÇA
 // cockpit.js
+// compatível com o index atual
 // ======================================
 
 const WORKWORDS = {
+  abrir: ["responder"],
   fecharLivre: ["ok ok", "okok", "ok, ok", "ok,ok", "ok-ok", "ok. ok"],
   confirma: ["confirma", "confirmar", "confirmo"],
   alinhar: ["alinhar", "refazer", "ajustar"]
@@ -14,29 +16,47 @@ const ETAPAS = [
     id: 1,
     titulo: "Etapa 1 — Abertura",
     instrucao: ({ tema }) =>
-      `Prepare-se para mostrar seu ponto de vista sobre o tema. Quando eu abrir o microfone num bip, você fala o quanto quiser sobre ${tema || "o tema que você escolheu"} e, quando terminar, diga a expressão okok.`
+      `SISTEMAS ELAYON.
+
+Bem-vindo ao PRESENÇA.
+
+Este é um espaço de reflexão e escuta simbólica.
+
+Prepare-se para mostrar seu ponto de vista sobre o tema.
+
+Respira.
+
+Vou abrir o microfone e você fala à vontade sobre ${tema || "o tema que você escolheu"}.
+
+Quando terminar de falar, diga okok.`
   },
   {
     id: 2,
     titulo: "Etapa 2 — Continuidade",
     instrucao: () =>
-      `Agora aprofunde um pouco mais. Dentro do que você trouxe, o que merece mais atenção neste momento? Quando terminar sua fala, diga okok.`
+      `Agora aprofunde um pouco mais.
+
+Dentro do que você trouxe, o que merece mais atenção neste momento?
+
+Quando terminar sua fala, diga okok.`
   },
   {
     id: 3,
     titulo: "Etapa 3 — Consolidação",
     instrucao: () =>
-      `Para concluir, diga qual é o próximo passo mais honesto para você agora. Quando terminar sua fala, diga okok.`
+      `Para concluir, diga qual é o próximo passo mais honesto para você agora.
+
+Quando terminar sua fala, diga okok.`
   }
 ];
 
 const STATE = {
   etapaIndex: 0,
-  mode: "idle", // idle | intro | ia_falando | countdown | ouvindo | aguardando_decisao | processando | finalizado
   etapas: [],
   report: null,
-  startedAt: null,
-  sessionId: null
+  mode: "idle",
+  sessionId: null,
+  startedAt: null
 };
 
 // ======================================
@@ -52,17 +72,28 @@ function setText(id, value) {
   if (node) node.textContent = value ?? "";
 }
 
-function setHTML(id, value) {
+function appendText(id, value) {
   const node = el(id);
-  if (node) node.innerHTML = value ?? "";
+  if (node) node.textContent += value ?? "";
 }
 
-function showScreen(screenId) {
-  ["screenIntro", "screenRunning", "screenDone"].forEach((id) => {
+function showTela(nome) {
+  const mapa = {
+    intro: "telaIntro",
+    sessao: "telaSessao",
+    final: "telaFinal"
+  };
+
+  Object.values(mapa).forEach((id) => {
     const node = el(id);
     if (!node) return;
-    node.style.display = id === screenId ? "block" : "none";
+    node.classList.remove("show");
   });
+
+  const telaId = mapa[nome];
+  if (telaId && el(telaId)) {
+    el(telaId).classList.add("show");
+  }
 }
 
 function nowLabel() {
@@ -73,6 +104,14 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function log(msg) {
+  console.log("[PRESENCA]", msg);
+  const box = el("logTech");
+  if (box) {
+    box.textContent += `[${new Date().toLocaleTimeString("pt-BR")}] ${msg}\n`;
+  }
+}
+
 function escapeHtml(str) {
   return String(str || "")
     .replaceAll("&", "&amp;")
@@ -81,18 +120,10 @@ function escapeHtml(str) {
 }
 
 // ======================================
-// LOG
+// TEXTO + FALA
 // ======================================
 
-function log(msg) {
-  console.log("[PRESENCA]", msg);
-}
-
-// ======================================
-// UX
-// ======================================
-
-async function falarTextoLento(texto, alvoId, velocidade = 26) {
+async function falarTextoLento(texto, alvoId, velocidade = 24) {
   const alvo = el(alvoId);
   if (alvo) alvo.textContent = "";
 
@@ -103,6 +134,7 @@ async function falarTextoLento(texto, alvoId, velocidade = 26) {
     }
 
     let i = 0;
+
     function tick() {
       if (i < texto.length) {
         alvo.textContent += texto[i];
@@ -112,6 +144,7 @@ async function falarTextoLento(texto, alvoId, velocidade = 26) {
         resolve();
       }
     }
+
     tick();
   });
 
@@ -124,6 +157,10 @@ async function falarTextoLento(texto, alvoId, velocidade = 26) {
 
   await Promise.allSettled([escrita, fala]);
 }
+
+// ======================================
+// BIP + CONTAGEM
+// ======================================
 
 function bip() {
   try {
@@ -142,25 +179,22 @@ function bip() {
     setTimeout(() => {
       try { osc.stop(); } catch {}
       try { ctx.close(); } catch {}
-    }, 140);
+    }, 150);
   } catch {}
 }
 
-async function countdownAndMic() {
-  STATE.mode = "countdown";
-  setText("statusLine", "Prepare-se.");
-  setText("countdownText", "Respira. 3s.");
-
+async function contagemAberturaMic() {
+  setText("statusSessao", "Prepare-se. Respira. 3 segundos.");
   await sleep(3000);
 
   for (let n = 5; n >= 1; n--) {
-    setText("countdownText", String(n));
+    setText("statusSessao", `Vou abrir o microfone em ${n}...`);
     await sleep(1000);
   }
 
-  setText("countdownText", "Bip.");
+  setText("statusSessao", "Bip. Microfone abrindo.");
   bip();
-  await sleep(160);
+  await sleep(180);
 }
 
 // ======================================
@@ -173,42 +207,63 @@ function normalizeText(txt) {
 
 function cleanedUserText(txt) {
   return window.ELAYON_TUNNEL.utils.stripPhrases(txt, [
+    ...WORKWORDS.abrir,
     ...WORKWORDS.fecharLivre,
     ...WORKWORDS.confirma,
     ...WORKWORDS.alinhar
   ]).trim();
 }
 
+function hasAnyPhrase(text, phrases = []) {
+  const n = normalizeText(text || "");
+  return phrases.some((p) => n.includes(normalizeText(p)));
+}
+
 // ======================================
-// INTRO
+// INTRODUÇÃO
 // ======================================
 
-async function falarIntroducao() {
-  STATE.mode = "intro";
-
+async function falarAberturaSistema() {
   const tema = (el("inpTema")?.value || "").trim();
   const contexto = (el("inpContexto")?.value || "").trim();
 
-  const texto =
-`SISTEMAS ELAYON
+  const texto = `SISTEMAS ELAYON.
 
 Bem-vindo ao PRESENÇA.
 
 Um espaço de reflexão e escuta simbólica configurado para visualizar e alinhar o comportamento humano aos seus próprios sentidos e emoções.
 
-Prepare-se para mostrar seu ponto de vista sobre o tema.
-Respira.
+Tema informado: ${tema || "não informado"}.
 
-Vou abrir o microfone e você fala à vontade e termina com okok.
+Contexto informado: ${contexto || "não informado"}.
 
-Concentre-se.
+A ativação inicial é manual.
 
-O tema atual é: ${tema || "não informado"}.
-O contexto atual é: ${contexto || "não informado"}.
+Quando estiver pronto para começar, diga responder.`;
 
-Vamos começar.`;
+  setText("textoVivo", "");
+  await falarTextoLento(texto, "textoVivo", 24);
+  setText("statusSessao", "Aguardando a palavra responder.");
+}
 
-  await falarTextoLento(texto, "introText", 24);
+// ======================================
+// COMANDO DE ABERTURA
+// ======================================
+
+async function esperarResponder() {
+  STATE.mode = "aguardando_responder";
+  setText("statusSessao", "Aguardando: responder");
+
+  const heard = await window.ELAYON_TUNNEL.stt.listenForAnyPhrase({
+    phrases: WORKWORDS.abrir,
+    silenceFailsafeMs: 90000,
+    onPartial: (data) => {
+      const txt = cleanedUserText(data.text || "");
+      setText("textoVivo", txt || "");
+    }
+  });
+
+  return heard;
 }
 
 // ======================================
@@ -217,9 +272,8 @@ Vamos começar.`;
 
 async function capturarRespostaLivre() {
   STATE.mode = "ouvindo";
-  setText("statusLine", "Microfone aberto. Fale à vontade e termine com okok.");
-  setText("decisionHint", "");
-  setText("liveTranscript", "");
+  setText("statusSessao", "Microfone aberto. Fale à vontade e termine com okok.");
+  setText("textoVivo", "");
 
   await window.ELAYON_TUNNEL.audio.startCapture();
 
@@ -227,8 +281,8 @@ async function capturarRespostaLivre() {
     stopPhrases: WORKWORDS.fecharLivre,
     silenceFailsafeMs: 120000,
     onPartial: (data) => {
-      const parcialLimpo = cleanedUserText(data.text || "");
-      setText("liveTranscript", parcialLimpo || "...");
+      const parcial = cleanedUserText(data.text || "");
+      setText("textoVivo", parcial || "");
     }
   });
 
@@ -236,7 +290,7 @@ async function capturarRespostaLivre() {
   const audioReport = stopped.report || window.ELAYON_TUNNEL.audio.getReport();
 
   const finalText = (heard.cleaned_text || heard.text || "").trim();
-  setText("liveTranscript", finalText || "Sem conteúdo captado.");
+  setText("textoVivo", finalText || "Sem conteúdo captado.");
 
   return {
     heard,
@@ -251,12 +305,16 @@ async function capturarRespostaLivre() {
 
 async function capturarDecisao() {
   STATE.mode = "aguardando_decisao";
-  setText(
-    "decisionHint",
-    `Se quiser refazer, diga alinhar. Para continuar, diga confirma.`
-  );
-  setText("statusLine", "Aguardando decisão.");
 
+  const texto =
+`Tudo certo?
+
+Se não, diga alinhar.
+
+Se sim, diga confirma.`;
+
+  await falarTextoLento(texto, "textoVivo", 22);
+  setText("statusSessao", "Aguardando: confirma ou alinhar.");
   bip();
 
   const heard = await window.ELAYON_TUNNEL.stt.listenForAnyPhrase({
@@ -264,16 +322,13 @@ async function capturarDecisao() {
     silenceFailsafeMs: 20000,
     onPartial: (data) => {
       const txt = normalizeText(data.text || "");
-      setText("decisionHint", txt || "Aguardando: confirma ou alinhar");
+      setText("statusSessao", txt || "Aguardando decisão...");
     }
   });
 
-  const normalized = normalizeText(heard.text || "");
-  const isConfirm = WORKWORDS.confirma.some((w) => normalized.includes(normalizeText(w)));
-  const isAlign = WORKWORDS.alinhar.some((w) => normalized.includes(normalizeText(w)));
-
-  if (isAlign) return "alinhar";
-  if (isConfirm) return "confirma";
+  const raw = heard.text || "";
+  if (hasAnyPhrase(raw, WORKWORDS.alinhar)) return "alinhar";
+  if (hasAnyPhrase(raw, WORKWORDS.confirma)) return "confirma";
   return null;
 }
 
@@ -283,7 +338,7 @@ async function capturarDecisao() {
 
 async function analisarEtapaNoCRS(etapa, transcricao, audioReport) {
   STATE.mode = "processando";
-  setText("statusLine", "Processando etapa no núcleo CRS...");
+  setText("statusSessao", "Processando etapa no núcleo CRS...");
 
   const tema = (el("inpTema")?.value || "").trim();
   const contexto = (el("inpContexto")?.value || "").trim();
@@ -310,32 +365,34 @@ async function executarEtapa() {
   const etapa = ETAPAS[STATE.etapaIndex];
   const tema = (el("inpTema")?.value || "").trim();
 
-  setText("stageTitle", etapa.titulo);
-  setText("liveTranscript", "");
-  setText("decisionHint", "");
-  setText("countdownText", "");
-  setText("statusLine", "Preparando etapa...");
+  setText("textoVivo", "");
+  setText("statusSessao", etapa.titulo);
 
-  const instrucao = etapa.instrucao({ tema });
+  await falarTextoLento(etapa.instrucao({ tema }), "textoVivo", 24);
 
-  STATE.mode = "ia_falando";
-  await falarTextoLento(instrucao, "stagePrompt", 24);
+  const textoEspera =
+`Quando quiser começar sua resposta, diga responder.`;
 
-  await countdownAndMic();
+  await falarTextoLento(textoEspera, "textoVivo", 22);
+
+  await esperarResponder();
+  await contagemAberturaMic();
 
   const captura = await capturarRespostaLivre();
 
   if (!captura.finalText) {
-    setText("decisionHint", "Nenhum conteúdo válido foi captado. Vamos alinhar e tentar de novo.");
-    await sleep(1200);
+    await falarTextoLento(
+      "Nenhum conteúdo válido foi captado. Vamos alinhar e tentar de novo.",
+      "textoVivo",
+      22
+    );
     return executarEtapa();
   }
 
   const decisao = await capturarDecisao();
 
   if (decisao !== "confirma") {
-    setText("statusLine", "Vamos alinhar e refazer esta etapa.");
-    await sleep(900);
+    await falarTextoLento("Vamos alinhar e refazer esta etapa.", "textoVivo", 22);
     return executarEtapa();
   }
 
@@ -344,7 +401,7 @@ async function executarEtapa() {
   STATE.etapas.push({
     id: etapa.id,
     titulo: etapa.titulo,
-    instrucao,
+    instrucao: etapa.instrucao({ tema }),
     transcricao: captura.finalText,
     audio_report: captura.audioReport,
     payload: analisado.payload,
@@ -390,7 +447,6 @@ function summarizeSession() {
 function buildFinalReport() {
   const tema = (el("inpTema")?.value || "").trim();
   const contexto = (el("inpContexto")?.value || "").trim();
-  const resumoSessao = summarizeSession();
 
   const report = {
     sistema: "Sistemas Elayon",
@@ -399,7 +455,7 @@ function buildFinalReport() {
     data: nowLabel(),
     tema,
     contexto,
-    resumo_sessao: resumoSessao,
+    resumo_sessao: summarizeSession(),
     etapas: STATE.etapas.map((e) => ({
       id: e.id,
       titulo: e.titulo,
@@ -418,124 +474,127 @@ function buildFinalReport() {
   return report;
 }
 
-function buildPreviewHTML(report) {
-  const etapasHtml = report.etapas.map((e) => {
-    const r = e.relatorio_crs || {};
-    const s = e.snapshot_sonoro || {};
+function buildPreviewText(report) {
+  const lines = [];
 
-    return `
-      <section style="margin-bottom:28px;">
-        <h3 style="margin:0 0 10px 0;">${escapeHtml(e.titulo)}</h3>
-        <p><strong>Transcrição:</strong> ${escapeHtml(e.transcricao || "sem conteúdo")}</p>
-        <p><strong>Análise sugestiva:</strong> ${escapeHtml(e.analise_sugestiva || "sem análise")}</p>
-        <p><strong>Sugestão para IA:</strong> ${escapeHtml(e.sugestao_ia || "sem sugestão")}</p>
-        <p><strong>Tempo total:</strong> ${escapeHtml(r.tempo_total ?? "—")}</p>
-        <p><strong>Silêncio:</strong> ${escapeHtml(r.porcentagem_silencio ?? "—")}%</p>
-        <p><strong>Pausas:</strong> ${escapeHtml(r.total_pausas ?? "—")}</p>
-        <p><strong>Densidade:</strong> ${escapeHtml(r.densidade ?? "—")}</p>
-        <p><strong>Snapshot sonoro:</strong> graves ${escapeHtml(s.graves ?? "—")} • médios ${escapeHtml(s.medios ?? "—")} • agudos ${escapeHtml(s.agudos ?? "—")} • ruído ${escapeHtml(s.ruido ?? "—")} • estabilidade ${escapeHtml(s.estabilidade ?? "—")}</p>
-        <p><strong>Imagem:</strong> gráfico temporal da etapa, mapa de calor vocal e leitura espectral resumida.</p>
-      </section>
-    `;
-  }).join("");
-
-  return `
-    <div>
-      <h2 style="margin:0 0 14px 0;">Relatório concluído.</h2>
-      <p><strong>Sessão:</strong> ${escapeHtml(report.sessao)}</p>
-      <p><strong>Data:</strong> ${escapeHtml(report.data)}</p>
-      <p><strong>Tema:</strong> ${escapeHtml(report.tema || "não informado")}</p>
-      <p><strong>Contexto:</strong> ${escapeHtml(report.contexto || "não informado")}</p>
-      <p><strong>Tempo total:</strong> ${escapeHtml(report.resumo_sessao.tempo_total)} s</p>
-      <p><strong>Silêncio médio:</strong> ${escapeHtml(report.resumo_sessao.silencio_medio)}%</p>
-      <p><strong>Pausas totais:</strong> ${escapeHtml(report.resumo_sessao.pausas_total)}</p>
-      <p><strong>Energia média:</strong> ${escapeHtml(report.resumo_sessao.energia_media)}%</p>
-      <p><strong>Oscilação média:</strong> ${escapeHtml(report.resumo_sessao.oscilacao_media)}%</p>
-      <hr style="margin:20px 0; border:none; border-top:1px solid rgba(255,255,255,.12);" />
-      ${etapasHtml}
-      <section>
-        <h3>Síntese para IA externa</h3>
-        <p>O presente relatório reúne transcrição consolidada, métricas temporais, snapshot sonoro, leitura sugestiva do núcleo CRS e descrição visual complementar. A IA que consumir este material deve responder com objetividade, respeito ao contexto e foco em continuidade prática.</p>
-      </section>
-    </div>
-  `;
-}
-
-function renderFinalReport() {
-  const report = buildFinalReport();
-  setHTML("reportPreview", buildPreviewHTML(report));
-  showScreen("screenDone");
-}
-
-// ======================================
-// PDF
-// ======================================
-
-function buildPdfText(report) {
-  const linhas = [];
-
-  linhas.push("Sistemas Elayon");
-  linhas.push("PRESENÇA • RELATÓRIO DE AUTOAVALIAÇÃO");
-  linhas.push("");
-  linhas.push(`Sessão: ${report.sessao}`);
-  linhas.push(`Data: ${report.data}`);
-  linhas.push(`Tema: ${report.tema || "não informado"}`);
-  linhas.push(`Contexto: ${report.contexto || "não informado"}`);
-  linhas.push("");
-  linhas.push("Resumo da sessão");
-  linhas.push(`Tempo total: ${report.resumo_sessao.tempo_total} s`);
-  linhas.push(`Silêncio médio: ${report.resumo_sessao.silencio_medio}%`);
-  linhas.push(`Pausas totais: ${report.resumo_sessao.pausas_total}`);
-  linhas.push(`Energia média: ${report.resumo_sessao.energia_media}%`);
-  linhas.push(`Oscilação média: ${report.resumo_sessao.oscilacao_media}%`);
-  linhas.push("");
+  lines.push("Sistemas Elayon");
+  lines.push("PRESENÇA • RELATÓRIO DE AUTOAVALIAÇÃO");
+  lines.push("");
+  lines.push(`Sessão: ${report.sessao}`);
+  lines.push(`Data: ${report.data}`);
+  lines.push(`Tema: ${report.tema || "não informado"}`);
+  lines.push(`Contexto: ${report.contexto || "não informado"}`);
+  lines.push("");
+  lines.push("Resumo da sessão");
+  lines.push(`Tempo total: ${report.resumo_sessao.tempo_total} s`);
+  lines.push(`Silêncio médio: ${report.resumo_sessao.silencio_medio}%`);
+  lines.push(`Pausas totais: ${report.resumo_sessao.pausas_total}`);
+  lines.push(`Energia média: ${report.resumo_sessao.energia_media}%`);
+  lines.push(`Oscilação média: ${report.resumo_sessao.oscilacao_media}%`);
+  lines.push("");
 
   report.etapas.forEach((e) => {
     const r = e.relatorio_crs || {};
     const s = e.snapshot_sonoro || {};
 
-    linhas.push(`${e.titulo}`);
-    linhas.push(`Transcrição: ${e.transcricao || "sem conteúdo"}`);
-    linhas.push(`Análise sugestiva: ${e.analise_sugestiva || "sem análise"}`);
-    linhas.push(`Sugestão para IA: ${e.sugestao_ia || "sem sugestão"}`);
-    linhas.push(`Tempo total: ${r.tempo_total ?? "—"}`);
-    linhas.push(`Silêncio: ${r.porcentagem_silencio ?? "—"}%`);
-    linhas.push(`Pausas: ${r.total_pausas ?? "—"}`);
-    linhas.push(`Densidade: ${r.densidade ?? "—"}`);
-    linhas.push(`Snapshot sonoro: graves ${s.graves ?? "—"} | médios ${s.medios ?? "—"} | agudos ${s.agudos ?? "—"} | ruído ${s.ruido ?? "—"} | estabilidade ${s.estabilidade ?? "—"}`);
-    linhas.push(`Imagem: gráfico temporal da etapa, mapa de calor vocal e leitura espectral resumida.`);
-    linhas.push("");
+    lines.push(`${e.titulo}`);
+    lines.push(`Transcrição: ${e.transcricao || "sem conteúdo"}`);
+    lines.push(`Análise sugestiva: ${e.analise_sugestiva || "sem análise"}`);
+    lines.push(`Sugestão para IA: ${e.sugestao_ia || "sem sugestão"}`);
+    lines.push(`Tempo total: ${r.tempo_total ?? "—"}`);
+    lines.push(`Silêncio: ${r.porcentagem_silencio ?? "—"}%`);
+    lines.push(`Pausas: ${r.total_pausas ?? "—"}`);
+    lines.push(`Densidade: ${r.densidade ?? "—"}`);
+    lines.push(
+      `Snapshot sonoro: graves ${s.graves ?? "—"} | médios ${s.medios ?? "—"} | agudos ${s.agudos ?? "—"} | ruído ${s.ruido ?? "—"} | estabilidade ${s.estabilidade ?? "—"}`
+    );
+    lines.push("Imagem: gráfico temporal da etapa, mapa de calor vocal e leitura espectral resumida.");
+    lines.push("");
   });
 
-  linhas.push("Síntese para IA externa");
-  linhas.push("O presente relatório reúne transcrição consolidada, métricas temporais, snapshot sonoro, leitura sugestiva do núcleo CRS e descrição visual complementar.");
-  linhas.push("");
+  lines.push("Síntese para IA externa");
+  lines.push(
+    "O presente relatório reúne transcrição consolidada, métricas temporais, snapshot sonoro, leitura sugestiva do núcleo CRS e descrição visual complementar."
+  );
 
-  return linhas.join("\n");
+  return lines.join("\n");
 }
 
-function gerarPdfRelatorio() {
-  if (!STATE.report) return;
-
-  const texto = buildPdfText(STATE.report);
-  const blob = new Blob([texto], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${STATE.report.sessao}.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
+function renderFinalReport() {
+  const report = buildFinalReport();
+  setText("relatorioFinal", buildPreviewText(report));
+  showTela("final");
 }
 
 // ======================================
-// FLUXO PRINCIPAL
+// PDF REAL
+// ======================================
+
+function gerarPdfRelatorio() {
+  if (!STATE.report || !window.jspdf?.jsPDF) return;
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({
+    orientation: "p",
+    unit: "mm",
+    format: "a4"
+  });
+
+  const marginX = 14;
+  let y = 18;
+  const pageWidth = 210;
+  const usableWidth = pageWidth - marginX * 2;
+
+  function writeBlock(text, fontSize = 11, gap = 6) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(fontSize);
+
+    const lines = doc.splitTextToSize(String(text || ""), usableWidth);
+    const lineHeight = fontSize * 0.38 + 1.4;
+    const blockHeight = lines.length * lineHeight;
+
+    if (y + blockHeight > 280) {
+      doc.addPage();
+      y = 18;
+    }
+
+    doc.text(lines, marginX, y);
+    y += blockHeight + gap;
+  }
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(15);
+  doc.text("Sistemas Elayon", marginX, y);
+  y += 8;
+
+  doc.setFontSize(13);
+  doc.text("PRESENÇA • RELATÓRIO DE AUTOAVALIAÇÃO", marginX, y);
+  y += 10;
+
+  const texto = buildPreviewText(STATE.report);
+  writeBlock(texto, 10, 4);
+
+  doc.save(`${STATE.report.sessao}.pdf`);
+}
+
+// ======================================
+// RESET
+// ======================================
+
+async function resetAllEngines() {
+  try { await window.ELAYON_TUNNEL.audio.stopCapture(); } catch {}
+  try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
+  try { await window.ELAYON_TUNNEL.tts.stop(); } catch {}
+  try { await window.ELAYON_TUNNEL.mic.close(); } catch {}
+}
+
+// ======================================
+// FLUXO
 // ======================================
 
 async function iniciarSessao() {
   try {
     const tema = (el("inpTema")?.value || "").trim();
-    const contexto = (el("inpContexto")?.value || "").trim();
-
     if (!tema) {
       alert("Informe o tema antes de iniciar.");
       return;
@@ -549,67 +608,54 @@ async function iniciarSessao() {
     }
 
     if (!health.mic || !health.stt || !health.tts || !health.crs) {
-      alert("Nem todos os serviços estão disponíveis. Verifique microfone, STT, TTS e núcleo CRS.");
+      alert("Nem todos os serviços estão disponíveis. Verifique microfone, TTS, STT e núcleo CRS.");
       return;
     }
 
     STATE.etapaIndex = 0;
     STATE.etapas = [];
     STATE.report = null;
+    STATE.mode = "intro";
     STATE.startedAt = new Date().toISOString();
     STATE.sessionId = `presenca-${Date.now()}`;
-    STATE.mode = "intro";
 
-    log(`Sessão iniciada | tema=${tema} | contexto=${contexto}`);
-
-    showScreen("screenRunning");
-    setText("stageTitle", "SISTEMAS ELAYON");
-    setText("stagePrompt", "");
-    setText("liveTranscript", "");
-    setText("decisionHint", "");
-    setText("countdownText", "");
-    setText("statusLine", "Preparando sessão.");
+    setText("statusIntro", "Iniciando experiência...");
+    setText("textoVivo", "");
+    showTela("sessao");
 
     await window.ELAYON_TUNNEL.mic.open();
-    await falarIntroducao();
+    await falarAberturaSistema();
 
     while (STATE.etapaIndex < ETAPAS.length) {
       await executarEtapa();
     }
 
     STATE.mode = "finalizado";
-    setText("statusLine", "Sessão concluída.");
+    await falarTextoLento("Relatório concluído.", "textoVivo", 22);
     renderFinalReport();
   } catch (err) {
     console.error(err);
     alert(`Falha na sessão: ${err.message || err}`);
-    setText("statusLine", "Falha detectada.");
+    setText("statusSessao", "Falha detectada.");
   } finally {
-    try { await window.ELAYON_TUNNEL.audio.stopCapture(); } catch {}
-    try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
-    try { await window.ELAYON_TUNNEL.tts.stop(); } catch {}
-    try { await window.ELAYON_TUNNEL.mic.close(); } catch {}
+    await resetAllEngines();
   }
 }
 
 function novaSessao() {
   STATE.etapaIndex = 0;
-  STATE.mode = "idle";
   STATE.etapas = [];
   STATE.report = null;
-  STATE.startedAt = null;
+  STATE.mode = "idle";
   STATE.sessionId = null;
+  STATE.startedAt = null;
 
-  setText("introText", "");
-  setText("stageTitle", "");
-  setText("stagePrompt", "");
-  setText("liveTranscript", "");
-  setText("decisionHint", "");
-  setText("countdownText", "");
-  setText("statusLine", "");
-  setHTML("reportPreview", "");
+  setText("statusIntro", "Aguardando início.");
+  setText("statusSessao", "Preparando ambiente de interação.");
+  setText("textoVivo", "");
+  setText("relatorioFinal", "Nenhum relatório disponível.");
 
-  showScreen("screenIntro");
+  showTela("intro");
 }
 
 // ======================================
@@ -618,7 +664,7 @@ function novaSessao() {
 
 document.addEventListener("DOMContentLoaded", () => {
   log("cockpit carregado");
-  showScreen("screenIntro");
+  showTela("intro");
 
   el("btnIniciar")?.addEventListener("click", iniciarSessao);
   el("btnNovaSessao")?.addEventListener("click", novaSessao);
