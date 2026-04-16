@@ -400,7 +400,7 @@ async function fluxoInicial() {
     `Um espaço de reflexão e escuta simbólica, configurado para visualizar e alinhar o comportamento humano aos seus próprios sentidos e emoções.`
   );
 
-  await falar(`Dica Elai ônm.`);
+  await falar(`Dica Elai nhom.`);
 
   await falar(
     `Conhece-te a ti mesmo.`
