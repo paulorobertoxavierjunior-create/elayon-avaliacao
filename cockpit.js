@@ -1,14 +1,3 @@
-// ======================================
-// SISTEMA ELAYON — PRESENÇA
-// cockpit.js
-// Lógica nova:
-// IA conduz tudo
-// IA fala e abre mic
-// humano fala livre e fecha com "ok ok"
-// IA mostra transcrição
-// IA abre mic curto para "confirma" ou "alinhar"
-// ======================================
-
 const WORKWORDS = {
   fecharLivre: ["ok ok", "okok", "ok, ok", "ok,ok", "ok-ok", "ok. ok"],
   confirma: ["confirma", "confirmar", "confirmo"],
@@ -31,10 +20,6 @@ const STATE = {
   etapaAtual: 0,
   locked: false
 };
-
-// ============================
-// HELPERS
-// ============================
 
 function el(id) {
   return document.getElementById(id);
@@ -84,6 +69,28 @@ function log(msg) {
   console.log("[PRESENCA]", msg);
 }
 
+function assertStructure() {
+  const ids = [
+    "telaIntro",
+    "telaSessao",
+    "telaFinal",
+    "btnIniciar",
+    "btnNovaSessao",
+    "btnGerarPdf",
+    "inpTema",
+    "inpContexto",
+    "statusIntro",
+    "statusSessao",
+    "textoVivo",
+    "relatorioFinal"
+  ];
+
+  const missing = ids.filter((id) => !el(id));
+  if (missing.length) {
+    throw new Error(`IDs ausentes no index: ${missing.join(", ")}`);
+  }
+}
+
 async function resetMotores() {
   try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
   try { await window.ELAYON_TUNNEL.tts.stop(); } catch {}
@@ -95,17 +102,10 @@ function limparSessaoVisual() {
   setText("statusSessao", "Preparando ambiente de interação.");
 }
 
-// ============================
-// TEXTO PROGRESSIVO + FALA
-// ============================
-
 function escreverTextoProgressivo(texto, alvoId, velocidade = FLOW.TYPE_SPEED) {
   return new Promise((resolve) => {
     const alvo = el(alvoId);
-    if (!alvo) {
-      resolve();
-      return;
-    }
+    if (!alvo) return resolve();
 
     alvo.textContent = "";
     let i = 0;
@@ -138,10 +138,6 @@ async function falarComTexto(texto, alvoId = "textoVivo") {
   await Promise.allSettled([escrita, fala]);
   await sleep(FLOW.STEP_DELAY_MS);
 }
-
-// ============================
-// BIP + CONTAGEM
-// ============================
 
 function bip() {
   try {
@@ -193,10 +189,6 @@ Vou contar até cinco.`
   await sleep(250);
 }
 
-// ============================
-// CAPTURA LIVRE
-// ============================
-
 async function capturarRespostaLivre() {
   setText("statusSessao", "🎙️ Microfone aberto. Fale à vontade e termine com ok ok.");
   setText("textoVivo", "");
@@ -214,7 +206,6 @@ async function capturarRespostaLivre() {
 
     const texto = (heard.cleaned_text || heard.text || "").trim();
     setText("textoVivo", texto || "Sem conteúdo captado.");
-
     return texto;
   } finally {
     try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
@@ -223,12 +214,9 @@ async function capturarRespostaLivre() {
   }
 }
 
-// ============================
-// CAPTURA DE DECISÃO
-// ============================
-
 async function capturarDecisaoCurta() {
   setText("statusSessao", "🎙️ Microfone curto aberto para decisão.");
+  setText("textoVivo", "");
 
   await window.ELAYON_TUNNEL.mic.open();
 
@@ -245,7 +233,6 @@ async function capturarDecisaoCurta() {
 
     if (matchAny(txt, WORKWORDS.alinhar)) return "alinhar";
     if (matchAny(txt, WORKWORDS.confirma)) return "confirma";
-
     return null;
   } finally {
     try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
@@ -254,64 +241,37 @@ async function capturarDecisaoCurta() {
   }
 }
 
-// ============================
-// TUTORIAL
-// ============================
-
 async function rodadaTutorial() {
   await falarComTexto(
-`Sistemas Elai ôn.
+`SISTEMAS ELAYON.
 
 Bem-vindo ao PRESENÇA.
 
-Este é um  espaço  de escuta simbólica.`
+Este é um espaço de escuta simbólica.`
   );
 
   await falarComTexto(
-`O PRESENÇA conduz uma avaliação da sua fala no seu ritmo real, pausadamente e com a máxima confiabilidade e segurança de dados.
+`O PRESENÇA conduz uma avaliação inicial da sua fala com um ritmo mais humano, mais pausado e mais confiável.`
   );
 
   await falarComTexto(
-`Nesta experiência, o sistema fala com você passo a passo.
-
-Tudo o que o sistema disser também aparecerá escrito na tela. Leia com atenção.`
+`O sistema vai preparar o momento, contar o tempo e abrir o microfone para você.`
   );
 
   await falarComTexto(
-`Iniciada a escuta, o sistema abre o microfone para você.
+`Quando o microfone estiver aberto, você fala à vontade.
 
+Para terminar sua fala livre, diga ok ok.`
   );
 
   await falarComTexto(
-`O sistema vai preparar o momento, contar o tempo regressivo e abrir o microfone.
+`Depois disso, o sistema abrirá um microfone curto.
 
-Ouviu o bip do microfone, você fala à vontade.`
+Nesse momento, você dirá confirma para seguir ou alinhar para refazer.`
   );
 
-  await falarComTexto(
-`Quando terminar sua fala livre, diga  a expressão: "ok ok" .
-
-"Ok ok" é o código que fecha o microfone e registra sua fala.`
-  );
-
-  await falarComTexto(
-`Depois disso, o sistema mostrará sua transcrição e abrirá um microfone pra você dizer se tá tudo ók.
-
-Pra refazer a fala, diga alinhar. É pra dar sequência diga confirmar`
-  );
-
-  await falarComTexto(
-`Vamos começar sua autoavaliação.
-
-Então, resumindo, o microfone abre vc fala e termina com "ok ok". Confere se concorda com o que foi dito e alinha ou confirma. Só isso. 
-
-Vou Abrir o microfone. Prepare-se`
-  );
+  await falarComTexto(`Vamos começar a sessão.`);
 }
-
-// ============================
-// ETAPAS
-// ============================
 
 function obterPerguntas() {
   const tema = (el("inpTema")?.value || "").trim() || "o tema que você escolheu";
@@ -355,8 +315,6 @@ async function rodarEtapa(pergunta, indice) {
   await falarComTexto(
 `Sua fala foi registrada.
 
-Agora direi novamente.
-
 Se quiser seguir, diga confirma.
 
 Se quiser refazer, diga alinhar.`
@@ -372,10 +330,6 @@ Se quiser refazer, diga alinhar.`
   return resposta;
 }
 
-// ============================
-// CRS
-// ============================
-
 async function enviarCRS(texto, indice) {
   const tema = (el("inpTema")?.value || "").trim();
   const contexto = (el("inpContexto")?.value || "").trim();
@@ -387,10 +341,6 @@ async function enviarCRS(texto, indice) {
 
   return await window.ELAYON_TUNNEL.crs.analyze(payload);
 }
-
-// ============================
-// RELATÓRIO
-// ============================
 
 function gerarRelatorio(respostas, analises) {
   let txt = "";
@@ -427,10 +377,6 @@ function gerarRelatorio(respostas, analises) {
   return txt;
 }
 
-// ============================
-// PDF
-// ============================
-
 function gerarPdfRelatorio() {
   const texto = el("relatorioFinal")?.textContent?.trim();
 
@@ -445,11 +391,7 @@ function gerarPdfRelatorio() {
   }
 
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({
-    orientation: "p",
-    unit: "mm",
-    format: "a4"
-  });
+  const doc = new jsPDF({ orientation: "p", unit: "mm", format: "a4" });
 
   const marginX = 14;
   const usableWidth = 210 - marginX * 2;
@@ -473,10 +415,6 @@ function gerarPdfRelatorio() {
   doc.save(`${STATE.sessionId || "relatorio-elayon"}.pdf`);
 }
 
-// ============================
-// NOVA SESSÃO
-// ============================
-
 function novaSessao() {
   STATE.respostas = [];
   STATE.analises = [];
@@ -487,13 +425,8 @@ function novaSessao() {
   setText("statusIntro", "Aguardando início.");
   limparSessaoVisual();
   setText("relatorioFinal", "Nenhum relatório disponível.");
-
   showTela("intro");
 }
-
-// ============================
-// FLUXO PRINCIPAL
-// ============================
 
 async function iniciar() {
   if (STATE.locked) return;
@@ -501,14 +434,20 @@ async function iniciar() {
   try {
     STATE.locked = true;
 
-    const tema = (el("inpTema")?.value || "").trim();
+    assertStructure();
 
+    if (!window.ELAYON_TUNNEL) {
+      throw new Error("ELAYON_TUNNEL não foi carregado");
+    }
+
+    const tema = (el("inpTema")?.value || "").trim();
     if (!tema) {
       alert("Informe o tema antes de iniciar.");
       return;
     }
 
     const health = await window.ELAYON_TUNNEL.healthcheck();
+    log(`health: ${JSON.stringify(health)}`);
 
     if (!health.authenticated) {
       alert("Faça login primeiro.");
@@ -535,13 +474,10 @@ async function iniciar() {
 
     for (let i = 0; i < etapas.length; i++) {
       STATE.etapaAtual = i + 1;
-
       const resposta = await rodarEtapa(etapas[i], i);
       STATE.respostas.push(resposta);
 
       setText("statusSessao", "Processando no núcleo CRS...");
-      await sleep(FLOW.BETWEEN_ACTIONS_MS);
-
       const analise = await enviarCRS(resposta, i);
       STATE.analises.push(analise);
 
@@ -555,6 +491,7 @@ async function iniciar() {
     showTela("final");
   } catch (err) {
     console.error(err);
+    await resetMotores();
     alert(`Falha na sessão: ${err.message || err}`);
     setText("statusSessao", "Falha detectada.");
     showTela("intro");
@@ -564,14 +501,16 @@ async function iniciar() {
   }
 }
 
-// ============================
-// INIT
-// ============================
-
 document.addEventListener("DOMContentLoaded", () => {
-  showTela("intro");
-
-  el("btnIniciar")?.addEventListener("click", iniciar);
-  el("btnNovaSessao")?.addEventListener("click", novaSessao);
-  el("btnGerarPdf")?.addEventListener("click", gerarPdfRelatorio);
+  try {
+    assertStructure();
+    showTela("intro");
+    el("btnIniciar")?.addEventListener("click", iniciar);
+    el("btnNovaSessao")?.addEventListener("click", novaSessao);
+    el("btnGerarPdf")?.addEventListener("click", gerarPdfRelatorio);
+    log("cockpit carregado");
+  } catch (err) {
+    console.error(err);
+    alert(`Falha estrutural do cockpit: ${err.message || err}`);
+  }
 });
