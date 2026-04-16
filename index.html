@@ -3,226 +3,223 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Elayon • Presença</title>
+  <title>Sistemas Elayon • PRESENÇA</title>
 
   <style>
-    :root{
-      --bg:#050607;
-      --panel:#0b0d0f;
-      --ink:#f3f5f7;
-      --muted:#98a2ad;
-      --line:#1b2026;
-      --accent:#d9e2f2;
+    :root {
+      --bg: #050607;
+      --panel: #0b0d0f;
+      --panel-2: #11161b;
+      --ink: #f4f6f8;
+      --muted: #98a2ad;
+      --line: #1b2026;
+      --soft: #d7dee8;
     }
 
-    *{box-sizing:border-box}
+    * { box-sizing: border-box; }
 
-    html,body{
-      margin:0;
-      padding:0;
-      width:100%;
-      min-height:100%;
-      background:var(--bg);
-      color:var(--ink);
-      font-family:Arial, Helvetica, sans-serif;
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
     }
 
-    body{
-      display:flex;
-      align-items:center;
-      justify-content:center;
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
     }
 
-    .shell{
-      width:100%;
-      max-width:760px;
-      min-height:100dvh;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      padding:28px 22px 34px;
+    .shell {
+      width: 100%;
+      max-width: 820px;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 28px 22px 34px;
     }
 
-    .intro,.sessao,.final{
-      display:none;
-      width:100%;
+    .intro, .sessao, .final {
+      display: none;
+      width: 100%;
     }
 
-    .intro.show,
-    .sessao.show,
-    .final.show{
-      display:block;
+    .intro.show, .sessao.show, .final.show {
+      display: block;
     }
 
-    .marca{
-      font-size:14px;
-      letter-spacing:.22em;
-      text-transform:uppercase;
-      color:var(--muted);
-      margin-bottom:18px;
+    .marca {
+      font-size: 14px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 18px;
     }
 
-    .titulo{
-      font-size:28px;
-      line-height:1.18;
-      margin:0 0 14px;
-      font-weight:700;
+    .titulo {
+      font-size: 30px;
+      line-height: 1.18;
+      margin: 0 0 14px;
+      font-weight: 700;
     }
 
-    .texto{
-      font-size:17px;
-      line-height:1.75;
-      color:var(--muted);
-      margin:0 0 22px;
+    .texto {
+      font-size: 17px;
+      line-height: 1.8;
+      color: var(--muted);
+      margin: 0 0 22px;
     }
 
-    .campo{
-      width:100%;
-      margin-bottom:14px;
+    .campo {
+      width: 100%;
+      margin-bottom: 14px;
     }
 
-    .campo label{
-      display:block;
-      margin-bottom:8px;
-      font-size:13px;
-      color:var(--muted);
+    .campo label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--muted);
     }
 
-    .campo input{
-      width:100%;
-      min-height:48px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:var(--panel);
-      color:var(--ink);
-      padding:0 14px;
-      font-size:16px;
-      outline:none;
+    .campo input {
+      width: 100%;
+      min-height: 50px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      padding: 0 14px;
+      font-size: 16px;
+      outline: none;
     }
 
-    .campo input::placeholder{
-      color:#68727d;
+    .campo input::placeholder {
+      color: #68727d;
     }
 
-    .acao{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-height:48px;
-      min-width:180px;
-      padding:0 18px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:transparent;
-      color:var(--ink);
-      font-size:15px;
-      font-weight:700;
-      cursor:pointer;
-      transition:.18s ease;
+    .acao {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 50px;
+      min-width: 180px;
+      padding: 0 18px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .18s ease;
     }
 
-    .acao:hover{
-      background:#0e1216;
+    .acao:hover {
+      background: #0f1419;
     }
 
-    .acao.principal{
-      background:#101418;
-      border-color:#2a323c;
+    .acao.principal {
+      background: var(--panel-2);
+      border-color: #2b333d;
     }
 
-    .sinal{
-      margin-top:22px;
-      font-size:14px;
-      color:var(--muted);
-      min-height:24px;
-      line-height:1.6;
+    .acao:disabled {
+      opacity: .45;
+      cursor: not-allowed;
     }
 
-    .transcricao{
-      margin-top:28px;
-      min-height:220px;
-      border-top:1px solid var(--line);
-      padding-top:18px;
-      font-size:17px;
-      line-height:1.82;
-      color:var(--ink);
-      white-space:pre-wrap;
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #0d1115;
+      color: var(--soft);
+      font-size: 13px;
+      line-height: 1;
+      margin-top: 10px;
     }
 
-    .mini{
-      margin-top:18px;
-      font-size:12px;
-      color:#6f7883;
-      line-height:1.7;
+    .transcricao {
+      margin-top: 26px;
+      min-height: 220px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+      font-size: 18px;
+      line-height: 1.85;
+      white-space: pre-wrap;
+      color: var(--ink);
     }
 
-    .relatorio{
-      width:100%;
-      min-height:260px;
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:16px;
-      margin-top:18px;
-      white-space:pre-wrap;
-      line-height:1.7;
-      color:var(--ink);
-      overflow:auto;
-      max-height:48dvh;
+    .mini {
+      margin-top: 18px;
+      font-size: 12px;
+      color: #6f7883;
+      line-height: 1.7;
     }
 
-    .acoes-finais{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-top:18px;
+    .relatorio {
+      width: 100%;
+      min-height: 220px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 18px;
+      white-space: pre-wrap;
+      line-height: 1.7;
+      color: var(--ink);
+      overflow: auto;
+      max-height: 48dvh;
     }
 
-    .status-chip{
-      display:inline-flex;
-      align-items:center;
-      min-height:30px;
-      padding:0 12px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#0d1115;
-      color:var(--accent);
-      font-size:12px;
-      margin-top:10px;
+    .acoes-finais {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
     }
 
-    .log-tech{
-      display:none;
+    .log-tech {
+      display: none;
+      white-space: pre-wrap;
     }
 
-    @media (max-width:640px){
-      .shell{
-        padding:22px 18px 28px;
+    @media (max-width: 640px) {
+      .shell {
+        padding: 22px 18px 28px;
       }
 
-      .titulo{
-        font-size:24px;
+      .titulo {
+        font-size: 25px;
       }
 
-      .texto,.transcricao{
-        font-size:16px;
+      .texto, .transcricao {
+        font-size: 16px;
       }
 
-      .acao{
-        width:100%;
+      .acao {
+        width: 100%;
       }
     }
   </style>
 </head>
 <body>
   <main class="shell">
-
     <section class="intro show" id="telaIntro">
-      <div class="marca">Elayon • Presença</div>
-      <h1 class="titulo">Um espaço de escuta e cálculo do seu próprio ritmo.</h1>
+      <div class="marca">Sistemas Elayon • PRESENÇA</div>
+      <h1 class="titulo">Um espaço de escuta simbólica e cálculo do seu próprio ritmo.</h1>
       <p class="texto">
-        Esta experiência foi desenhada para reduzir distrações. Ao iniciar, o sistema conduz a sessão por voz.
-        A ativação inicial é manual. Depois disso, a interação segue pelos comandos combinados.
+        Esta experiência foi desenhada para reduzir distrações. O sistema conduz a sessão por voz
+        e aguarda seus comandos de ativação e confirmação.
       </p>
 
       <div class="campo">
@@ -232,29 +229,29 @@
 
       <div class="campo">
         <label for="inpContexto">Contexto</label>
-        <input id="inpContexto" type="text" placeholder="Ex.: quero observar melhor minha forma de pensar" />
+        <input id="inpContexto" type="text" placeholder="Ex.: quero observar melhor como estou pensando" />
       </div>
 
       <button class="acao principal" id="btnIniciar">Iniciar experiência</button>
 
-      <div class="sinal" id="statusIntro">Aguardando início.</div>
+      <div class="status-chip" id="statusIntro">Aguardando início.</div>
 
       <div class="mini">
-        Comandos de voz desta fase: “responder”, “okok”, “confirma”, “alinhar”.
+        Comandos desta fase: “responder”, “okok”, “confirma”, “alinhar”.
       </div>
     </section>
 
     <section class="sessao" id="telaSessao">
-      <div class="marca">Elayon • Presença</div>
+      <div class="marca">Sistemas Elayon • PRESENÇA</div>
       <div class="status-chip" id="statusSessao">Preparando ambiente de interação.</div>
       <div class="transcricao" id="textoVivo"></div>
     </section>
 
     <section class="final" id="telaFinal">
-      <div class="marca">Elayon • Presença</div>
+      <div class="marca">Sistemas Elayon • PRESENÇA</div>
       <h2 class="titulo">Relatório concluído.</h2>
       <p class="texto">
-        Você pode exportar este relatório em PDF e levá-lo para a IA de sua preferência, se isso fizer sentido para você.
+        Você pode exportar este relatório em PDF e levá-lo para a IA de sua preferência.
       </p>
 
       <div class="relatorio" id="relatorioFinal">Nenhum relatório disponível.</div>
