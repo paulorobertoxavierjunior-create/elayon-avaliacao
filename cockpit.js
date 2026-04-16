@@ -1,33 +1,22 @@
-// ======================================
-// SISTEMAS ELAYON — PRESENÇA
-// cockpit.js
-// ======================================
-
 const WORKWORDS = {
   abrir: ["responder"],
   fechar: ["ok ok", "okok", "ok, ok", "ok,ok", "ok-ok"],
-  confirma: ["confirma", "confirmar"],
-  alinhar: ["alinhar", "refazer"]
+  confirma: ["confirma", "confirmar", "confirmo"],
+  alinhar: ["alinhar", "refazer", "ajustar"]
 };
 
 const STATE = {
-  etapa: 0,
   respostas: [],
   analises: [],
-  audioReports: [],
   sessionId: null
 };
-
-// ============================
-// HELPERS
-// ============================
 
 function el(id) {
   return document.getElementById(id);
 }
 
-function setText(id, v) {
-  if (el(id)) el(id).textContent = v;
+function setText(id, value) {
+  if (el(id)) el(id).textContent = value ?? "";
 }
 
 function normalize(txt) {
@@ -36,7 +25,7 @@ function normalize(txt) {
 
 function matchAny(text, list) {
   const n = normalize(text || "");
-  return list.some(w => n.includes(normalize(w)));
+  return list.some((w) => n.includes(normalize(w)));
 }
 
 function showTela(nome) {
@@ -46,7 +35,7 @@ function showTela(nome) {
     final: "telaFinal"
   };
 
-  Object.values(telas).forEach(id => {
+  Object.values(telas).forEach((id) => {
     if (el(id)) el(id).classList.remove("show");
   });
 
@@ -55,67 +44,67 @@ function showTela(nome) {
   }
 }
 
-// ============================
-// FLUXO BASE
-// ============================
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function resetMotores() {
+  try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
+  try { await window.ELAYON_TUNNEL.tts.stop(); } catch {}
+  try { await window.ELAYON_TUNNEL.mic.close(); } catch {}
+}
 
 async function esperarPalavra(lista, status = "Aguardando comando...") {
   setText("statusSessao", status);
 
   while (true) {
-    const r = await window.ELAYON_TUNNEL.stt.listenOnce({ silenceMs: 4000 });
+    try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
+
+    const r = await window.ELAYON_TUNNEL.stt.listenOnce({ silenceMs: 2500 });
     const t = r.text || "";
 
     if (matchAny(t, lista)) {
       return t;
     }
+
+    await sleep(300);
   }
 }
-
-// ============================
-// CAPTURA CONTROLADA
-// ============================
 
 async function capturarResposta() {
   setText("statusSessao", "🎙️ ouvindo...");
   setText("textoVivo", "");
 
-  await window.ELAYON_TUNNEL.audio.startCapture();
+  await window.ELAYON_TUNNEL.mic.open();
 
-  const heard = await window.ELAYON_TUNNEL.stt.listenForPhrase({
-    stopPhrases: WORKWORDS.fechar,
-    silenceFailsafeMs: 120000,
-    onPartial: (d) => {
-      setText("textoVivo", d.text || "");
-    }
-  });
+  try {
+    const heard = await window.ELAYON_TUNNEL.stt.listenForPhrase({
+      stopPhrases: WORKWORDS.fechar,
+      silenceFailsafeMs: 120000,
+      onPartial: (d) => {
+        setText("textoVivo", d.cleaned_text || d.text || "");
+      }
+    });
 
-  const stopped = await window.ELAYON_TUNNEL.audio.stopCapture();
-  const audioReport = stopped.report || window.ELAYON_TUNNEL.audio.getReport();
+    const texto = (heard.cleaned_text || heard.text || "").trim();
+    setText("textoVivo", texto || "—");
 
-  const texto = (heard.cleaned_text || heard.text || "").trim();
-  setText("textoVivo", texto || "—");
-
-  return {
-    texto,
-    audioReport
-  };
+    return texto;
+  } finally {
+    try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
+    try { await window.ELAYON_TUNNEL.mic.close(); } catch {}
+  }
 }
-
-// ============================
-// ETAPA
-// ============================
 
 async function rodarEtapa(pergunta) {
   await window.ELAYON_TUNNEL.tts.speak(pergunta);
-
   setText("textoVivo", "");
+
+  await window.ELAYON_TUNNEL.tts.speak("Quando quiser começar sua resposta, diga responder.");
   await esperarPalavra(WORKWORDS.abrir, "Aguardando: responder");
 
   await window.ELAYON_TUNNEL.tts.speak("Microfone aberto.");
-
-  const captura = await capturarResposta();
-  const resposta = captura.texto;
+  const resposta = await capturarResposta();
 
   if (!resposta) {
     await window.ELAYON_TUNNEL.tts.speak("Nada captado. Vamos tentar novamente.");
@@ -123,59 +112,43 @@ async function rodarEtapa(pergunta) {
   }
 
   await window.ELAYON_TUNNEL.tts.speak(
-    "Se quiser confirmar diga confirma. Se quiser refazer diga alinhar."
+    "Se quiser confirmar, diga confirma. Se quiser refazer, diga alinhar."
   );
 
   setText("statusSessao", "Aguardando: confirma ou alinhar");
 
-  let decisao = null;
+  while (true) {
+    try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
 
-  while (!decisao) {
-    const r = await window.ELAYON_TUNNEL.stt.listenOnce({ silenceMs: 4000 });
+    const r = await window.ELAYON_TUNNEL.stt.listenOnce({ silenceMs: 2500 });
     const t = r.text || "";
 
-    if (matchAny(t, WORKWORDS.confirma)) decisao = "confirmar";
-    if (matchAny(t, WORKWORDS.alinhar)) decisao = "alinhar";
-  }
+    if (matchAny(t, WORKWORDS.alinhar)) {
+      await window.ELAYON_TUNNEL.tts.speak("Refazendo etapa.");
+      return rodarEtapa(pergunta);
+    }
 
-  if (decisao === "alinhar") {
-    await window.ELAYON_TUNNEL.tts.speak("Refazendo etapa.");
-    return rodarEtapa(pergunta);
-  }
+    if (matchAny(t, WORKWORDS.confirma)) {
+      return resposta;
+    }
 
-  return captura;
+    await sleep(300);
+  }
 }
 
-// ============================
-// CRS
-// ============================
+async function enviarCRS(texto, idx) {
+  const tema = (el("inpTema")?.value || "").trim();
+  const contexto = (el("inpContexto")?.value || "").trim();
 
-async function enviarCRS(texto, audioReport = {}) {
   const payload = window.ELAYON_TUNNEL.crs.buildPayload(texto, {
-    duration_sec: audioReport.duration_sec,
-    silence_pct: audioReport.silence_pct,
-    pause_count: audioReport.pause_count,
-    mean_pause_ms: audioReport.mean_pause_ms,
-    energy_pct: audioReport.energy_pct,
-    oscillation_pct: audioReport.oscillation_pct,
-    continuity_pct: audioReport.continuity_pct,
-    stability_pct: audioReport.stability_pct,
-    noise_pct: audioReport.noise_pct,
-    spectrum_snapshot: audioReport.spectrum_snapshot,
-    timeline_events: audioReport.timeline_series,
-    spectrum_series: audioReport.spectrum_series,
-    context: (el("inpContexto")?.value || "").trim(),
-    source_text: (el("inpTema")?.value || "").trim()
+    context: `${contexto} | etapa ${idx + 1} | tema ${tema}`,
+    source_text: tema
   });
 
   return await window.ELAYON_TUNNEL.crs.analyze(payload);
 }
 
-// ============================
-// RELATÓRIO
-// ============================
-
-function gerarRelatorio(respostas, analises, audioReports) {
+function gerarRelatorio(respostas, analises) {
   let txt = "";
 
   txt += "SISTEMAS ELAYON\n";
@@ -190,20 +163,11 @@ function gerarRelatorio(respostas, analises, audioReports) {
     txt += `FALA: ${r}\n`;
 
     const a = analises[i]?.relatorio || {};
-    const ar = audioReports[i] || {};
-    const ss = ar.spectrum_snapshot || {};
 
-    txt += `Tempo: ${a.tempo_total || ar.duration_sec || 0}s\n`;
-    txt += `Silêncio: ${a.porcentagem_silencio || ar.silence_pct || 0}%\n`;
-    txt += `Pausas: ${a.total_pausas || ar.pause_count || 0}\n`;
+    txt += `Tempo: ${a.tempo_total || 0}s\n`;
+    txt += `Silêncio: ${a.porcentagem_silencio || 0}%\n`;
+    txt += `Pausas: ${a.total_pausas || 0}\n`;
     txt += `Densidade: ${a.densidade || 0}\n`;
-    txt += `Média de pausa: ${ar.mean_pause_ms || 0}ms\n`;
-    txt += `Energia: ${ar.energy_pct || 0}%\n`;
-    txt += `Oscilação: ${ar.oscillation_pct || 0}%\n`;
-    txt += `Continuidade: ${ar.continuity_pct || 0}%\n`;
-    txt += `Estabilidade: ${ar.stability_pct || 0}%\n`;
-    txt += `Ruído: ${ar.noise_pct || 0}%\n`;
-    txt += `Snapshot: graves ${ss.graves || 0} | médios ${ss.medios || 0} | agudos ${ss.agudos || 0} | ruído ${ss.ruido || 0} | estabilidade ${ss.estabilidade || 0}\n`;
 
     if (analises[i]?.analise_sugestiva) {
       txt += `Análise sugestiva: ${analises[i].analise_sugestiva}\n`;
@@ -218,10 +182,6 @@ function gerarRelatorio(respostas, analises, audioReports) {
 
   return txt;
 }
-
-// ============================
-// PDF
-// ============================
 
 function gerarPdfRelatorio() {
   const texto = el("relatorioFinal")?.textContent?.trim();
@@ -244,8 +204,8 @@ function gerarPdfRelatorio() {
   });
 
   const marginX = 14;
-  let y = 18;
   const usableWidth = 210 - marginX * 2;
+  let y = 18;
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
@@ -265,22 +225,9 @@ function gerarPdfRelatorio() {
   doc.save(`${STATE.sessionId || "relatorio-elayon"}.pdf`);
 }
 
-// ============================
-// RESET
-// ============================
-
-async function resetMotores() {
-  try { await window.ELAYON_TUNNEL.audio.stopCapture(); } catch {}
-  try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
-  try { await window.ELAYON_TUNNEL.tts.stop(); } catch {}
-  try { await window.ELAYON_TUNNEL.mic.close(); } catch {}
-}
-
 function novaSessao() {
-  STATE.etapa = 0;
   STATE.respostas = [];
   STATE.analises = [];
-  STATE.audioReports = [];
   STATE.sessionId = null;
 
   setText("statusIntro", "Aguardando início.");
@@ -290,10 +237,6 @@ function novaSessao() {
 
   showTela("intro");
 }
-
-// ============================
-// FLUXO PRINCIPAL
-// ============================
 
 async function iniciar() {
   try {
@@ -319,49 +262,41 @@ async function iniciar() {
     STATE.sessionId = "sessao-" + Date.now();
     STATE.respostas = [];
     STATE.analises = [];
-    STATE.audioReports = [];
 
     setText("statusIntro", "Iniciando experiência...");
     setText("textoVivo", "");
     showTela("sessao");
 
-    await window.ELAYON_TUNNEL.mic.open();
-
     await window.ELAYON_TUNNEL.tts.speak(
 `SISTEMAS ELAYON.
 Bem-vindo ao PRESENÇA.
-Diga responder para iniciar.`
+Este é um espaço de escuta simbólica.
+Quando quiser iniciar, diga responder.`
     );
 
     const etapas = [
       "Fale sobre o tema.",
       "Agora aprofunde.",
-      "Qual seu próximo passo?"
+      "Qual é o próximo passo mais honesto para você agora?"
     ];
 
     for (let i = 0; i < etapas.length; i++) {
-      const captura = await rodarEtapa(etapas[i]);
-
-      STATE.respostas.push(captura.texto);
-      STATE.audioReports.push(captura.audioReport);
+      const resposta = await rodarEtapa(etapas[i]);
+      STATE.respostas.push(resposta);
 
       setText("statusSessao", "Processando no núcleo CRS...");
-      const analise = await enviarCRS(captura.texto, captura.audioReport);
+      const analise = await enviarCRS(resposta, i);
       STATE.analises.push(analise);
     }
 
-    const relatorio = gerarRelatorio(
-      STATE.respostas,
-      STATE.analises,
-      STATE.audioReports
-    );
-
+    const relatorio = gerarRelatorio(STATE.respostas, STATE.analises);
     setText("relatorioFinal", relatorio);
 
     await window.ELAYON_TUNNEL.tts.speak("Relatório concluído.");
     showTela("final");
   } catch (err) {
     console.error(err);
+    await resetMotores();
     alert(`Falha na sessão: ${err.message || err}`);
     setText("statusSessao", "Falha detectada.");
     showTela("intro");
@@ -369,10 +304,6 @@ Diga responder para iniciar.`
     await resetMotores();
   }
 }
-
-// ============================
-// INIT
-// ============================
 
 document.addEventListener("DOMContentLoaded", () => {
   showTela("intro");
