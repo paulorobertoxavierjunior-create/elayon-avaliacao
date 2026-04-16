@@ -1,125 +1,271 @@
-document.body.innerHTML = `
-<style>
-body {
-  margin:0;
-  background:#000;
-  color:#0f0;
-  font-family:monospace;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elayon • Presença</title>
 
-#start {
-  font-size:18px;
-  padding:14px 24px;
-  border:1px solid #0f0;
-  background:transparent;
-  color:#0f0;
-}
-
-#log {
-  position:absolute;
-  bottom:10px;
-  left:10px;
-  font-size:10px;
-  opacity:.2;
-}
-</style>
-
-<button id="start">iniciar</button>
-<div id="log"></div>
-`;
-
-const log = (msg) => {
-  document.getElementById("log").textContent += "\n" + msg;
-};
-
-let micAtivo = false;
-let ultimoTexto = "";
-
-// =========================
-// START
-// =========================
-
-document.getElementById("start").onclick = async () => {
-
-  document.getElementById("start").remove();
-
-  await ELAYON_TUNNEL.mic.open();
-  micAtivo = true;
-
-  await falar("Vamos começar.");
-
-  loop();
-};
-
-// =========================
-// VOZ
-// =========================
-
-async function falar(txt){
-  await ELAYON_TUNNEL.tts.speak(txt);
-}
-
-function limpar(txt){
-  return txt
-    .replace(/ok ok/gi,"")
-    .replace(/responder/gi,"")
-    .replace(/confirma/gi,"")
-    .replace(/alinhar/gi,"")
-    .trim();
-}
-
-async function ouvir(){
-  const r = await ELAYON_TUNNEL.stt.listenOnce({
-    silenceMs:2000
-  });
-  return (r.text || "").toLowerCase();
-}
-
-// =========================
-// LOOP PRINCIPAL
-// =========================
-
-async function loop(){
-
-  while(true){
-
-    const cmd = await ouvir();
-
-    if(cmd.includes("responder")){
-      await falar("pode falar");
-
-      const fala = await ELAYON_TUNNEL.stt.listenOnce({
-        silenceMs:10000
-      });
-
-      ultimoTexto = limpar(fala.text || "");
-
-      log("fala: " + ultimoTexto);
-
-      await falar("confirma ou alinhar");
+  <style>
+    :root {
+      --bg: #050607;
+      --panel: #0b0d0f;
+      --ink: #f3f5f7;
+      --muted: #98a2ad;
+      --line: #1b2026;
+      --accent: #d9e2f2;
     }
 
-    if(cmd.includes("alinhar")){
-      ultimoTexto = "";
-      await falar("refaça");
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
     }
 
-    if(cmd.includes("confirma")){
-      await falar("enviando");
-
-      const payload = ELAYON_TUNNEL.crs.buildPayload(ultimoTexto);
-
-      const res = await ELAYON_TUNNEL.crs.analyze(payload);
-
-      log(JSON.stringify(res,null,2));
-
-      await falar("finalizado");
-
-      break;
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-  }
-}
+
+    .shell {
+      width: 100%;
+      max-width: 720px;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 28px 22px;
+    }
+
+    .intro,
+    .sessao,
+    .final {
+      display: none;
+      width: 100%;
+    }
+
+    .intro.show,
+    .sessao.show,
+    .final.show {
+      display: block;
+    }
+
+    .marca {
+      font-size: 14px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .titulo {
+      font-size: 28px;
+      line-height: 1.18;
+      margin: 0 0 14px;
+      font-weight: 700;
+    }
+
+    .texto {
+      font-size: 17px;
+      line-height: 1.75;
+      color: var(--muted);
+      margin: 0 0 22px;
+    }
+
+    .campo {
+      width: 100%;
+      margin-bottom: 14px;
+    }
+
+    .campo label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .campo input {
+      width: 100%;
+      min-height: 48px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      padding: 0 14px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .acao {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      min-width: 180px;
+      padding: 0 18px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .acao:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .sinal {
+      margin-top: 22px;
+      font-size: 14px;
+      color: var(--muted);
+      min-height: 24px;
+    }
+
+    .transcricao {
+      margin-top: 28px;
+      min-height: 120px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+      font-size: 17px;
+      line-height: 1.8;
+      color: var(--ink);
+      opacity: .96;
+      white-space: pre-wrap;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 18px;
+      background: var(--accent);
+      margin-left: 6px;
+      vertical-align: middle;
+      animation: pisca 1s infinite;
+    }
+
+    @keyframes pisca {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    .mini {
+      margin-top: 18px;
+      font-size: 12px;
+      color: #6f7883;
+      line-height: 1.7;
+    }
+
+    .relatorio {
+      width: 100%;
+      min-height: 220px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 18px;
+      white-space: pre-wrap;
+      line-height: 1.7;
+      color: var(--ink);
+      overflow: auto;
+      max-height: 48dvh;
+    }
+
+    .acoes-finais {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .log-tech {
+      display: none;
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        padding: 22px 18px;
+      }
+
+      .titulo {
+        font-size: 24px;
+      }
+
+      .texto,
+      .transcricao {
+        font-size: 16px;
+      }
+
+      .acao {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="intro show" id="telaIntro">
+      <div class="marca">Elayon • Presença</div>
+      <h1 class="titulo">Um espaço de escuta e cálculo do seu próprio ritmo.</h1>
+      <p class="texto">
+        Esta experiência foi desenhada para reduzir distrações. Ao iniciar, o sistema conduz a sessão por voz.
+        A ativação inicial é manual. Depois disso, a interação segue pelos comandos combinados.
+      </p>
+
+      <div class="campo">
+        <label for="inpTema">Tema</label>
+        <input id="inpTema" type="text" placeholder="Ex.: trabalho, decisão, estudo, rotina" />
+      </div>
+
+      <div class="campo">
+        <label for="inpContexto">Contexto</label>
+        <input id="inpContexto" type="text" placeholder="Ex.: quero observar melhor minha forma de pensar" />
+      </div>
+
+      <button class="acao" id="btnIniciar">Iniciar experiência</button>
+      <div class="sinal" id="statusIntro">Aguardando início.</div>
+      <div class="mini">
+        Comandos de voz desta fase: “responder”, “ok ok”, “confirma”, “alinhar”.
+      </div>
+    </section>
+
+    <section class="sessao" id="telaSessao">
+      <div class="marca">Elayon • Presença</div>
+      <div class="sinal" id="statusSessao">Preparando ambiente de interação.</div>
+      <div class="transcricao" id="textoVivo"></div>
+    </section>
+
+    <section class="final" id="telaFinal">
+      <div class="marca">Elayon • Presença</div>
+      <h2 class="titulo">Relatório concluído.</h2>
+      <p class="texto">
+        Você pode exportar este relatório em PDF e levá-lo para a IA de sua preferência, se isso fizer sentido para você.
+      </p>
+
+      <div class="relatorio" id="relatorioFinal">Nenhum relatório disponível.</div>
+
+      <div class="acoes-finais">
+        <button class="acao" id="btnGerarPdf">Gerar PDF</button>
+        <button class="acao" id="btnNovaSessao">Nova sessão</button>
+      </div>
+    </section>
+
+    <pre class="log-tech" id="logTech"></pre>
+  </main>
+
+  <script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/base.js"></script>
+  <script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/tunnel-lab.js"></script>
+  <script src="memoria.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="cockpit.js"></script>
+</body>
+</html>
