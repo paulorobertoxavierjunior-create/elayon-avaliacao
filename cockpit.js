@@ -274,7 +274,7 @@ async function capturarDecisaoCurta() {
 
 async function rodadaTutorial() {
   await falarComTexto(
-`SISTEMAS ELAYON.
+`Sistemas Elai ôn.
 
 Bem-vindo ao PRESENÇA.
 
