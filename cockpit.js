@@ -8,7 +8,7 @@ const WORKWORDS = {
   confirmar: "confirma",
   alinhar: "alinhar"
 };
-
+ 
 const ETAPAS = [
   {
     id: 1,
