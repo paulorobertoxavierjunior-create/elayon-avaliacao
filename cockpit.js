@@ -1,11 +1,16 @@
 // ======================================
 // SISTEMAS ELAYON — PRESENÇA
 // cockpit.js
+// Lógica nova:
+// IA conduz tudo
+// IA fala e abre mic
+// humano fala livre e fecha com "ok ok"
+// IA mostra transcrição
+// IA abre mic curto para "confirma" ou "alinhar"
 // ======================================
 
 const WORKWORDS = {
-  abrir: ["responder"],
-  fechar: ["ok ok", "okok", "ok, ok", "ok,ok", "ok-ok", "ok. ok"],
+  fecharLivre: ["ok ok", "okok", "ok, ok", "ok,ok", "ok-ok", "ok. ok"],
   confirma: ["confirma", "confirmar", "confirmo"],
   alinhar: ["alinhar", "refazer", "ajustar"]
 };
@@ -14,7 +19,6 @@ const FLOW = {
   TYPE_SPEED: 24,
   STEP_DELAY_MS: 900,
   BETWEEN_ACTIONS_MS: 700,
-  LISTEN_SHORT_MS: 3000,
   LISTEN_DECISION_MS: 12000,
   LISTEN_FREE_MS: 240000,
   PRE_MIC_WAIT_MS: 3000
@@ -92,7 +96,7 @@ function limparSessaoVisual() {
 }
 
 // ============================
-// TEXTO PROGRESSIVO
+// TEXTO PROGRESSIVO + FALA
 // ============================
 
 function escreverTextoProgressivo(texto, alvoId, velocidade = FLOW.TYPE_SPEED) {
@@ -136,7 +140,7 @@ async function falarComTexto(texto, alvoId = "textoVivo") {
 }
 
 // ============================
-// BIP
+// BIP + CONTAGEM
 // ============================
 
 function bip() {
@@ -160,101 +164,26 @@ function bip() {
   } catch {}
 }
 
-// ============================
-// ESPERA POR PALAVRA
-// ============================
-
-async function esperarPalavra(lista, status = "Aguardando comando...") {
-  setText("statusSessao", status);
-
-  while (true) {
-    try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
-
-    const r = await window.ELAYON_TUNNEL.stt.listenOnce({
-      silenceMs: FLOW.LISTEN_SHORT_MS
-    });
-
-    const t = r.text || "";
-    log(`ouvido: ${t}`);
-
-    if (matchAny(t, lista)) {
-      return t;
-    }
-
-    await sleep(350);
-  }
-}
-
-// ============================
-// TUTORIAL
-// ============================
-
-async function rodadaTutorial() {
-  await falarComTexto(
-`Sistemas Elai ôn.
-
-Bem-vindo ao PRESENÇA.
-
-Este é um espaço de escuta simbólica.`
-  );
-
-  await falarComTexto(
-`O PRESENÇA foi criado para conduzir uma avaliação da sua fala. No ritmo humano, mais pausado e mais confiável.`
-  );
-
-  await falarComTexto(
-`Nesta experiência, o sistema fala com você passo a passo.
-
-Cada instrução aparece escrita na tela e também é falada.`
-  );
-
-  await falarComTexto(
-`Funciona assim.
-
-Quando o sistema pedir, você dirá a palavra responder.
-
-Somente depois disso o microfone será preparado para abrir.`
-  );
-
-  await falarComTexto(
-`Antes da abertura do microfone, o sistema fará uma pequena contagem.
-
-Depois da contagem, haverá um bip.
-
-Só então você fala à vontade.`
-  );
-
-  await falarComTexto(
-`Quando terminar sua fala, diga ok ok.
-
-A expressão ok ok é o código que fecha sua resposta livre nesta fase.`
-  );
-
-  await falarComTexto(
-`Depois disso, o sistema perguntará se você quer seguir ou refazer.
-
-Se quiser seguir, diga confirma.
-
-Se quiser refazer, diga alinhar.`
-  );
-
-  await falarComTexto(
-`Agora vamos começar.
-
-Quando estiver pronto para iniciar a sessão, diga responder.`
-  );
-}
-
-// ============================
-// CONTAGEM HUMANA
-// ============================
-
 async function contagemParaAbrirMic() {
   setText("statusSessao", "Prepare-se. Respira.");
   await sleep(FLOW.PRE_MIC_WAIT_MS);
 
+  await falarComTexto(
+`Vou abrir o microfone.
+
+Respira.
+
+Pensa no tema e no contexto.
+
+Pensa no objetivo desta etapa.
+
+Vou contar até cinco.`
+  );
+
+  await sleep(1000);
+
   for (let n = 5; n >= 1; n--) {
-    setText("statusSessao", `Vou abrir o microfone em ${n}...`);
+    setText("statusSessao", `Abrindo em ${n}...`);
     setText("textoVivo", String(n));
     await sleep(1000);
   }
@@ -276,7 +205,7 @@ async function capturarRespostaLivre() {
 
   try {
     const heard = await window.ELAYON_TUNNEL.stt.listenForPhrase({
-      stopPhrases: WORKWORDS.fechar,
+      stopPhrases: WORKWORDS.fecharLivre,
       silenceFailsafeMs: FLOW.LISTEN_FREE_MS,
       onPartial: (d) => {
         setText("textoVivo", d.cleaned_text || d.text || "");
@@ -295,35 +224,89 @@ async function capturarRespostaLivre() {
 }
 
 // ============================
-// DECISÃO
+// CAPTURA DE DECISÃO
 // ============================
 
-async function capturarDecisao() {
-  await falarComTexto(
-`Tudo certo até aqui?
+async function capturarDecisaoCurta() {
+  setText("statusSessao", "🎙️ Microfone curto aberto para decisão.");
 
-Se quiser seguir, diga confirma.
+  await window.ELAYON_TUNNEL.mic.open();
 
-Se quiser refazer, diga alinhar.`
-  );
-
-  setText("statusSessao", "Aguardando: confirma ou alinhar");
-
-  while (true) {
-    try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
-
-    const r = await window.ELAYON_TUNNEL.stt.listenOnce({
-      silenceMs: FLOW.LISTEN_DECISION_MS
+  try {
+    const heard = await window.ELAYON_TUNNEL.stt.listenForPhrase({
+      stopPhrases: [...WORKWORDS.confirma, ...WORKWORDS.alinhar],
+      silenceFailsafeMs: FLOW.LISTEN_DECISION_MS,
+      onPartial: (d) => {
+        setText("textoVivo", d.cleaned_text || d.text || "");
+      }
     });
 
-    const t = r.text || "";
-    log(`decisão ouvida: ${t}`);
+    const txt = heard.text || "";
 
-    if (matchAny(t, WORKWORDS.alinhar)) return "alinhar";
-    if (matchAny(t, WORKWORDS.confirma)) return "confirma";
+    if (matchAny(txt, WORKWORDS.alinhar)) return "alinhar";
+    if (matchAny(txt, WORKWORDS.confirma)) return "confirma";
 
-    await sleep(350);
+    return null;
+  } finally {
+    try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
+    try { await window.ELAYON_TUNNEL.mic.close(); } catch {}
+    await sleep(FLOW.STEP_DELAY_MS);
   }
+}
+
+// ============================
+// TUTORIAL
+// ============================
+
+async function rodadaTutorial() {
+  await falarComTexto(
+`Sistemas Elai ôn.
+
+Bem-vindo ao PRESENÇA.
+
+Este é um  espaço  de escuta simbólica.`
+  );
+
+  await falarComTexto(
+`O PRESENÇA conduz uma avaliação da sua fala no seu ritmo real, pausadamente e com a máxima confiabilidade e segurança de dados.
+  );
+
+  await falarComTexto(
+`Nesta experiência, o sistema fala com você passo a passo.
+
+Tudo o que o sistema disser também aparecerá escrito na tela. Leia com atenção.`
+  );
+
+  await falarComTexto(
+`Iniciada a escuta, o sistema abre o microfone para você.
+
+  );
+
+  await falarComTexto(
+`O sistema vai preparar o momento, contar o tempo regressivo e abrir o microfone.
+
+Ouviu o bip do microfone, você fala à vontade.`
+  );
+
+  await falarComTexto(
+`Quando terminar sua fala livre, diga  a expressão: "ok ok" .
+
+"Ok ok" é o código que fecha o microfone e registra sua fala.`
+  );
+
+  await falarComTexto(
+`Depois disso, o sistema mostrará sua transcrição e abrirá um microfone pra você dizer se tá tudo ók.
+
+Pra refazer a fala, diga alinhar. É pra dar sequência diga confirmar`
+  );
+
+  await falarComTexto(
+`Vamos começar sua autoavaliação.
+
+Então, resumindo, o microfone abre vc fala e termina com "ok ok". Confere se concorda com o que foi dito e alinha ou confirma. Só isso. 
+
+Vou Abrir o microfone. Prepare-se`
+  );
 }
 
 // ============================
@@ -334,23 +317,25 @@ function obterPerguntas() {
   const tema = (el("inpTema")?.value || "").trim() || "o tema que você escolheu";
 
   return [
-    `Vamos começar.
+    `Primeira etapa.
 
-Quando eu disser responder, você prepara sua fala.
+Fale sobre ${tema} do jeito mais natural possível.
 
-Depois da contagem e do bip, fale sobre ${tema} do jeito mais natural possível.
+Quando terminar sua fala, diga ok ok.`,
 
-Quando terminar, diga ok ok.`,
+    `Segunda etapa.
 
-    `Agora aprofunde um pouco mais.
+Agora aprofunde um pouco mais.
 
 Dentro do que você trouxe, o que merece mais atenção neste momento?
 
-Quando terminar, diga ok ok.`,
+Quando terminar sua fala, diga ok ok.`,
 
-    `Para concluir, diga qual é o próximo passo mais honesto para você agora.
+    `Terceira etapa.
 
-Quando terminar, diga ok ok.`
+Para concluir, diga qual é o próximo passo mais honesto para você agora.
+
+Quando terminar sua fala, diga ok ok.`
   ];
 }
 
@@ -358,9 +343,6 @@ async function rodarEtapa(pergunta, indice) {
   setText("statusSessao", `Etapa ${indice + 1} de 3`);
 
   await falarComTexto(pergunta);
-  await falarComTexto(`Quando estiver pronto para esta etapa, diga responder.`);
-
-  await esperarPalavra(WORKWORDS.abrir, "Aguardando: responder");
   await contagemParaAbrirMic();
 
   const resposta = await capturarRespostaLivre();
@@ -370,9 +352,19 @@ async function rodarEtapa(pergunta, indice) {
     return rodarEtapa(pergunta, indice);
   }
 
-  const decisao = await capturarDecisao();
+  await falarComTexto(
+`Sua fala foi registrada.
 
-  if (decisao === "alinhar") {
+Agora direi novamente.
+
+Se quiser seguir, diga confirma.
+
+Se quiser refazer, diga alinhar.`
+  );
+
+  const decisao = await capturarDecisaoCurta();
+
+  if (decisao !== "confirma") {
     await falarComTexto(`Vamos refazer esta etapa com calma.`);
     return rodarEtapa(pergunta, indice);
   }
