@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sistemas Elayon • PRESENÇA</title>
 
-  <style> 
+  <style>
     :root {
       --bg: #050607;
       --panel: #0b0d0f;
@@ -99,10 +99,6 @@
       outline: none;
     }
 
-    .campo input::placeholder {
-      color: #68727d;
-    }
-
     .acao {
       display: inline-flex;
       align-items: center;
@@ -117,21 +113,11 @@
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
-      transition: .18s ease;
-    }
-
-    .acao:hover {
-      background: #0f1419;
     }
 
     .acao.principal {
       background: var(--panel-2);
       border-color: #2b333d;
-    }
-
-    .acao:disabled {
-      opacity: .45;
-      cursor: not-allowed;
     }
 
     .status-chip {
@@ -159,13 +145,6 @@
       color: var(--ink);
     }
 
-    .mini {
-      margin-top: 18px;
-      font-size: 12px;
-      color: #6f7883;
-      line-height: 1.7;
-    }
-
     .relatorio {
       width: 100%;
       min-height: 220px;
@@ -188,9 +167,14 @@
       margin-top: 18px;
     }
 
-    .log-tech {
-      display: none;
+    #logTech {
+      margin-top: 20px;
       white-space: pre-wrap;
+      font-size: 12px;
+      color: #6c7682;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+      display: none;
     }
 
     @media (max-width: 640px) {
@@ -216,10 +200,9 @@
   <main class="shell">
     <section class="intro show" id="telaIntro">
       <div class="marca">Sistemas Elayon • PRESENÇA</div>
-      <h1 class="titulo">Um  espaço  de escuta simbólica e cálculo do seu próprio ritmo.</h1>
+      <h1 class="titulo">Um espaço de escuta simbólica e cálculo do seu próprio ritmo.</h1>
       <p class="texto">
-        Esta experiência foi desenhada para reduzir distrações. O sistema conduz a sessão por voz
-        e aguarda seus comandos de ativação e confirmação.
+        Esta experiência conduz uma sessão guiada por voz com ritmo humano e foco no seu próprio fluxo de fala.
       </p>
 
       <div class="campo">
@@ -232,13 +215,9 @@
         <input id="inpContexto" type="text" placeholder="Ex.: quero observar melhor como estou pensando" />
       </div>
 
-      <button class="acao principal" id="btnIniciar">Iniciar experiência</button>
+      <button class="acao principal" id="btnIniciar" type="button">Iniciar experiência</button>
 
       <div class="status-chip" id="statusIntro">Aguardando início.</div>
-
-      <div class="mini">
-        Comandos desta fase: “responder”, “okok”, “confirma”, “alinhar”.
-      </div>
     </section>
 
     <section class="sessao" id="telaSessao">
@@ -257,12 +236,12 @@
       <div class="relatorio" id="relatorioFinal">Nenhum relatório disponível.</div>
 
       <div class="acoes-finais">
-        <button class="acao" id="btnGerarPdf">Gerar PDF</button>
-        <button class="acao" id="btnNovaSessao">Nova sessão</button>
+        <button class="acao" id="btnGerarPdf" type="button">Gerar PDF</button>
+        <button class="acao" id="btnNovaSessao" type="button">Nova sessão</button>
       </div>
     </section>
 
-    <pre class="log-tech" id="logTech"></pre>
+    <pre id="logTech"></pre>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
