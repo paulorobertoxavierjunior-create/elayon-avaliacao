@@ -14,6 +14,7 @@ const STATE = {
   etapa: 0,
   respostas: [],
   analises: [],
+  audioReports: [],
   sessionId: null
 };
 
@@ -54,10 +55,6 @@ function showTela(nome) {
   }
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 // ============================
 // FLUXO BASE
 // ============================
@@ -83,6 +80,8 @@ async function capturarResposta() {
   setText("statusSessao", "🎙️ ouvindo...");
   setText("textoVivo", "");
 
+  await window.ELAYON_TUNNEL.audio.startCapture();
+
   const heard = await window.ELAYON_TUNNEL.stt.listenForPhrase({
     stopPhrases: WORKWORDS.fechar,
     silenceFailsafeMs: 120000,
@@ -91,10 +90,16 @@ async function capturarResposta() {
     }
   });
 
+  const stopped = await window.ELAYON_TUNNEL.audio.stopCapture();
+  const audioReport = stopped.report || window.ELAYON_TUNNEL.audio.getReport();
+
   const texto = (heard.cleaned_text || heard.text || "").trim();
   setText("textoVivo", texto || "—");
 
-  return texto;
+  return {
+    texto,
+    audioReport
+  };
 }
 
 // ============================
@@ -109,7 +114,8 @@ async function rodarEtapa(pergunta) {
 
   await window.ELAYON_TUNNEL.tts.speak("Microfone aberto.");
 
-  const resposta = await capturarResposta();
+  const captura = await capturarResposta();
+  const resposta = captura.texto;
 
   if (!resposta) {
     await window.ELAYON_TUNNEL.tts.speak("Nada captado. Vamos tentar novamente.");
@@ -137,15 +143,31 @@ async function rodarEtapa(pergunta) {
     return rodarEtapa(pergunta);
   }
 
-  return resposta;
+  return captura;
 }
 
 // ============================
 // CRS
 // ============================
 
-async function enviarCRS(texto) {
-  const payload = window.ELAYON_TUNNEL.crs.buildPayload(texto);
+async function enviarCRS(texto, audioReport = {}) {
+  const payload = window.ELAYON_TUNNEL.crs.buildPayload(texto, {
+    duration_sec: audioReport.duration_sec,
+    silence_pct: audioReport.silence_pct,
+    pause_count: audioReport.pause_count,
+    mean_pause_ms: audioReport.mean_pause_ms,
+    energy_pct: audioReport.energy_pct,
+    oscillation_pct: audioReport.oscillation_pct,
+    continuity_pct: audioReport.continuity_pct,
+    stability_pct: audioReport.stability_pct,
+    noise_pct: audioReport.noise_pct,
+    spectrum_snapshot: audioReport.spectrum_snapshot,
+    timeline_events: audioReport.timeline_series,
+    spectrum_series: audioReport.spectrum_series,
+    context: (el("inpContexto")?.value || "").trim(),
+    source_text: (el("inpTema")?.value || "").trim()
+  });
+
   return await window.ELAYON_TUNNEL.crs.analyze(payload);
 }
 
@@ -153,7 +175,7 @@ async function enviarCRS(texto) {
 // RELATÓRIO
 // ============================
 
-function gerarRelatorio(respostas, analises) {
+function gerarRelatorio(respostas, analises, audioReports) {
   let txt = "";
 
   txt += "SISTEMAS ELAYON\n";
@@ -168,11 +190,20 @@ function gerarRelatorio(respostas, analises) {
     txt += `FALA: ${r}\n`;
 
     const a = analises[i]?.relatorio || {};
+    const ar = audioReports[i] || {};
+    const ss = ar.spectrum_snapshot || {};
 
-    txt += `Tempo: ${a.tempo_total || 0}s\n`;
-    txt += `Silêncio: ${a.porcentagem_silencio || 0}%\n`;
-    txt += `Pausas: ${a.total_pausas || 0}\n`;
+    txt += `Tempo: ${a.tempo_total || ar.duration_sec || 0}s\n`;
+    txt += `Silêncio: ${a.porcentagem_silencio || ar.silence_pct || 0}%\n`;
+    txt += `Pausas: ${a.total_pausas || ar.pause_count || 0}\n`;
     txt += `Densidade: ${a.densidade || 0}\n`;
+    txt += `Média de pausa: ${ar.mean_pause_ms || 0}ms\n`;
+    txt += `Energia: ${ar.energy_pct || 0}%\n`;
+    txt += `Oscilação: ${ar.oscillation_pct || 0}%\n`;
+    txt += `Continuidade: ${ar.continuity_pct || 0}%\n`;
+    txt += `Estabilidade: ${ar.stability_pct || 0}%\n`;
+    txt += `Ruído: ${ar.noise_pct || 0}%\n`;
+    txt += `Snapshot: graves ${ss.graves || 0} | médios ${ss.medios || 0} | agudos ${ss.agudos || 0} | ruído ${ss.ruido || 0} | estabilidade ${ss.estabilidade || 0}\n`;
 
     if (analises[i]?.analise_sugestiva) {
       txt += `Análise sugestiva: ${analises[i].analise_sugestiva}\n`;
@@ -239,6 +270,7 @@ function gerarPdfRelatorio() {
 // ============================
 
 async function resetMotores() {
+  try { await window.ELAYON_TUNNEL.audio.stopCapture(); } catch {}
   try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
   try { await window.ELAYON_TUNNEL.tts.stop(); } catch {}
   try { await window.ELAYON_TUNNEL.mic.close(); } catch {}
@@ -248,6 +280,7 @@ function novaSessao() {
   STATE.etapa = 0;
   STATE.respostas = [];
   STATE.analises = [];
+  STATE.audioReports = [];
   STATE.sessionId = null;
 
   setText("statusIntro", "Aguardando início.");
@@ -286,6 +319,7 @@ async function iniciar() {
     STATE.sessionId = "sessao-" + Date.now();
     STATE.respostas = [];
     STATE.analises = [];
+    STATE.audioReports = [];
 
     setText("statusIntro", "Iniciando experiência...");
     setText("textoVivo", "");
@@ -306,15 +340,22 @@ Diga responder para iniciar.`
     ];
 
     for (let i = 0; i < etapas.length; i++) {
-      const r = await rodarEtapa(etapas[i]);
-      STATE.respostas.push(r);
+      const captura = await rodarEtapa(etapas[i]);
+
+      STATE.respostas.push(captura.texto);
+      STATE.audioReports.push(captura.audioReport);
 
       setText("statusSessao", "Processando no núcleo CRS...");
-      const analise = await enviarCRS(r);
+      const analise = await enviarCRS(captura.texto, captura.audioReport);
       STATE.analises.push(analise);
     }
 
-    const relatorio = gerarRelatorio(STATE.respostas, STATE.analises);
+    const relatorio = gerarRelatorio(
+      STATE.respostas,
+      STATE.analises,
+      STATE.audioReports
+    );
+
     setText("relatorioFinal", relatorio);
 
     await window.ELAYON_TUNNEL.tts.speak("Relatório concluído.");
