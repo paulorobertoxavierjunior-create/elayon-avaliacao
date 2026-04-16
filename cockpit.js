@@ -191,7 +191,7 @@ async function esperarPalavra(lista, status = "Aguardando comando...") {
 
 async function rodadaTutorial() {
   await falarComTexto(
-`SISTEMAS ELAYON.
+`Sistemas Elai ôn.
 
 Bem-vindo ao PRESENÇA.
 
@@ -199,7 +199,7 @@ Este é um espaço de escuta simbólica.`
   );
 
   await falarComTexto(
-`O PRESENÇA foi criado para conduzir uma avaliação inicial da sua fala com ritmo mais humano, mais pausado e mais confiável.`
+`O PRESENÇA foi criado para conduzir uma avaliação da sua fala. No ritmo humano, mais pausado e mais confiável.`
   );
 
   await falarComTexto(
