@@ -465,13 +465,246 @@
     }
   };
 
-  const audio = {
+  const audio = (() => {
+  let audioContext = null;
+  let analyser = null;
+  let timeData = null;
+  let freqData = null;
+  let rafId = null;
+  let running = false;
+
+  let captureStartedAt = 0;
+  let frameCount = 0;
+  let silenceFrames = 0;
+  let energyAccum = 0;
+  let oscillationAccum = 0;
+  let lastVolume = 0;
+
+  let pauseCount = 0;
+  let pauseOpenAt = null;
+  let pauseDurations = [];
+
+  let timelineSeries = [];
+  let spectrumSeries = [];
+  let currentSnapshot = null;
+
+  const CONFIG = {
+    silenceThreshold: 8,
+    frameIntervalMs: 100,
+    shortPauseMinMs: 220,
+    maxSeriesPoints: 240
+  };
+
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
+
+  function resetInternal() {
+    frameCount = 0;
+    silenceFrames = 0;
+    energyAccum = 0;
+    oscillationAccum = 0;
+    lastVolume = 0;
+
+    pauseCount = 0;
+    pauseOpenAt = null;
+    pauseDurations = [];
+
+    timelineSeries = [];
+    spectrumSeries = [];
+    currentSnapshot = null;
+    captureStartedAt = 0;
+  }
+
+  function rmsFromTimeDomain(arr) {
+    let sum = 0;
+    for (let i = 0; i < arr.length; i++) {
+      const v = (arr[i] - 128) / 128;
+      sum += v * v;
+    }
+    return Math.sqrt(sum / arr.length);
+  }
+
+  function averageBand(arr, start, end) {
+    let sum = 0;
+    let count = 0;
+    for (let i = start; i < end && i < arr.length; i++) {
+      sum += arr[i];
+      count++;
+    }
+    return count ? sum / count : 0;
+  }
+
+  function ensureSnapshot() {
+    return currentSnapshot || {
+      graves: 0,
+      medios: 0,
+      agudos: 0,
+      ruido: 0,
+      estabilidade: 0,
+      continuidade: 0,
+      volume: 0,
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  function processFrame() {
+    if (!analyser || !timeData || !freqData) return;
+
+    analyser.getByteTimeDomainData(timeData);
+    analyser.getByteFrequencyData(freqData);
+
+    const rms = rmsFromTimeDomain(timeData);
+    const volume = Math.round(clamp(rms * 140, 0, 100));
+
+    const graves = Math.round(clamp(averageBand(freqData, 2, 12) / 2.55, 0, 100));
+    const medios = Math.round(clamp(averageBand(freqData, 12, 40) / 2.55, 0, 100));
+    const agudos = Math.round(clamp(averageBand(freqData, 40, 90) / 2.55, 0, 100));
+    const ruido = Math.round(clamp(averageBand(freqData, 90, freqData.length) / 2.55, 0, 100));
+
+    const delta = Math.abs(volume - lastVolume);
+    const estabilidade = Math.round(clamp(100 - delta, 0, 100));
+    const continuidade = Math.round(
+      clamp(100 - (ruido * 0.35) - (delta * 0.85), 0, 100)
+    );
+
+    frameCount += 1;
+    energyAccum += volume;
+    oscillationAccum += delta;
+
+    const now = performance.now();
+
+    if (volume < CONFIG.silenceThreshold) {
+      silenceFrames += 1;
+      if (pauseOpenAt === null) pauseOpenAt = now;
+    } else if (pauseOpenAt !== null) {
+      const pauseMs = now - pauseOpenAt;
+      if (pauseMs >= CONFIG.shortPauseMinMs) {
+        pauseCount += 1;
+        pauseDurations.push(pauseMs);
+      }
+      pauseOpenAt = null;
+    }
+
+    lastVolume = volume;
+
+    const timestamp = new Date().toISOString();
+
+    currentSnapshot = {
+      graves,
+      medios,
+      agudos,
+      ruido,
+      estabilidade,
+      continuidade,
+      volume,
+      timestamp
+    };
+
+    timelineSeries.push({
+      timestamp,
+      energia_pct: volume,
+      silencio_pct: volume < CONFIG.silenceThreshold ? 100 : 0,
+      continuidade_pct: continuidade,
+      pause_count: pauseCount,
+      oscilacao_pct: Math.round(clamp(oscillationAccum / frameCount, 0, 100))
+    });
+
+    spectrumSeries.push({
+      timestamp,
+      graves,
+      medios,
+      agudos,
+      ruido,
+      estabilidade
+    });
+
+    if (timelineSeries.length > CONFIG.maxSeriesPoints) timelineSeries.shift();
+    if (spectrumSeries.length > CONFIG.maxSeriesPoints) spectrumSeries.shift();
+  }
+
+  function renderLoop(lastTick = 0) {
+    if (!running) return;
+
+    const now = performance.now();
+    if (!lastTick || (now - lastTick) >= CONFIG.frameIntervalMs) {
+      processFrame();
+      lastTick = now;
+    }
+
+    rafId = requestAnimationFrame(() => renderLoop(lastTick));
+  }
+
+  return {
     async startCapture() {
       await mic.open();
+
+      if (running) {
+        return { ok: true, alreadyRunning: true };
+      }
+
+      resetInternal();
+
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
+
+      const source = audioContext.createMediaStreamSource(activeStream);
+
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.78;
+
+      source.connect(analyser);
+
+      timeData = new Uint8Array(analyser.fftSize);
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+
+      captureStartedAt = performance.now();
+      running = true;
+
+      renderLoop();
+
       return { ok: true };
     },
 
     async stopCapture() {
+      if (!running) {
+        return {
+          ok: true,
+          report: this.getReport()
+        };
+      }
+
+      running = false;
+
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+
+      if (pauseOpenAt !== null) {
+        const pauseMs = performance.now() - pauseOpenAt;
+        if (pauseMs >= CONFIG.shortPauseMinMs) {
+          pauseCount += 1;
+          pauseDurations.push(pauseMs);
+        }
+        pauseOpenAt = null;
+      }
+
+      if (audioContext && audioContext.state !== "closed") {
+        try {
+          await audioContext.close();
+        } catch {}
+      }
+
+      audioContext = null;
+      analyser = null;
+      timeData = null;
+      freqData = null;
+
       return {
         ok: true,
         report: this.getReport()
@@ -479,35 +712,50 @@
     },
 
     getSnapshot() {
-      return {
-        graves: 0,
-        medios: 0,
-        agudos: 0,
-        ruido: 0,
-        estabilidade: 0,
-        timestamp: new Date().toISOString()
-      };
+      return ensureSnapshot();
     },
 
     getTimelineSeries() {
-      return [];
+      return [...timelineSeries];
     },
 
     getSpectrumSeries() {
-      return [];
+      return [...spectrumSeries];
     },
 
     getReport() {
-      const snapshot = this.getSnapshot();
+      const snapshot = ensureSnapshot();
+
+      const durationSec = captureStartedAt
+        ? Math.max(1, Math.round((performance.now() - captureStartedAt) / 1000))
+        : 0;
+
+      const silencePct = frameCount
+        ? Math.round((silenceFrames / frameCount) * 100)
+        : 0;
+
+      const meanPauseMs = pauseDurations.length
+        ? Math.round(
+            pauseDurations.reduce((a, b) => a + b, 0) / pauseDurations.length
+          )
+        : 0;
+
+      const energyPct = frameCount
+        ? Math.round(energyAccum / frameCount)
+        : 0;
+
+      const oscillationPct = frameCount
+        ? Math.round(clamp(oscillationAccum / frameCount, 0, 100))
+        : 0;
 
       return {
-        duration_sec: 0,
-        silence_pct: 15,
-        pause_count: 2,
-        mean_pause_ms: 180,
-        energy_pct: 0,
-        oscillation_pct: 0,
-        continuity_pct: 0,
+        duration_sec: durationSec,
+        silence_pct: silencePct,
+        pause_count: pauseCount,
+        mean_pause_ms: meanPauseMs,
+        energy_pct: energyPct,
+        oscillation_pct: oscillationPct,
+        continuity_pct: snapshot.continuidade || 0,
         stability_pct: snapshot.estabilidade || 0,
         noise_pct: snapshot.ruido || 0,
         spectrum_snapshot: {
@@ -517,19 +765,21 @@
           ruido: snapshot.ruido || 0,
           estabilidade: snapshot.estabilidade || 0
         },
-        timeline_series: [],
-        spectrum_series: []
+        timeline_series: [...timelineSeries],
+        spectrum_series: [...spectrumSeries]
       };
     },
 
     reset() {
+      resetInternal();
       return { ok: true };
     },
 
     isRunning() {
-      return false;
+      return running;
     }
   };
+})();
 
   const loop = {
     async runStep({
