@@ -1,741 +1,125 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Elayon • Presença</title>
+document.body.innerHTML = `
+<style>
+body {
+  margin:0;
+  background:#000;
+  color:#0f0;
+  font-family:monospace;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
 
-  <style>
-    :root{
-      --bg:#eef6f7;
-      --card:#ffffff;
-      --ink:#173b42;
-      --muted:#5f7b80;
-      --line:#d8e8eb;
-      --soft:#f7fbfc;
-      --accent:#6ec1c8;
-      --accent-2:#7bd490;
-      --shadow:0 10px 28px rgba(14,50,56,.08);
-      --radius:20px;
-      --dark:#08151a;
-      --dark2:#0f2028;
-    }
-
-    *{box-sizing:border-box}
-
-    body{
-      margin:0;
-      font-family:Arial, Helvetica, sans-serif;
-      background:linear-gradient(180deg,#edf5f6 0%, #eef6f7 100%);
-      color:var(--ink);
-    }
-
-    .app{
-      max-width:1340px;
-      margin:0 auto;
-      padding:20px;
-    }
-
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      flex-wrap:wrap;
-      margin-bottom:18px;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:14px;
-    }
-
-    .brand img{
-      width:58px;
-      height:58px;
-      object-fit:cover;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:#fff;
-      box-shadow:var(--shadow);
-    }
-
-    .brand h1{
-      margin:0;
-      font-size:30px;
-    }
-
-    .brand p{
-      margin:6px 0 0;
-      color:var(--muted);
-      font-size:14px;
-    }
-
-    .actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-height:44px;
-      padding:0 16px;
-      border:none;
-      border-radius:12px;
-      background:var(--accent);
-      color:#fff;
-      font-weight:700;
-      cursor:pointer;
-    }
-
-    .btn.secondary{
-      background:#fff;
-      color:var(--ink);
-      border:1px solid var(--line);
-    }
-
-    .btn.ghost{
-      background:transparent;
-      color:var(--ink);
-      border:1px solid var(--line);
-    }
-
-    .btn:disabled{
-      opacity:.55;
-      cursor:not-allowed;
-    }
-
-    .hero{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:22px;
-      margin-bottom:18px;
-    }
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      min-height:30px;
-      padding:0 12px;
-      border-radius:999px;
-      background:var(--soft);
-      border:1px solid var(--line);
-      color:var(--muted);
-      font-size:12px;
-      margin-bottom:12px;
-    }
-
-    .hero h2{
-      margin:0 0 10px;
-      font-size:34px;
-      line-height:1.05;
-    }
-
-    .hero p{
-      margin:0;
-      color:var(--muted);
-      line-height:1.7;
-      font-size:17px;
-      max-width:980px;
-    }
-
-    .hero-buttons{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:18px;
-    }
-
-    .layout{
-      display:grid;
-      grid-template-columns:1.08fr .92fr;
-      gap:18px;
-    }
-
-    .stack{
-      display:grid;
-      gap:18px;
-    }
-
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:20px;
-    }
-
-    .card h3{
-      margin:0 0 8px;
-      font-size:24px;
-    }
-
-    .card p.sub{
-      margin:0 0 16px;
-      color:var(--muted);
-      line-height:1.7;
-    }
-
-    .prompt-box{
-      background:#fff;
-      border:1px dashed var(--line);
-      border-radius:16px;
-      padding:16px;
-      margin-bottom:16px;
-    }
-
-    .prompt-box .label{
-      display:block;
-      color:var(--muted);
-      font-size:12px;
-      margin-bottom:8px;
-      text-transform:uppercase;
-    }
-
-    .prompt-text{
-      font-size:18px;
-      line-height:1.6;
-      font-weight:700;
-      white-space:pre-wrap;
-    }
-
-    .flow-row{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-    }
-
-    .grid-2{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:14px;
-    }
-
-    .mini{
-      background:var(--soft);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px;
-    }
-
-    .mini .k{
-      display:block;
-      color:var(--muted);
-      font-size:12px;
-      margin-bottom:8px;
-      text-transform:uppercase;
-    }
-
-    .mini .v{
-      font-size:20px;
-      font-weight:700;
-      line-height:1.35;
-    }
-
-    .metric-list{
-      display:grid;
-      gap:12px;
-    }
-
-    .metric{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-    }
+#start {
+  font-size:18px;
+  padding:14px 24px;
+  border:1px solid #0f0;
+  background:transparent;
+  color:#0f0;
+}
 
-    .metric-top{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:8px;
-      font-size:13px;
-      color:var(--muted);
-    }
-
-    .bar{
-      height:12px;
-      background:#eaf3f5;
-      border-radius:999px;
-      overflow:hidden;
-    }
-
-    .fill{
-      height:100%;
-      background:linear-gradient(90deg,var(--accent),var(--accent-2));
-      width:0%;
-      transition:width .35s ease;
-    }
-
-    .timeline{
-      display:grid;
-      gap:10px;
-      max-height:340px;
-      overflow:auto;
-      padding-right:4px;
-    }
-
-    .event{
-      border-left:4px solid var(--accent);
-      background:var(--soft);
-      padding:12px 14px;
-      border-radius:0 12px 12px 0;
-      color:var(--ink);
-      font-size:14px;
-      line-height:1.6;
-    }
-
-    .result-box{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:16px;
-      min-height:180px;
-      line-height:1.7;
-      color:var(--ink);
-      white-space:pre-wrap;
-    }
-
-    .screen-box{
-      background:var(--dark);
-      color:#d6fff6;
-      border-radius:16px;
-      padding:16px;
-      min-height:240px;
-      font-family:Consolas, Monaco, monospace;
-      font-size:12px;
-      line-height:1.5;
-      white-space:pre-wrap;
-    }
+#log {
+  position:absolute;
+  bottom:10px;
+  left:10px;
+  font-size:10px;
+  opacity:.2;
+}
+</style>
 
-    .logs-box{
-      background:var(--dark2);
-      color:#e8fff6;
-      border-radius:16px;
-      padding:16px;
-      min-height:260px;
-      max-height:420px;
-      overflow:auto;
-      font-family:Consolas, Monaco, monospace;
-      font-size:12px;
-      line-height:1.55;
-      white-space:pre-wrap;
-      border:1px solid #18333d;
-    }
+<button id="start">iniciar</button>
+<div id="log"></div>
+`;
 
-    .final-actions{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-top:16px;
-    }
+const log = (msg) => {
+  document.getElementById("log").textContent += "\n" + msg;
+};
 
-    .relatorios-lista{
-      display:grid;
-      gap:10px;
-    }
+let micAtivo = false;
+let ultimoTexto = "";
 
-    .relatorio-item{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-      background:#fff;
-    }
+// =========================
+// START
+// =========================
 
-    .relatorio-item strong{
-      display:block;
-      margin-bottom:6px;
-    }
+document.getElementById("start").onclick = async () => {
 
-    .modal-backdrop{
-      position:fixed;
-      inset:0;
-      background:rgba(7, 21, 26, .45);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:20px;
-      z-index:999;
-    }
+  document.getElementById("start").remove();
 
-    .modal-backdrop.show{
-      display:flex;
-    }
+  await ELAYON_TUNNEL.mic.open();
+  micAtivo = true;
 
-    .modal{
-      width:100%;
-      max-width:760px;
-      background:#fff;
-      border-radius:22px;
-      border:1px solid var(--line);
-      box-shadow:0 18px 42px rgba(0,0,0,.12);
-      overflow:hidden;
-    }
+  await falar("Vamos começar.");
 
-    .modal-head{
-      padding:18px 20px;
-      border-bottom:1px solid var(--line);
-      background:var(--soft);
-    }
+  loop();
+};
 
-    .modal-head h4{
-      margin:0 0 6px;
-      font-size:24px;
-    }
+// =========================
+// VOZ
+// =========================
 
-    .modal-head p{
-      margin:0;
-      color:var(--muted);
-      line-height:1.6;
-    }
+async function falar(txt){
+  await ELAYON_TUNNEL.tts.speak(txt);
+}
 
-    .modal-body{
-      padding:20px;
-    }
+function limpar(txt){
+  return txt
+    .replace(/ok ok/gi,"")
+    .replace(/responder/gi,"")
+    .replace(/confirma/gi,"")
+    .replace(/alinhar/gi,"")
+    .trim();
+}
 
-    .modal-status{
-      background:#fff;
-      border:1px dashed var(--line);
-      border-radius:16px;
-      padding:14px;
-      margin-bottom:14px;
-    }
+async function ouvir(){
+  const r = await ELAYON_TUNNEL.stt.listenOnce({
+    silenceMs:2000
+  });
+  return (r.text || "").toLowerCase();
+}
 
-    .modal-status .label{
-      display:block;
-      color:var(--muted);
-      font-size:12px;
-      margin-bottom:8px;
-      text-transform:uppercase;
-    }
+// =========================
+// LOOP PRINCIPAL
+// =========================
 
-    .modal-text{
-      font-size:18px;
-      line-height:1.6;
-      font-weight:700;
-      white-space:pre-wrap;
-    }
+async function loop(){
 
-    .mic-row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:14px;
-    }
+  while(true){
 
-    .transcript{
-      margin-top:14px;
-      background:var(--soft);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px;
-      min-height:120px;
-      line-height:1.7;
-      color:var(--ink);
-      white-space:pre-wrap;
-    }
+    const cmd = await ouvir();
 
-    .confirm-box{
-      margin-top:14px;
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px;
-      display:none;
-    }
+    if(cmd.includes("responder")){
+      await falar("pode falar");
 
-    .confirm-box.show{
-      display:block;
-    }
+      const fala = await ELAYON_TUNNEL.stt.listenOnce({
+        silenceMs:10000
+      });
 
-    .confirm-box p{
-      margin:0 0 12px;
-      font-weight:700;
-    }
+      ultimoTexto = limpar(fala.text || "");
 
-    .confirm-actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
+      log("fala: " + ultimoTexto);
 
-    .listening{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      margin-top:10px;
-      color:var(--muted);
-      font-size:13px;
-      flex-wrap:wrap;
+      await falar("confirma ou alinhar");
     }
 
-    .pulse-wrap{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+    if(cmd.includes("alinhar")){
+      ultimoTexto = "";
+      await falar("refaça");
     }
 
-    .pulse{
-      width:10px;
-      height:10px;
-      border-radius:999px;
-      background:var(--accent);
-      animation:pulse 1s infinite;
-      display:none;
-    }
+    if(cmd.includes("confirma")){
+      await falar("enviando");
 
-    .pulse.on{
-      display:inline-block;
-    }
+      const payload = ELAYON_TUNNEL.crs.buildPayload(ultimoTexto);
 
-    .timer-box{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      font-weight:700;
-      color:var(--ink);
-      background:var(--soft);
-      border:1px solid var(--line);
-      border-radius:999px;
-      padding:6px 10px;
-    }
+      const res = await ELAYON_TUNNEL.crs.analyze(payload);
 
-    @keyframes pulse {
-      0% { transform:scale(1); opacity:1; }
-      50% { transform:scale(1.6); opacity:.45; }
-      100% { transform:scale(1); opacity:1; }
-    }
+      log(JSON.stringify(res,null,2));
 
-    @media (max-width:1100px){
-      .layout{grid-template-columns:1fr}
-    }
+      await falar("finalizado");
 
-    @media (max-width:700px){
-      .grid-2{grid-template-columns:1fr}
-      .hero h2{font-size:28px}
-      .brand h1{font-size:24px}
+      break;
     }
-  </style>
-</head>
-<body>
-  <main class="app">
-    <section class="topbar">
-      <div class="brand">
-        <img src="2_20260310_145449_0001.png" alt="Logo Elayon">
-        <div>
-          <h1>Elayon • Presença</h1>
-          <p>Preparação paciente da fala, relatório contínuo e logs de sessão</p>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="btn secondary" type="button">← Voltar</button>
-        <button class="btn ghost" type="button">Perfil</button>
-        <button class="btn ghost" type="button">Sair</button>
-      </div>
-    </section>
-
-    <section class="hero">
-      <div class="badge">Presença • Tempo humano • Blocos de análise</div>
-      <h2>Uma sessão simples para levar a sério</h2>
-      <p>
-        Tire um tempo para si mesmo. Quanto mais calma houver no corpo e na fala,
-        mais fiel será a leitura da sua expressão. Esta sessão não é para acertar.
-        É para se observar.
-      </p>
-
-      <div class="grid-2" style="margin-top:18px;">
-        <div>
-          <label for="inpTema" style="display:block;font-weight:700;margin-bottom:8px;">Tema</label>
-          <input id="inpTema" type="text" placeholder="Ex.: trabalho, decisão, estudo, rotina"
-                 style="width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);border-radius:12px;">
-        </div>
-        <div>
-          <label for="inpContexto" style="display:block;font-weight:700;margin-bottom:8px;">Contexto</label>
-          <input id="inpContexto" type="text" placeholder="Ex.: quero pensar melhor sobre isso"
-                 style="width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);border-radius:12px;">
-        </div>
-      </div>
-
-      <div class="hero-buttons">
-        <button class="btn" id="btnAbrirFluxo" type="button">Iniciar sessão</button>
-        <button class="btn secondary" id="btnPararTudo" type="button">Parar sessão</button>
-        <button class="btn secondary" id="btnResetarCockpit" type="button">Resetar cockpit</button>
-      </div>
-    </section>
-
-    <section class="layout">
-      <div class="stack">
-        <section class="card">
-          <h3>Instrução atual</h3>
-          <p class="sub">O texto da sessão aparece aqui conforme a etapa avança.</p>
-
-          <div class="prompt-box">
-            <span class="label">Última instrução</span>
-            <div class="prompt-text" id="promptAtual">
-              A sessão ainda não começou. Defina tema e contexto, depois clique em “Iniciar sessão”.
-            </div>
-          </div>
-
-          <div class="flow-row">
-            <button class="btn" id="btnAvancoManual" type="button">Avançar</button>
-            <button class="btn secondary" id="btnEncerrarSessao" type="button">Encerrar sessão</button>
-          </div>
-        </section>
-
-        <section class="card">
-          <h3>Timeline da sessão</h3>
-          <p class="sub">Registro do que aconteceu na sessão.</p>
-          <div class="timeline" id="timeline">
-            <div class="event">[00:00] sistema pronto • aguardando início da sessão</div>
-          </div>
-        </section>
-
-        <section class="card">
-          <h3>Relatório atual</h3>
-          <p class="sub">Este é o bloco que a IA deve ler, e não o bruto da interação.</p>
-
-          <div class="result-box" id="resultadoFinal">
-            O relatório atual aparecerá aqui após as interações.
-          </div>
-
-          <div class="final-actions">
-            <button class="btn" id="btnSalvarSessao" type="button">Salvar sessão</button>
-            <button class="btn secondary" id="btnGerarRelatorio" type="button">Gerar relatório</button>
-            <button class="btn secondary" id="btnExportarRelatorio" type="button">Exportar relatório</button>
-          </div>
-        </section>
-
-        <section class="card">
-          <h3>Relatórios salvos</h3>
-          <p class="sub">Até 10 relatórios ficam disponíveis localmente.</p>
-          <div class="relatorios-lista" id="listaRelatorios">
-            <div class="relatorio-item">Nenhum relatório salvo ainda.</div>
-          </div>
-        </section>
-      </div>
-
-      <div class="stack">
-        <section class="card">
-          <h3>Estado do cockpit</h3>
-          <p class="sub">Status vivo dos elementos da sessão.</p>
-
-          <div class="grid-2">
-            <div class="mini"><span class="k">Sistema</span><div class="v" id="stSistema">ON</div></div>
-            <div class="mini"><span class="k">Microfone</span><div class="v" id="stMic">Aguardando</div></div>
-            <div class="mini"><span class="k">Etapa atual</span><div class="v" id="stEtapa">0 de 3</div></div>
-            <div class="mini"><span class="k">CRS</span><div class="v" id="stCrs">Ativo</div></div>
-          </div>
-        </section>
-
-        <section class="card">
-          <h3>Métricas integradas</h3>
-          <p class="sub">Blocos resumidos da sessão, sem expor leitura subjetiva ao usuário.</p>
-
-          <div class="metric-list">
-            <div class="metric"><div class="metric-top"><span>Presença</span><span id="valPresenca">0%</span></div><div class="bar"><div class="fill" id="barPresenca"></div></div></div>
-            <div class="metric"><div class="metric-top"><span>Clareza</span><span id="valClareza">0%</span></div><div class="bar"><div class="fill" id="barClareza"></div></div></div>
-            <div class="metric"><div class="metric-top"><span>Ritmo</span><span id="valRitmo">0%</span></div><div class="bar"><div class="fill" id="barRitmo"></div></div></div>
-            <div class="metric"><div class="metric-top"><span>Firmeza</span><span id="valFirmeza">0%</span></div><div class="bar"><div class="fill" id="barFirmeza"></div></div></div>
-            <div class="metric"><div class="metric-top"><span>Continuidade</span><span id="valContinuidade">0%</span></div><div class="bar"><div class="fill" id="barContinuidade"></div></div></div>
-            <div class="metric"><div class="metric-top"><span>Estabilidade</span><span id="valEstabilidade">0%</span></div><div class="bar"><div class="fill" id="barEstabilidade"></div></div></div>
-            <div class="metric"><div class="metric-top"><span>Oscilação</span><span id="valOscilacao">0%</span></div><div class="bar"><div class="fill" id="barOscilacao"></div></div></div>
-          </div>
-        </section>
-
-        <section class="card">
-          <h3>Painel técnico</h3>
-          <p class="sub">Área para prints e leitura posterior do estado interno.</p>
-          <div class="screen-box" id="painelTecnico">
-etapa: aguardando_inicio
-instrucao: nao_emitida
-microfone: bloqueado
-tts: pronto
-tema: vazio
-contexto: vazio
-transcricao: nao_captada
-silencio_final_4s: pendente
-relatorio: pendente
-historico_ultimas_3: pendente
-          </div>
-        </section>
-
-        <section class="card">
-          <h3>Logs da interação</h3>
-          <p class="sub">Trilha detalhada da mecanização da sessão.</p>
-          <div class="logs-box" id="logsBox">[logs] sistema pronto</div>
-        </section>
-      </div>
-    </section>
-
-    <div class="footer">
-      Elayon • a sessão prepara o humano, o relatório prepara a IA
-    </div>
-  </main>
-
-  <div class="modal-backdrop" id="modalFluxo">
-    <div class="modal">
-      <div class="modal-head">
-        <h4 id="modalTitulo">Etapa</h4>
-        <p id="modalSubtitulo">A sessão está em andamento.</p>
-      </div>
-      <div class="modal-body">
-        <div class="modal-status">
-          <span class="label">Instrução</span>
-          <div class="modal-text" id="modalInstrucao">Aguardando início.</div>
-        </div>
-
-        <div class="prompt-box" id="caixaTextoLeitura" style="display:none; margin-bottom:0;">
-          <span class="label">Texto de apoio</span>
-          <div class="prompt-text" id="textoLeitura"></div>
-        </div>
-
-        <div class="mic-row">
-          <button class="btn" id="btnOuvirInstrucao" type="button">Ouvir instrução</button>
-          <button class="btn secondary" id="btnResponder" type="button" disabled>Responder</button>
-          <button class="btn secondary" id="btnRepetirInstrucao" type="button">Repetir instrução</button>
-        </div>
-
-        <div class="listening">
-          <div class="pulse-wrap">
-            <span class="pulse" id="pulseMic"></span>
-            <span id="listeningLabel">Microfone aguardando.</span>
-          </div>
-          <div class="timer-box">
-            Tempo
-            <span id="timerFalando">10</span>
-          </div>
-        </div>
-
-        <div class="transcript" id="transcricaoAtual">
-          A transcrição aparecerá aqui.
-        </div>
-
-        <div class="confirm-box" id="confirmBox">
-          <p>Confirma sua resposta?</p>
-          <div class="confirm-actions">
-            <button class="btn" id="btnConfirmarResposta" type="button">Sim</button>
-            <button class="btn secondary" id="btnRefazerResposta" type="button">Não</button>
-          </div>
-        </div>
-
-        <div class="final-actions">
-          <button class="btn secondary" id="btnEncerrarModal" type="button">Encerrar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/base.js"></script>
-  <script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/tunnel-lab.js"></script>
-  <script src="memoria.js"></script>
-  <script src="cockpit.js"></script>
-</body>
-</html>
+  }
+}
