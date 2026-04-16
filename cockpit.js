@@ -276,7 +276,7 @@ function buildPayload(texto, etapa) {
 function buildReport(snapshot) {
   const linhas = [];
 
-  linhas.push("SISTEMAS ELAYON");
+  linhas.push("Sistemas Elayon");
   linhas.push("");
   linhas.push("PRESENÇA • RELATÓRIO DE AUTOAVALIAÇÃO");
   linhas.push("");
@@ -392,7 +392,7 @@ async function executarEtapa(etapa) {
 // ============================
 
 async function fluxoInicial() {
-  await falar(`Sistemas Elayon`);
+  await falar(`SISTEMAS ELAYON`);
 
   await falar(`Bem-vindo ao PRESENÇA.`);
 
