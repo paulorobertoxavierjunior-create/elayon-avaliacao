@@ -269,19 +269,19 @@ async function capturarDecisaoCurta() {
 
 async function rodadaTutorial() {
   await falarComTexto(
-`Sistas Elai on.
+`Sistemas Elai on.
 
 Bem-vindo ao PRESENÇA.
 
-Espaço de auto escuta simbólica. Observe-se e aprenda com seus próprios símbolos.`
+Espaço de auto escuta simbólica. Observe-se. E aprenda com seus próprios símbolos.`
   );
 
   await falarComTexto(
-`Funciona assim: o microfone vai abrir, você fala à vontade e pra encerrar sua fala, diga ok ok.`
+`Funciona assim, o microfone vai abrir e você pode falar à vontade. Pra encerrar sua fala, diga "ok ok".`
   );
 
   await falarComTexto(
-`Depois confirma ou alinha para refazer.`
+`Depois confirma pra enviar ou alinha para refazer.`
   );
 
   await falarComTexto(`Vamos começar a sessão.`);
@@ -299,7 +299,7 @@ function obterPerguntas() {
 
 Fale sobre o tema ${tema} do jeito mais natural possível.
 
-Lembra da instrução: abre o microfone, fala, "ok ok" pra encerrar, alinha ou confirma. Prepara.
+Lembra da instrução: Abriu o microfone, fala e diz "ok ok" pra encerrar, alinha ou confirma e foi. Prepara-se
 .`,
 
     `Segunda etapa.
