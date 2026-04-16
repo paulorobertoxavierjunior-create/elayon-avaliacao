@@ -392,7 +392,7 @@ async function executarEtapa(etapa) {
 // ============================
 
 async function fluxoInicial() {
-  await falar(`Sistemas Elai ôun`);
+  await falar(`Sistemas Elai ônm`);
 
   await falar(`Bem-vindo ao PRESENÇA.`);
 
@@ -400,7 +400,7 @@ async function fluxoInicial() {
     `Um espaço de reflexão e escuta simbólica, configurado para visualizar e alinhar o comportamento humano aos seus próprios sentidos e emoções.`
   );
 
-  await falar(`Dica Elai óun.`);
+  await falar(`Dica Elai ônm.`);
 
   await falar(
     `Conhece-te a ti mesmo.`
