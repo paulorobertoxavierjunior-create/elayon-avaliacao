@@ -392,7 +392,7 @@ async function executarEtapa(etapa) {
 // ============================
 
 async function fluxoInicial() {
-  await falar(`Sistemas Elai óun`);
+  await falar(`Sistemas Elai ôun`);
 
   await falar(`Bem-vindo ao PRESENÇA.`);
 
@@ -414,7 +414,7 @@ async function fluxoInicial() {
     `Quando eu abrir o microfone num bip, você poderá falar o quanto quiser.`
   );
 
-  await falar(`Quando terminar sua fala, diga: okok.`);
+  await falar(`Quando terminar sua fala, diga: ok ok.`);
 
   await falar(`Essa é a expressão que fecha o microfone e envia sua análise.`);
 
