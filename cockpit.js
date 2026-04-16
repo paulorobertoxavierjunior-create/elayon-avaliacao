@@ -265,4 +265,280 @@ async function capturarDecisao() {
 function buildPayload(texto, etapa) {
   return window.ELAYON_TUNNEL.crs.buildPayload(texto, {
     context: `${STATE.contexto} | etapa ${etapa.id} | tema ${STATE.tema}`,
-    source_text: etapa.pergunta({ tema: STATE.tema
+    source_text: etapa.pergunta({ tema: STATE.tema, contexto: STATE.contexto })
+  });
+}
+
+// ============================
+// RELATÓRIO
+// ============================
+
+function buildReport(snapshot) {
+  const linhas = [];
+
+  linhas.push("SISTEMAS ELAYON");
+  linhas.push("");
+  linhas.push("PRESENÇA • RELATÓRIO DE AUTOAVALIAÇÃO");
+  linhas.push("");
+  linhas.push(`Sessão: ${snapshot.session_id}`);
+  linhas.push(`Data: ${new Date(snapshot.timestamp).toLocaleString("pt-BR")}`);
+  linhas.push(`Tema: ${snapshot.tema || "não definido"}`);
+  linhas.push(`Contexto: ${snapshot.contexto || "não definido"}`);
+  linhas.push("");
+
+  snapshot.etapas.forEach((et) => {
+    linhas.push(`Etapa ${et.etapa} — ${et.titulo}`);
+    linhas.push(`Transcrição: ${et.transcricao || "sem conteúdo"}`);
+    linhas.push(`Resumo CRS: ${et.analysis?.user_report?.summary || "sem resumo"}`);
+    linhas.push(`Heurística CRS: ${et.analysis?.heuristica || "sem heurística"}`);
+    linhas.push("");
+  });
+
+  return linhas.join("\n");
+}
+
+async function concluirSessao() {
+  const snapshot = {
+    session_id: STATE.sessionId,
+    timestamp: new Date().toISOString(),
+    tema: STATE.tema,
+    contexto: STATE.contexto,
+    etapas: STATE.etapas
+  };
+
+  const relatorioTexto = buildReport(snapshot);
+
+  STATE.relatorioFinal = {
+    ...snapshot,
+    relatorio_texto: relatorioTexto
+  };
+
+  if (typeof salvarSessao === "function") {
+    salvarSessao(snapshot);
+  }
+
+  if (typeof salvarRelatorio === "function") {
+    salvarRelatorio(STATE.relatorioFinal);
+  }
+
+  const relatorioNode = el("relatorioFinal");
+  if (relatorioNode) {
+    relatorioNode.textContent = relatorioTexto;
+  }
+
+  showScreen("telaFinal");
+}
+
+// ============================
+// ETAPAS
+// ============================
+
+async function executarEtapa(etapa) {
+  const pergunta = etapa.pergunta({
+    tema: STATE.tema,
+    contexto: STATE.contexto
+  });
+
+  await falar(pergunta);
+
+  await falar(`Respira.`);
+
+  await falar(
+    `Vou abrir o microfone e você fala à vontade. Quando terminar, diga okok.`
+  );
+
+  await falar(`Concentre-se.`);
+
+  await contagemAbertura();
+
+  const texto = await capturarTextoLivre();
+
+  await falar(`Tudo certo?`);
+
+  await falar(
+    `Se quiser refazer, diga alinhar. Se estiver pronto para seguir, diga confirma.`
+  );
+
+  bip();
+
+  const decisao = await capturarDecisao();
+
+  if (decisao === WORKWORDS.alinhar) {
+    await falar(`Vamos alinhar.`);
+    return executarEtapa(etapa);
+  }
+
+  setStatusSessao("Enviando análise desta etapa.");
+
+  const payload = buildPayload(texto, etapa);
+  const analysis = await window.ELAYON_TUNNEL.crs.analyze(payload);
+
+  logTech(`análise etapa ${etapa.id}: ${JSON.stringify(analysis)}`);
+
+  STATE.etapas.push({
+    etapa: etapa.id,
+    titulo: etapa.titulo,
+    pergunta,
+    transcricao: texto,
+    payload,
+    analysis
+  });
+
+  return true;
+}
+
+// ============================
+// FLUXO INICIAL
+// ============================
+
+async function fluxoInicial() {
+  await falar(`SISTEMAS ELAYON`);
+
+  await falar(`Bem-vindo ao PRESENÇA.`);
+
+  await falar(
+    `Um espaço de reflexão e escuta simbólica, configurado para visualizar e alinhar o comportamento humano aos seus próprios sentidos e emoções.`
+  );
+
+  await falar(`Dica ELAYON.`);
+
+  await falar(
+    `Conhece-te a ti mesmo, e conhecerás o universo observável que és e o Deus que há em ti contigo.`
+  );
+
+  await falar(`Vamos começar?`);
+
+  await falar(`Instruções.`);
+
+  await falar(
+    `Quando eu abrir o microfone num bip, você poderá falar o quanto quiser.`
+  );
+
+  await falar(`Quando terminar sua fala, diga: okok.`);
+
+  await falar(`Essa é a expressão que fecha o microfone e envia sua análise.`);
+
+  await falar(`Depois, se quiser seguir, diga: confirma.`);
+
+  await falar(`Se quiser refazer, diga: alinhar.`);
+
+  await falar(`Agora, lembre-se do tema e do contexto.`);
+}
+
+// ============================
+// INICIAR
+// ============================
+
+async function iniciar() {
+  STATE.tema = (el("inpTema")?.value || "").trim();
+  STATE.contexto = (el("inpContexto")?.value || "").trim();
+
+  if (!STATE.tema) {
+    setStatusIntro("Defina ao menos um tema para iniciar.");
+    return;
+  }
+
+  setStatusIntro("Ativando ambiente...");
+  logTech("início da sessão");
+
+  const health = await window.ELAYON_TUNNEL.healthcheck();
+  logTech(`healthcheck: ${JSON.stringify(health)}`);
+
+  if (!health.mic || !health.tts || !health.stt || !health.crs) {
+    throw new Error("Ambiente incompleto para iniciar a sessão");
+  }
+
+  await window.ELAYON_TUNNEL.mic.open();
+
+  STATE.sessionId = nextSessionId();
+  STATE.etapas = [];
+  STATE.relatorioFinal = null;
+  STATE.etapaIndex = 0;
+  STATE.transcriptAtual = "";
+
+  showScreen("telaSessao");
+
+  await fluxoInicial();
+
+  for (let i = 0; i < ETAPAS.length; i += 1) {
+    STATE.etapaIndex = i;
+    await executarEtapa(ETAPAS[i]);
+  }
+
+  await falar(`Sessão concluída. Seu relatório está pronto.`);
+
+  await concluirSessao();
+}
+
+// ============================
+// PDF
+// ============================
+
+async function gerarPdf() {
+  if (!STATE.relatorioFinal?.relatorio_texto) return;
+  if (!window.jspdf) return;
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const linhas = doc.splitTextToSize(STATE.relatorioFinal.relatorio_texto, 180);
+  let y = 12;
+
+  linhas.forEach((linha) => {
+    if (y > 280) {
+      doc.addPage();
+      y = 12;
+    }
+    doc.text(linha, 12, y);
+    y += 7;
+  });
+
+  doc.save(`presenca-relatorio-${Date.now()}.pdf`);
+}
+
+// ============================
+// RESET
+// ============================
+
+function novaSessao() {
+  STATE.etapaIndex = 0;
+  STATE.tema = "";
+  STATE.contexto = "";
+  STATE.sessionId = null;
+  STATE.transcriptAtual = "";
+  STATE.etapas = [];
+  STATE.relatorioFinal = null;
+  STATE.micBusy = false;
+
+  setTextoVivo("");
+  setStatusIntro("Aguardando início.");
+  setStatusSessao("");
+
+  const inpTema = el("inpTema");
+  const inpContexto = el("inpContexto");
+
+  if (inpTema) inpTema.value = "";
+  if (inpContexto) inpContexto.value = "";
+
+  showScreen("telaIntro");
+}
+
+// ============================
+// EVENTOS
+// ============================
+
+document.addEventListener("DOMContentLoaded", () => {
+  el("btnIniciar")?.addEventListener("click", async () => {
+    try {
+      await iniciar();
+    } catch (e) {
+      logTech(`erro geral: ${e.message}`);
+      setStatusIntro(`Falha: ${e.message}`);
+      setStatusSessao(`Falha: ${e.message}`);
+      showScreen("telaIntro");
+    }
+  });
+
+  el("btnGerarPdf")?.addEventListener("click", gerarPdf);
+  el("btnNovaSessao")?.addEventListener("click", novaSessao);
+});
