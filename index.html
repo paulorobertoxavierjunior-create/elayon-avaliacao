@@ -6,50 +6,273 @@
   <title>Elayon • Presença</title>
 
   <style>
-    body {
-      margin: 0;
-      background: #050607;
-      color: #f3f5f7;
-      font-family: Arial, Helvetica, sans-serif;
+    :root{
+      --bg:#050607;
+      --panel:#0b0d0f;
+      --ink:#f3f5f7;
+      --muted:#98a2ad;
+      --line:#1b2026;
+      --accent:#d9e2f2;
+    }
+
+    *{box-sizing:border-box}
+
+    html,body{
+      margin:0;
+      padding:0;
+      width:100%;
+      min-height:100%;
+      background:var(--bg);
+      color:var(--ink);
+      font-family:Arial, Helvetica, sans-serif;
+    }
+
+    body{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .shell{
+      width:100%;
+      max-width:760px;
+      min-height:100dvh;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      padding:28px 22px 34px;
+    }
+
+    .intro,.sessao,.final{
+      display:none;
+      width:100%;
+    }
+
+    .intro.show,
+    .sessao.show,
+    .final.show{
+      display:block;
+    }
+
+    .marca{
+      font-size:14px;
+      letter-spacing:.22em;
+      text-transform:uppercase;
+      color:var(--muted);
+      margin-bottom:18px;
+    }
+
+    .titulo{
+      font-size:28px;
+      line-height:1.18;
+      margin:0 0 14px;
+      font-weight:700;
+    }
+
+    .texto{
+      font-size:17px;
+      line-height:1.75;
+      color:var(--muted);
+      margin:0 0 22px;
+    }
+
+    .campo{
+      width:100%;
+      margin-bottom:14px;
+    }
+
+    .campo label{
+      display:block;
+      margin-bottom:8px;
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .campo input{
+      width:100%;
+      min-height:48px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:var(--panel);
+      color:var(--ink);
+      padding:0 14px;
+      font-size:16px;
+      outline:none;
+    }
+
+    .campo input::placeholder{
+      color:#68727d;
+    }
+
+    .acao{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:48px;
+      min-width:180px;
+      padding:0 18px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:transparent;
+      color:var(--ink);
+      font-size:15px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+
+    .acao:hover{
+      background:#0e1216;
+    }
+
+    .acao.principal{
+      background:#101418;
+      border-color:#2a323c;
+    }
+
+    .sinal{
+      margin-top:22px;
+      font-size:14px;
+      color:var(--muted);
+      min-height:24px;
+      line-height:1.6;
+    }
+
+    .transcricao{
+      margin-top:28px;
+      min-height:220px;
+      border-top:1px solid var(--line);
+      padding-top:18px;
+      font-size:17px;
+      line-height:1.82;
+      color:var(--ink);
+      white-space:pre-wrap;
+    }
+
+    .mini{
+      margin-top:18px;
+      font-size:12px;
+      color:#6f7883;
+      line-height:1.7;
+    }
+
+    .relatorio{
+      width:100%;
+      min-height:260px;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:16px;
+      margin-top:18px;
+      white-space:pre-wrap;
+      line-height:1.7;
+      color:var(--ink);
+      overflow:auto;
+      max-height:48dvh;
+    }
+
+    .acoes-finais{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:18px;
+    }
+
+    .status-chip{
+      display:inline-flex;
+      align-items:center;
+      min-height:30px;
+      padding:0 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#0d1115;
+      color:var(--accent);
+      font-size:12px;
+      margin-top:10px;
+    }
+
+    .log-tech{
+      display:none;
+    }
+
+    @media (max-width:640px){
+      .shell{
+        padding:22px 18px 28px;
+      }
+
+      .titulo{
+        font-size:24px;
+      }
+
+      .texto,.transcricao{
+        font-size:16px;
+      }
+
+      .acao{
+        width:100%;
+      }
     }
   </style>
 </head>
 <body>
+  <main class="shell">
 
-  <!-- APP -->
-  <div id="app"></div>
+    <section class="intro show" id="telaIntro">
+      <div class="marca">Elayon • Presença</div>
+      <h1 class="titulo">Um espaço de escuta e cálculo do seu próprio ritmo.</h1>
+      <p class="texto">
+        Esta experiência foi desenhada para reduzir distrações. Ao iniciar, o sistema conduz a sessão por voz.
+        A ativação inicial é manual. Depois disso, a interação segue pelos comandos combinados.
+      </p>
 
-  <!-- SUPABASE -->
+      <div class="campo">
+        <label for="inpTema">Tema</label>
+        <input id="inpTema" type="text" placeholder="Ex.: trabalho, decisão, estudo, rotina" />
+      </div>
+
+      <div class="campo">
+        <label for="inpContexto">Contexto</label>
+        <input id="inpContexto" type="text" placeholder="Ex.: quero observar melhor minha forma de pensar" />
+      </div>
+
+      <button class="acao principal" id="btnIniciar">Iniciar experiência</button>
+
+      <div class="sinal" id="statusIntro">Aguardando início.</div>
+
+      <div class="mini">
+        Comandos de voz desta fase: “responder”, “okok”, “confirma”, “alinhar”.
+      </div>
+    </section>
+
+    <section class="sessao" id="telaSessao">
+      <div class="marca">Elayon • Presença</div>
+      <div class="status-chip" id="statusSessao">Preparando ambiente de interação.</div>
+      <div class="transcricao" id="textoVivo"></div>
+    </section>
+
+    <section class="final" id="telaFinal">
+      <div class="marca">Elayon • Presença</div>
+      <h2 class="titulo">Relatório concluído.</h2>
+      <p class="texto">
+        Você pode exportar este relatório em PDF e levá-lo para a IA de sua preferência, se isso fizer sentido para você.
+      </p>
+
+      <div class="relatorio" id="relatorioFinal">Nenhum relatório disponível.</div>
+
+      <div class="acoes-finais">
+        <button class="acao" id="btnGerarPdf">Gerar PDF</button>
+        <button class="acao" id="btnNovaSessao">Nova sessão</button>
+      </div>
+    </section>
+
+    <pre class="log-tech" id="logTech"></pre>
+  </main>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- CONFIG GLOBAL (ANTES DE TUDO) -->
-  <script>
-    const SUPABASE_URL = "https://eudcjihffrfmhzmfwtlg.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1ZGNqaWhmZnJmbWh6bWZ3dGxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDE3MjUsImV4cCI6MjA5MDMxNzcyNX0.2tod6vvl_4SAXzSmW1wU8Mk9pLn8fvhF2xrAZOysUu0";
-
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // 🔥 EXPÕE GLOBAL PRO SISTEMA
-    window.ELAYON_SUPABASE = supabase;
-
-    // 🔥 GARANTE QUE O TÚNEL EXISTE
-    window.ELAYON_TUNNEL = {};
-  </script>
-
-  <!-- BASE DO SISTEMA -->
-  <script src="https://paulorobertoxavierjunior-create.github.io/elayon-presenca-lab/js/base.js"></script>
-
-  <!-- TÚNEL (VAMOS SUBSTITUIR DEPOIS) -->
+  <script src="boot-auth.js"></script>
   <script src="tunnel.js"></script>
-
-  <!-- MEMÓRIA -->
   <script src="memoria.js"></script>
-
-  <!-- PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  <!-- COCKPIT -->
   <script src="cockpit.js"></script>
-
 </body>
 </html>
