@@ -1,3 +1,8 @@
+// ======================================
+// SISTEMAS ELAYON — PRESENÇA
+// cockpit.js — fluxo final sem conflito de microfone
+// ======================================
+
 const WORKWORDS = {
   fecharLivre: ["ok ok", "okok", "ok, ok", "ok,ok", "ok-ok", "ok. ok"],
   confirma: ["confirma", "confirmar", "confirmo"],
@@ -8,8 +13,8 @@ const FLOW = {
   TYPE_SPEED: 24,
   STEP_DELAY_MS: 900,
   BETWEEN_ACTIONS_MS: 700,
-  LISTEN_DECISION_MS: 12000,
-  LISTEN_FREE_MS: 240000,
+  LISTEN_DECISION_MS: 15000,
+  LISTEN_FREE_MS: 999999,
   PRE_MIC_WAIT_MS: 3000
 };
 
@@ -20,6 +25,10 @@ const STATE = {
   etapaAtual: 0,
   locked: false
 };
+
+// ============================
+// HELPERS
+// ============================
 
 function el(id) {
   return document.getElementById(id);
@@ -102,6 +111,10 @@ function limparSessaoVisual() {
   setText("statusSessao", "Preparando ambiente de interação.");
 }
 
+// ============================
+// TEXTO + FALA
+// ============================
+
 function escreverTextoProgressivo(texto, alvoId, velocidade = FLOW.TYPE_SPEED) {
   return new Promise((resolve) => {
     const alvo = el(alvoId);
@@ -138,6 +151,10 @@ async function falarComTexto(texto, alvoId = "textoVivo") {
   await Promise.allSettled([escrita, fala]);
   await sleep(FLOW.STEP_DELAY_MS);
 }
+
+// ============================
+// BIP + CONTAGEM
+// ============================
 
 function bip() {
   try {
@@ -189,13 +206,19 @@ Vou contar até cinco.`
   await sleep(250);
 }
 
+// ============================
+// CAPTURA LIVRE
+// ============================
+
 async function capturarRespostaLivre() {
   setText("statusSessao", "🎙️ Microfone aberto. Fale à vontade e termine com ok ok.");
   setText("textoVivo", "");
 
+  // abre somente a permissão/stream base
   await window.ELAYON_TUNNEL.mic.open();
 
   try {
+    // usa somente SpeechRecognition para a captação da fala
     const heard = await window.ELAYON_TUNNEL.stt.listenForPhrase({
       stopPhrases: WORKWORDS.fecharLivre,
       silenceFailsafeMs: FLOW.LISTEN_FREE_MS,
@@ -213,6 +236,10 @@ async function capturarRespostaLivre() {
     await sleep(FLOW.STEP_DELAY_MS);
   }
 }
+
+// ============================
+// CAPTURA DE DECISÃO
+// ============================
 
 async function capturarDecisaoCurta() {
   setText("statusSessao", "🎙️ Microfone curto aberto para decisão.");
@@ -240,6 +267,10 @@ async function capturarDecisaoCurta() {
     await sleep(FLOW.STEP_DELAY_MS);
   }
 }
+
+// ============================
+// TUTORIAL
+// ============================
 
 async function rodadaTutorial() {
   await falarComTexto(
@@ -272,6 +303,10 @@ Nesse momento, você dirá confirma para seguir ou alinhar para refazer.`
 
   await falarComTexto(`Vamos começar a sessão.`);
 }
+
+// ============================
+// ETAPAS
+// ============================
 
 function obterPerguntas() {
   const tema = (el("inpTema")?.value || "").trim() || "o tema que você escolheu";
@@ -330,6 +365,10 @@ Se quiser refazer, diga alinhar.`
   return resposta;
 }
 
+// ============================
+// CRS
+// ============================
+
 async function enviarCRS(texto, indice) {
   const tema = (el("inpTema")?.value || "").trim();
   const contexto = (el("inpContexto")?.value || "").trim();
@@ -341,6 +380,10 @@ async function enviarCRS(texto, indice) {
 
   return await window.ELAYON_TUNNEL.crs.analyze(payload);
 }
+
+// ============================
+// RELATÓRIO
+// ============================
 
 function gerarRelatorio(respostas, analises) {
   let txt = "";
@@ -376,6 +419,10 @@ function gerarRelatorio(respostas, analises) {
 
   return txt;
 }
+
+// ============================
+// PDF
+// ============================
 
 function gerarPdfRelatorio() {
   const texto = el("relatorioFinal")?.textContent?.trim();
@@ -415,6 +462,10 @@ function gerarPdfRelatorio() {
   doc.save(`${STATE.sessionId || "relatorio-elayon"}.pdf`);
 }
 
+// ============================
+// NOVA SESSÃO
+// ============================
+
 function novaSessao() {
   STATE.respostas = [];
   STATE.analises = [];
@@ -427,6 +478,10 @@ function novaSessao() {
   setText("relatorioFinal", "Nenhum relatório disponível.");
   showTela("intro");
 }
+
+// ============================
+// FLUXO PRINCIPAL
+// ============================
 
 async function iniciar() {
   if (STATE.locked) return;
@@ -474,6 +529,7 @@ async function iniciar() {
 
     for (let i = 0; i < etapas.length; i++) {
       STATE.etapaAtual = i + 1;
+
       const resposta = await rodarEtapa(etapas[i], i);
       STATE.respostas.push(resposta);
 
@@ -501,13 +557,19 @@ async function iniciar() {
   }
 }
 
+// ============================
+// INIT
+// ============================
+
 document.addEventListener("DOMContentLoaded", () => {
   try {
     assertStructure();
     showTela("intro");
+
     el("btnIniciar")?.addEventListener("click", iniciar);
     el("btnNovaSessao")?.addEventListener("click", novaSessao);
     el("btnGerarPdf")?.addEventListener("click", gerarPdfRelatorio);
+
     log("cockpit carregado");
   } catch (err) {
     console.error(err);
