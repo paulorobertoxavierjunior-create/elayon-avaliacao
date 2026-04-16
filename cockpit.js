@@ -392,7 +392,7 @@ async function executarEtapa(etapa) {
 // ============================
 
 async function fluxoInicial() {
-  await falar(`Sistemas Elayon`);
+  await falar(`Sistemas Elaiôn`);
 
   await falar(`Bem-vindo ao PRESENÇA.`);
 
@@ -403,7 +403,7 @@ async function fluxoInicial() {
   await falar(`Dica ELAYON.`);
 
   await falar(
-    `Conhece-te a ti mesmo, e conhecerás o universo observável que és e o Deus que há em ti contigo.`
+    `Conhece-te a ti mesmo.`
   );
 
   await falar(`Vamos começar?`);
