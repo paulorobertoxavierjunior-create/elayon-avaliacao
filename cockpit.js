@@ -3,237 +3,266 @@
 // ============================
 
 const WORKWORDS = {
-  abrir: "responder",
-  fechar: "ok ok",
+  fecharLivre: "ok ok",
+  fecharLivreAlt: "okok",
   confirmar: "confirma",
   alinhar: "alinhar"
 };
 
+const ETAPAS = [
+  {
+    id: 1,
+    titulo: "Abertura",
+    pergunta: ({ tema }) =>
+      `Prepare-se para mostrar seu ponto de vista sobre o tema. Pode falar sobre ${tema || "o tema que você trouxe"} do jeito que achar mais natural.`
+  },
+  {
+    id: 2,
+    titulo: "Continuidade",
+    pergunta: () =>
+      `Agora continue. Dentro do que você disse, o que merece mais atenção neste momento?`
+  },
+  {
+    id: 3,
+    titulo: "Consolidação",
+    pergunta: () =>
+      `Para concluir, qual é o próximo passo mais honesto para você agora?`
+  }
+];
+
 const STATE = {
-  etapa: 0,
-  texto: "",
-  relatorio: null
+  etapaIndex: 0,
+  tema: "",
+  contexto: "",
+  sessionId: null,
+  transcriptAtual: "",
+  etapas: [],
+  relatorioFinal: null,
+  micBusy: false
 };
+
+// ============================
+// DOM
+// ============================
+
+const el = (id) => document.getElementById(id);
 
 // ============================
 // UTIL
 // ============================
 
-function normalize(txt){
+function normalize(txt) {
   return (txt || "")
     .toLowerCase()
-    .replace(/\s+/g," ")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
-function limpar(txt){
-  return (txt || "")
-    .replace(/responder/gi,"")
-    .replace(/ok ok/gi,"")
-    .replace(/confirma/gi,"")
-    .replace(/alinhar/gi,"")
-    .trim();
+function setTextoVivo(txt) {
+  const node = el("textoVivo");
+  if (node) node.textContent = txt || "";
 }
 
-async function falar(txt){
-  await ELAYON_TUNNEL.tts.speak(txt);
+function setStatusIntro(txt) {
+  const node = el("statusIntro");
+  if (node) node.textContent = txt || "";
 }
 
-function log(msg){
-  console.log("[ELAYON]", msg);
+function setStatusSessao(txt) {
+  const node = el("statusSessao");
+  if (node) node.textContent = txt || "";
 }
 
-// ============================
-// BIP
-// ============================
+function showScreen(screenId) {
+  ["telaIntro", "telaSessao", "telaFinal"].forEach((id) => {
+    el(id)?.classList.remove("show");
+  });
+  el(screenId)?.classList.add("show");
+}
 
-function bip(){
-  const ctx = new AudioContext();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
+function logTech(msg) {
+  const node = el("logTech");
+  if (!node) return;
+  node.textContent += `[${new Date().toLocaleTimeString("pt-BR")}] ${msg}\n`;
+}
 
-  osc.connect(gain);
-  gain.connect(ctx.destination);
+function nextSessionId() {
+  return `presenca-${Date.now()}`;
+}
 
-  osc.frequency.value = 880;
-  gain.gain.value = 0.1;
-
-  osc.start();
-  setTimeout(()=>{
-    osc.stop();
-    ctx.close();
-  }, 120);
+function waitMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // ============================
-// ESPERAR PALAVRA
+// ÁUDIO
 // ============================
 
-async function esperarComando(palavra){
-  while(true){
-    const r = await ELAYON_TUNNEL.stt.listenOnce({ silenceMs:2000 });
-    const t = normalize(r.text);
-    log("ouvido: " + t);
+function bip() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
 
-    if(t.includes(palavra)) return true;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.frequency.value = 880;
+    gain.gain.value = 0.06;
+
+    osc.start();
+
+    setTimeout(() => {
+      osc.stop();
+      ctx.close();
+    }, 140);
+  } catch (e) {
+    logTech(`falha no bip: ${e.message}`);
   }
 }
 
+async function falar(texto, velocidade = 45) {
+  setTextoVivo("");
+  let i = 0;
+
+  const escrita = new Promise((resolve) => {
+    function tick() {
+      if (i < texto.length) {
+        const atual = el("textoVivo")?.textContent || "";
+        setTextoVivo(atual + texto[i]);
+        i += 1;
+        setTimeout(tick, velocidade);
+      } else {
+        resolve();
+      }
+    }
+    tick();
+  });
+
+  const voz = window.ELAYON_TUNNEL.tts.speak(texto, {
+    lang: "pt-BR",
+    rate: 0.95,
+    pitch: 1,
+    volume: 1
+  });
+
+  await Promise.allSettled([escrita, voz]);
+}
+
 // ============================
-// CAPTURA COM CONTROLE HUMANO
+// CONTAGEM
 // ============================
 
-async function capturarFala(){
+async function contagemAbertura() {
+  await waitMs(3000);
 
+  setTextoVivo("5...");
+  await waitMs(1000);
+
+  setTextoVivo("4...");
+  await waitMs(1000);
+
+  setTextoVivo("3...");
+  await waitMs(1000);
+
+  setTextoVivo("2...");
+  await waitMs(1000);
+
+  setTextoVivo("1...");
+  await waitMs(1000);
+
+  setTextoVivo("");
   bip();
+}
 
-  let textoFinal = "";
+// ============================
+// CAPTURA LIVRE
+// ============================
 
-  while(true){
+async function capturarTextoLivre() {
+  if (STATE.micBusy) {
+    throw new Error("microfone já está em uso");
+  }
 
-    const r = await ELAYON_TUNNEL.stt.listenOnce({
-      silenceMs:8000,
-      onPartial:(d)=>{
-        console.log("...", d.text);
+  STATE.micBusy = true;
+
+  try {
+    setStatusSessao("Microfone aberto. Fale à vontade e termine com okok.");
+
+    const heard = await window.ELAYON_TUNNEL.stt.listenForPhrase({
+      stopPhrases: [WORKWORDS.fecharLivre, WORKWORDS.fecharLivreAlt],
+      silenceFailsafeMs: 90000,
+      onPartial: (data) => {
+        const limpo =
+          data?.cleaned_text ||
+          window.ELAYON_TUNNEL.utils.stripPhrases(data?.text || "", [
+            WORKWORDS.fecharLivre,
+            WORKWORDS.fecharLivreAlt
+          ]);
+
+        setTextoVivo(limpo);
       }
     });
 
-    const t = normalize(r.text);
+    const finalText =
+      heard?.cleaned_text ||
+      window.ELAYON_TUNNEL.utils.stripPhrases(heard?.text || "", [
+        WORKWORDS.fecharLivre,
+        WORKWORDS.fecharLivreAlt
+      ]);
 
-    if(t.includes(WORKWORDS.fechar)){
-      textoFinal += " " + limpar(t);
-      break;
-    }
+    STATE.transcriptAtual = finalText.trim();
+    setTextoVivo(STATE.transcriptAtual || "Sem conteúdo consolidado.");
+    setStatusSessao("Fala encerrada.");
 
-    textoFinal += " " + t;
+    logTech(`texto livre capturado: ${STATE.transcriptAtual}`);
+
+    return STATE.transcriptAtual;
+  } finally {
+    STATE.micBusy = false;
   }
-
-  return limpar(textoFinal);
 }
 
 // ============================
-// ETAPA
+// CAPTURA DECISÃO
 // ============================
 
-async function executarEtapa(pergunta){
-
-  await falar(pergunta);
-
-  await falar("Quando quiser começar sua resposta, diga responder.");
-
-  await esperarComando(WORKWORDS.abrir);
-
-  await falar("Microfone aberto.");
-
-  const texto = await capturarFala();
-
-  log("fala final: " + texto);
-
-  await falar("Se quiser continuar, diga confirma. Se quiser refazer, diga alinhar. Depois diga ok ok.");
-
-  let decisao = null;
-
-  while(!decisao){
-    const r = await ELAYON_TUNNEL.stt.listenOnce({ silenceMs:2000 });
-    const t = normalize(r.text);
-
-    if(t.includes(WORKWORDS.confirmar)) decisao = "confirmar";
-    if(t.includes(WORKWORDS.alinhar)) decisao = "alinhar";
+async function capturarDecisao() {
+  if (STATE.micBusy) {
+    throw new Error("microfone já está em uso");
   }
 
-  await esperarComando(WORKWORDS.fechar);
+  STATE.micBusy = true;
 
-  if(decisao === "alinhar"){
-    await falar("Vamos refazer.");
-    return executarEtapa(pergunta);
+  try {
+    setStatusSessao("Escolha sua decisão: confirma ou alinhar.");
+
+    const heard = await window.ELAYON_TUNNEL.stt.listenForAnyPhrase({
+      phrases: [WORKWORDS.confirmar, WORKWORDS.alinhar],
+      silenceFailsafeMs: 15000,
+      onPartial: (data) => {
+        setTextoVivo(data?.text || "");
+      }
+    });
+
+    const txt = normalize(heard?.text || "");
+    logTech(`decisão capturada: ${txt}`);
+
+    if (txt.includes(WORKWORDS.alinhar)) return WORKWORDS.alinhar;
+    return WORKWORDS.confirmar;
+  } finally {
+    STATE.micBusy = false;
   }
-
-  return texto;
 }
 
 // ============================
-// INICIO
+// CRS
 // ============================
 
-async function iniciar(){
-
-  await ELAYON_TUNNEL.mic.open();
-
-  await falar(`
-Este é o espaço Elayon.
-
-Um espaço de escuta simbólica.
-
-Vamos começar a interação com os nossos sistemas.
-
-Funciona assim.
-
-O sistema fica aguardando a palavra responder para abrir o microfone.
-
-Quando você disser responder, o microfone vai abrir.
-
-Ao abrir, você vai ouvir um bip.
-
-Depois do bip, você pode falar à vontade.
-
-Para encerrar a sua fala, diga apenas ok ok.
-
-Ok ok é o código que fecha o microfone.
-
-Vamos começar essa sessão?
-
-Diga responder.
-`);
-
-  // ========================
-  // ETAPA 1
-  // ========================
-
-  const etapa1 = await executarEtapa(
-    "Sobre o tema que você trouxe, comece da forma que achar mais natural."
-  );
-
-  // ========================
-  // ETAPA 2
-  // ========================
-
-  const etapa2 = await executarEtapa(
-    "Agora aprofunde. Dentro do que você disse, o que merece mais atenção?"
-  );
-
-  // ========================
-  // ETAPA 3
-  // ========================
-
-  const etapa3 = await executarEtapa(
-    "Para concluir, qual é o próximo passo mais honesto para você agora?"
-  );
-
-  // ========================
-  // FINAL
-  // ========================
-
-  await falar("Para gerar o relatório final, diga confirma.");
-
-  await esperarComando(WORKWORDS.confirmar);
-
-  await esperarComando(WORKWORDS.fechar);
-
-  await falar("Processando.");
-
-  const payload = ELAYON_TUNNEL.crs.buildPayload(
-    `${etapa1} ${etapa2} ${etapa3}`
-  );
-
-  const res = await ELAYON_TUNNEL.crs.analyze(payload);
-
-  console.log(res);
-
-  await falar("Relatório concluído.");
-}
-
-// ============================
-// START
-// ============================
-
-document.getElementById("btnIniciar").onclick = iniciar;
+function buildPayload(texto, etapa) {
+  return window.ELAYON_TUNNEL.crs.buildPayload(texto, {
+    context: `${STATE.contexto} | etapa ${etapa.id} | tema ${STATE.tema}`,
+    source_text: etapa.pergunta({ tema: STATE.tema
