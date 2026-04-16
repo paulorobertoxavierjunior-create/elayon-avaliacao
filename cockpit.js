@@ -344,7 +344,7 @@ async function executarEtapa(etapa) {
   await falar(`Respira.`);
 
   await falar(
-    `Vou abrir o microfone e você fala à vontade. Quando terminar, diga okok.`
+    `Vou abrir o microfone e você fala à vontade. Quando terminar, diga ok ok.`
   );
 
   await falar(`Concentre-se.`);
@@ -392,7 +392,7 @@ async function executarEtapa(etapa) {
 // ============================
 
 async function fluxoInicial() {
-  await falar(`Sistemas Elai ôm`);
+  await falar(`Sistemas Elai ôn`);
 
   await falar(`Bem-vindo ao PRESENÇA.`);
 
@@ -400,7 +400,7 @@ async function fluxoInicial() {
     `Um espaço de reflexão e escuta simbólica, configurado para visualizar e alinhar o comportamento humano aos seus próprios sentidos e emoções.`
   );
 
-  await falar(`Dica Elai ôm.`);
+  await falar(`Dica Elai ôn.`);
 
   await falar(
     `Conhece-te a ti mesmo.`
@@ -418,9 +418,9 @@ async function fluxoInicial() {
 
   await falar(`Essa é a expressão que fecha o microfone e envia sua análise.`);
 
-  await falar(`Depois, se quiser seguir, diga: confirma.`);
-
   await falar(`Se quiser refazer, diga: alinhar.`);
+
+  await falar(`Depois, se quiser seguir, diga: confirma.`);
 
   await falar(`Agora, lembre-se do tema e do contexto.`);
 }
