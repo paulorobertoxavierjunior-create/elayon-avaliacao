@@ -242,137 +242,163 @@
 
   const stt = {
     async listenForPhrase({
-      stopPhrases = [],
-      onPartial,
-      interimResults = true,
-      continuous = true,
-      silenceFailsafeMs = 60000
-    } = {}) {
-      if (recognitionRunning) {
-        stopRecognitionInternal();
+  stopPhrases = [],
+  onPartial,
+  interimResults = true,
+  continuous = true,
+  silenceFailsafeMs = 60000
+} = {}) {
+  if (recognitionRunning) {
+    stopRecognitionInternal();
+  }
+
+  return new Promise((resolve, reject) => {
+    try {
+      const recognition = createRecognition();
+
+      let finished = false;
+      let failsafeTimer = null;
+
+      const resultsMap = new Map();
+      const normalizedStops = stopPhrases
+        .map((s) => normalizeText(s))
+        .filter(Boolean);
+
+      function capitalizeFirst(text) {
+        const clean = String(text || "").replace(/\s+/g, " ").trim();
+        if (!clean) return "";
+        return clean.charAt(0).toUpperCase() + clean.slice(1);
       }
 
-      return new Promise((resolve, reject) => {
+      function composeText() {
+        const ordered = [...resultsMap.entries()]
+          .sort((a, b) => a[0] - b[0])
+          .map(([, value]) => value?.text || "")
+          .join(" ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        return capitalizeFirst(ordered);
+      }
+
+      function finish(result) {
+        if (finished) return;
+        finished = true;
+        recognitionRunning = false;
+        clearTimeout(failsafeTimer);
+
         try {
-          const recognition = createRecognition();
+          recognition.stop();
+        } catch {}
 
-          let finalText = "";
-          let partialText = "";
-          let finished = false;
-          let failsafeTimer = null;
+        activeRecognition = null;
+        resolve(result);
+      }
 
-          const normalizedStops = stopPhrases.map((s) => normalizeText(s)).filter(Boolean);
+      function refreshFailsafe() {
+        clearTimeout(failsafeTimer);
+        failsafeTimer = setTimeout(() => {
+          const fullText = composeText();
 
-          function finish(result) {
-            if (finished) return;
-            finished = true;
-            recognitionRunning = false;
-            clearTimeout(failsafeTimer);
+          finish({
+            ok: true,
+            text: fullText,
+            final: fullText,
+            partial: "",
+            matched_phrase: null,
+            timed_out: true,
+            cleaned_text: stripPhrases(fullText, stopPhrases)
+          });
+        }, silenceFailsafeMs);
+      }
 
-            try { recognition.stop(); } catch {}
+      activeRecognition = recognition;
+      recognition.lang = "pt-BR";
+      recognition.interimResults = interimResults;
+      recognition.continuous = continuous;
 
-            activeRecognition = null;
-            resolve(result);
-          }
+      recognition.onstart = () => {
+        recognitionRunning = true;
+        refreshFailsafe();
+      };
 
-          function refreshFailsafe() {
-            clearTimeout(failsafeTimer);
-            failsafeTimer = setTimeout(() => {
-              finish({
-                ok: true,
-                text: `${finalText}${partialText}`.trim(),
-                final: finalText.trim(),
-                partial: partialText.trim(),
-                matched_phrase: null,
-                timed_out: true,
-                cleaned_text: stripPhrases(`${finalText}${partialText}`.trim(), stopPhrases)
-              });
-            }, silenceFailsafeMs);
-          }
+      recognition.onresult = (event) => {
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const trecho = (event.results[i][0]?.transcript || "")
+            .replace(/\s+/g, " ")
+            .trim();
 
-          activeRecognition = recognition;
-          recognition.lang = "pt-BR";
-          recognition.interimResults = interimResults;
-          recognition.continuous = continuous;
-
-          recognition.onstart = () => {
-            recognitionRunning = true;
-            refreshFailsafe();
-          };
-
-          recognition.onresult = (event) => {
-            partialText = "";
-
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-              const trecho = event.results[i][0].transcript || "";
-              if (event.results[i].isFinal) {
-                finalText += `${trecho} `;
-              } else {
-                partialText += `${trecho} `;
-              }
-            }
-
-            const currentText = `${finalText}${partialText}`.trim();
-
-            if (typeof onPartial === "function") {
-              onPartial({
-                ok: true,
-                text: currentText,
-                final: finalText.trim(),
-                partial: partialText.trim(),
-                cleaned_text: stripPhrases(currentText, stopPhrases)
-              });
-            }
-
-            refreshFailsafe();
-
-            const normalizedCurrent = normalizeText(currentText);
-            const matched = normalizedStops.find((phrase) =>
-              normalizedCurrent.includes(phrase)
-            );
-
-            if (matched) {
-              finish({
-                ok: true,
-                text: currentText,
-                final: finalText.trim(),
-                partial: partialText.trim(),
-                matched_phrase: matched,
-                cleaned_text: stripPhrases(currentText, stopPhrases)
-              });
-            }
-          };
-
-          recognition.onerror = (event) => {
-            recognitionRunning = false;
-            clearTimeout(failsafeTimer);
-            activeRecognition = null;
-            reject(new Error(event.error || "erro no reconhecimento"));
-          };
-
-          recognition.onend = () => {
-            if (!finished) {
-              recognitionRunning = false;
-              clearTimeout(failsafeTimer);
-              finish({
-                ok: true,
-                text: `${finalText}${partialText}`.trim(),
-                final: finalText.trim(),
-                partial: partialText.trim(),
-                matched_phrase: null,
-                cleaned_text: stripPhrases(`${finalText}${partialText}`.trim(), stopPhrases)
-              });
-            }
-          };
-
-          recognition.start();
-        } catch (err) {
-          recognitionRunning = false;
-          activeRecognition = null;
-          reject(err);
+          resultsMap.set(i, {
+            text: trecho,
+            isFinal: event.results[i].isFinal
+          });
         }
-      });
-    },
+
+        const currentText = composeText();
+        const cleaned = stripPhrases(currentText, stopPhrases);
+
+        if (typeof onPartial === "function") {
+          onPartial({
+            ok: true,
+            text: currentText,
+            final: currentText,
+            partial: "",
+            cleaned_text: cleaned
+          });
+        }
+
+        refreshFailsafe();
+
+        const normalizedCurrent = normalizeText(currentText);
+        const matched = normalizedStops.find((phrase) =>
+          normalizedCurrent.includes(phrase)
+        );
+
+        if (matched) {
+          finish({
+            ok: true,
+            text: currentText,
+            final: currentText,
+            partial: "",
+            matched_phrase: matched,
+            cleaned_text: cleaned
+          });
+        }
+      };
+
+      recognition.onerror = (event) => {
+        recognitionRunning = false;
+        clearTimeout(failsafeTimer);
+        activeRecognition = null;
+        reject(new Error(event.error || "erro no reconhecimento"));
+      };
+
+      recognition.onend = () => {
+        if (!finished) {
+          recognitionRunning = false;
+          clearTimeout(failsafeTimer);
+
+          const fullText = composeText();
+
+          finish({
+            ok: true,
+            text: fullText,
+            final: fullText,
+            partial: "",
+            matched_phrase: null,
+            cleaned_text: stripPhrases(fullText, stopPhrases)
+          });
+        }
+      };
+
+      recognition.start();
+    } catch (err) {
+      recognitionRunning = false;
+      activeRecognition = null;
+      reject(err);
+    }
+  });
+}
 
     async listenForAnyPhrase({
       phrases = [],
