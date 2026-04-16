@@ -269,25 +269,19 @@ async function capturarDecisaoCurta() {
 
 async function rodadaTutorial() {
   await falarComTexto(
-`SISTEMAS ELAYON.
+`Sistas Elai on.
 
 Bem-vindo ao PRESENÇA.
 
-Este é um espaço de escuta simbólica.`
+Espaço de auto escuta simbólica. Observe-se e aprenda com seus próprios símbolos.`
   );
 
   await falarComTexto(
-`O sistema vai conduzir esta sessão por voz, passo a passo.`
+`Funciona assim: o microfone vai abrir, você fala à vontade e pra encerrar sua fala, diga ok ok.`
   );
 
   await falarComTexto(
-`Quando a escuta abrir, você fala à vontade.
-
-Para encerrar sua fala, diga ok ok.`
-  );
-
-  await falarComTexto(
-`Depois disso, você dirá confirma para seguir ou alinhar para refazer.`
+`Depois confirma ou alinha para refazer.`
   );
 
   await falarComTexto(`Vamos começar a sessão.`);
@@ -303,9 +297,10 @@ function obterPerguntas() {
   return [
     `Primeira etapa.
 
-Fale sobre ${tema} do jeito mais natural possível.
+Fale sobre o tema ${tema} do jeito mais natural possível.
 
-Quando terminar sua fala, diga ok ok.`,
+Lembra da instrução: abre o microfone, fala, "ok ok" pra encerrar, alinha ou confirma. Prepara.
+.`,
 
     `Segunda etapa.
 
@@ -319,7 +314,7 @@ Quando terminar sua fala, diga ok ok.`,
 
 Para concluir, diga qual é o próximo passo mais honesto para você agora.
 
-Quando terminar sua fala, diga ok ok.`
+No final, diga ok ok. Mesmo esquema.`
   ];
 }
 
