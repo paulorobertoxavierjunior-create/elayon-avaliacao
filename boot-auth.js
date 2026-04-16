@@ -1,18 +1,60 @@
 (function () {
   const SUPABASE_URL = "https://eudcjihffrfmhzmfwtlg.supabase.co";
-  const SUPABASE_ANON_KEY = "SUA_CHAVE_AQUI";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1ZGNqaWhmZnJmbWh6bWZ3dGxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDE3MjUsImV4cCI6MjA5MDMxNzcyNX0.2tod6vvl_4SAXzSmW1wU8Mk9pLn8fvhF2xrAZOysUu0";
 
-  if (!window.supabase) {
-    console.error("[ELAYON] Supabase JS não carregado.");
-    return;
+  const REDIRECT_IF_NOT_LOGGED = ""; 
+  // Se quiser forçar login, coloca por exemplo:
+  // "https://paulorobertoxavierjunior-create.github.io/elayon-presenca/login.html"
+
+  function log(msg) {
+    try {
+      const box = document.getElementById("logTech");
+      if (box) {
+        box.textContent += `[BOOT ${new Date().toLocaleTimeString("pt-BR")}] ${msg}\n`;
+      }
+    } catch {}
   }
 
-  const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+  async function init() {
+    if (!window.supabase?.createClient) {
+      throw new Error("Supabase JS não carregado");
+    }
 
-  window.ELAYON_SUPABASE = supabaseClient;
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.ELAYON_SUPABASE = client;
 
-  console.log("[ELAYON] boot-auth carregado");
+    let session = null;
+    let user = null;
+    let authenticated = false;
+
+    try {
+      const { data, error } = await client.auth.getSession();
+      if (error) throw error;
+
+      session = data?.session || null;
+      user = session?.user || null;
+      authenticated = !!session?.access_token;
+    } catch (err) {
+      log(`falha ao obter sessão: ${err.message || err}`);
+    }
+
+    window.ELAYON_BOOT = {
+      supabase: client,
+      session,
+      user,
+      authenticated
+    };
+
+    log(authenticated ? "sessão autenticada" : "sem sessão autenticada");
+
+    if (!authenticated && REDIRECT_IF_NOT_LOGGED) {
+      window.location.href = REDIRECT_IF_NOT_LOGGED;
+      return;
+    }
+  }
+
+  init().catch((err) => {
+    console.error("[BOOT]", err);
+    alert(`Falha no boot de autenticação: ${err.message || err}`);
+  });
 })();
