@@ -392,7 +392,7 @@ async function executarEtapa(etapa) {
 // ============================
 
 async function fluxoInicial() {
-  await falar(`Sistemas Elaiôôn`);
+  await falar(`Sistemas Elaiõn`);
 
   await falar(`Bem-vindo ao PRESENÇA.`);
 
