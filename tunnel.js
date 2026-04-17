@@ -123,10 +123,18 @@
         };
 
         const compose = () => {
-          const raw = [...resultsMap.entries()].sort((a, b) => a[0] - b[0]).map(v => v[1].text).join(" ");
-          const clean = raw.replace(/\s+/g, " ").trim();
-          return clean ? clean.charAt(0).toUpperCase() + clean.slice(1) : "";
-        };
+  let raw = [...resultsMap.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(v => v[1].text)
+    .join(" ");
+
+  // Remove repetições consecutivas tipo "Oi Oi Oi" vira "Oi"
+  raw = raw.replace(/\b(\w+)\s+\1\b/gi, "$1");
+  
+  const clean = raw.replace(/\s+/g, " ").trim();
+  return clean ? clean.charAt(0).toUpperCase() + clean.slice(1) : "";
+};
+
 
         recognition.lang = "pt-BR";
         recognition.interimResults = interimResults;
