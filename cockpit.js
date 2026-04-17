@@ -463,6 +463,9 @@ function novaSessao() {
 // ============================
 
 async function iniciar() {
+
+alert("🔵 FUNÇÃO INICIAR FOI CHAMADA!");
+
   if (STATE.locked) return;
 
   try {
