@@ -10,14 +10,13 @@ const WORKWORDS = {
 };
 
 const FLOW = {
-  TYPE_SPEED: 45, // 👈 Esse número controla a velocidade da digitação (antes era 24, agora 45 fica mais humano)
-  STEP_DELAY_MS: 1200, // 👈 Aumentei o tempo de espera depois de falar
-  BETWEEN_ACTIONS_MS: 800, // 👈 Tempo de espera antes de começar a falar
+  TYPE_SPEED: 45, // 👈 Velocidade da digitação mais humano
+  STEP_DELAY_MS: 1200, // 👈 Tempo de espera depois de falar
+  BETWEEN_ACTIONS_MS: 800, // 👈 Espera antes de começar a falar
   LISTEN_DECISION_MS: 15000,
   LISTEN_FREE_MS: 999999,
   PRE_MIC_WAIT_MS: 3000
 };
-
 
 const STATE = {
   respostas: [],
@@ -273,7 +272,7 @@ Humanidade e Tecnologia, em Harmonia.
 
 Eu sou o PRESENÇA.
 
-Um espaço de escuta e auto observação simbólica. Vizualize-se e identifique os símbolos da sua emanação no teu espaço, no teu tempo e no teu silêncio.
+Um espaço de escuta e auto observação simbólica. Vizualize-se e identifique os símbolos da sua emanação no teu espaço, no teu tempo e no teu silêncio.`
   );
 
   await falarComTexto(
@@ -463,8 +462,7 @@ function novaSessao() {
 // ============================
 
 async function iniciar() {
-
-alert("🔵 FUNÇÃO INICIAR FOI CHAMADA!");
+  alert("🔵 FUNÇÃO INICIAR FOI CHAMADA!");
 
   if (STATE.locked) return;
 
@@ -473,94 +471,5 @@ alert("🔵 FUNÇÃO INICIAR FOI CHAMADA!");
 
     assertStructure();
 
-    if (!window.ELAYON_TUNNEL) {
-      throw new Error("ELAYON_TUNNEL não foi carregado");
-    }
+    if (!window
 
-    const tema = (el("inpTema")?.value || "").trim();
-    if (!tema) {
-      alert("Informe o tema antes de iniciar.");
-      return;
-    }
-
-    const health = await window.ELAYON_TUNNEL.healthcheck();
-    log(`health: ${JSON.stringify(health)}`);
-
-    // IGNORANDO VERIFICAÇÕES PARA TESTAR
-    health.authenticated = true;
-    health.stt = true;
-    health.tts = true;
-    health.crs = true;
-
-    if (false) { alert("Faça login primeiro."); return; }
-    if (false) { alert("Nem todos os serviços..."); return; }
-    
-    STATE.sessionId = "sessao-" + Date.now();
-    STATE.respostas = [];
-    STATE.analises = [];
-    STATE.etapaAtual = 0;
-
-    setText("statusIntro", "Iniciando experiência...");
-    limparSessaoVisual();
-    showTela("sessao");
-
-    await rodadaTutorial();
-
-    const etapas = obterPerguntas();
-
-    for (let i = 0; i < etapas.length; i++) {
-      STATE.etapaAtual = i + 1;
-
-      const resposta = await rodarEtapa(etapas[i], i);
-      STATE.respostas.push(resposta);
-
-      setText("statusSessao", "Processando no núcleo CRS...");
-      const analise = await enviarCRS(resposta, i);
-      STATE.analises.push(analise);
-
-      await sleep(FLOW.STEP_DELAY_MS);
-    }
-
-    const relatorio = gerarRelatorio(STATE.respostas, STATE.analises);
-    setText("relatorioFinal", relatorio);
-
-    await falarComTexto(`Relatório concluído.`, "textoVivo");
-    showTela("final");
-  } catch (err) {
-    console.error(err);
-    await resetMotores();
-    alert(`Falha na sessão: ${err.message || err}`);
-    setText("statusSessao", "Falha detectada.");
-    showTela("intro");
-  } finally {
-    await resetMotores();
-    STATE.locked = false;
-  }
-}
-
-// ============================
-// INIT
-// ============================
-
-document.addEventListener("DOMContentLoaded", () => {
-  try {
-    assertStructure();
-    showTela("intro");
-
-    const btn = document.getElementById("btnIniciar");
-    if (btn) {
-        btn.onclick = iniciar; // Liga direto
-        console.log("BOTÃO LIGADO!");
-    } else {
-        alert("ERRO: Botão não encontrado!");
-    }
-
-    el("btnNovaSessao")?.addEventListener("click", novaSessao);
-    el("btnGerarPdf")?.addEventListener("click", gerarPdfRelatorio);
-
-    log("cockpit carregado");
-  } catch (err) {
-    console.error(err);
-    alert(`Falha estrutural do cockpit: ${err.message || err}`);
-  }
-});
