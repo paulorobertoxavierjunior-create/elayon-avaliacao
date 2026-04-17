@@ -49,6 +49,7 @@
       color: #fff;
       cursor: pointer;
       font-weight: bold;
+      width: 100%;
     }
 
     #logTech {
@@ -61,7 +62,18 @@
       min-height: 80px;
     }
 
-    /* Esconde as outras telas mas deixa elas existirem */
+    /* Estilo dos campos de texto */
+    .campo {
+      width: 100%;
+      padding: 14px;
+      margin: 10px 0;
+      border-radius: 12px;
+      border: 1px solid #2b333d;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 16px;
+    }
+
     .tela { display: none; }
   </style>
 </head>
@@ -69,11 +81,14 @@
 <body>
   <main class="shell">
 
-    <!-- ============================================== -->
-    <!-- ✅ TELA INTRO (A QUE VOCÊ VÊ) -->
-    <!-- ============================================== -->
     <div id="telaIntro">
       <h1>Sistemas Elayon • PRESENÇA</h1>
+
+      <!-- 👇 CAMPO PARA DIGITAR O TEMA 👇 -->
+      <input type="text" id="inpTema" class="campo" placeholder="Digite o tema da sessão...">
+      
+      <!-- 👇 CAMPO PARA DIGITAR O CONTEXTO 👇 -->
+      <input type="text" id="inpContexto" class="campo" placeholder="Digite o contexto (opcional)...">
 
       <button id="btnIniciar" class="acao">
         Rodar Diagnóstico / Iniciar Sessão
@@ -87,20 +102,12 @@
       <pre id="logTech">Logs aparecerão aqui...</pre>
     </div>
 
-    <!-- ============================================== -->
-    <!-- ✅ TELA SESSAO (OCULTA, MAS EXISTE) -->
-    <!-- ============================================== -->
     <div id="telaSessao" class="tela">
-      <input type="text" id="inpTema" placeholder="Tema" style="display:none;">
-      <input type="text" id="inpContexto" placeholder="Contexto" style="display:none;">
       <div id="statusSessao"></div>
       <div id="textoVivo"></div>
       <button id="btnNovaSessao" style="display:none;"></button>
     </div>
 
-    <!-- ============================================== -->
-    <!-- ✅ TELA FINAL (OCULTA, MAS EXISTE) -->
-    <!-- ============================================== -->
     <div id="telaFinal" class="tela">
       <div id="relatorioFinal"></div>
       <button id="btnGerarPdf" style="display:none;"></button>
@@ -108,13 +115,12 @@
 
   </main>
 
-  <!-- ORDEM CORRETA DOS SCRIPTS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="boot-auth.js"></script>
   <script src="tunnel.js"></script>
   <script src="teste-runner.js"></script>
   <script src="memoria.js"></script>
-  <script src="cockpit.js"></script> <!-- 👈 O cockpit que você mandou -->
+  <script src="cockpit.js"></script>
 
 </body>
 </html>
