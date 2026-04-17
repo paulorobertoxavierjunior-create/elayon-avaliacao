@@ -119,12 +119,15 @@ function escreverTextoProgressivo(texto, alvoId, velocidade = FLOW.TYPE_SPEED) {
     const alvo = el(alvoId);
     if (!alvo) return resolve();
 
+    // Garante primeira letra maiúscula
+    const textoFinal = texto.charAt(0).toUpperCase() + texto.slice(1);
+    
     alvo.textContent = "";
     let i = 0;
 
     function tick() {
-      if (i < texto.length) {
-        alvo.textContent += texto[i];
+      if (i < textoFinal.length) {
+        alvo.textContent += textoFinal[i];
         i += 1;
         setTimeout(tick, velocidade);
       } else {
@@ -136,20 +139,7 @@ function escreverTextoProgressivo(texto, alvoId, velocidade = FLOW.TYPE_SPEED) {
   });
 }
 
-async function falarComTexto(texto, alvoId = "textoVivo") {
-  await sleep(FLOW.BETWEEN_ACTIONS_MS);
 
-  const escrita = escreverTextoProgressivo(texto, alvoId, FLOW.TYPE_SPEED);
-  const fala = window.ELAYON_TUNNEL.tts.speak(texto, {
-    rate: 0.94,
-    pitch: 1,
-    volume: 1,
-    cancelPrevious: true
-  });
-
-  await Promise.allSettled([escrita, fala]);
-  await sleep(FLOW.STEP_DELAY_MS);
-}
 
 // ============================
 // BIP
