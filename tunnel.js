@@ -87,123 +87,121 @@
   };
 
   const stt = {
-    async function listenForPhrase({
-  stopPhrases = [],
-  onPartial,
-  interimResults = true,
-  continuous = true,
-  silenceFailsafeMs = 60000 // 👈 AUMENTADO PARA 1 MINUTO! Agora só fecha se você falar "ok ok" ou passar 1min
-} = {}) {
-  if (recognitionRunning) this.stop();
+    async listenForPhrase({
+      stopPhrases = [],
+      onPartial,
+      interimResults = true,
+      continuous = true,
+      silenceFailsafeMs = 60000
+    } = {}) {
+      if (recognitionRunning) this.stop();
 
-  return new Promise((resolve, reject) => {
-    const RecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!RecognitionCtor) return reject(new Error("STT não suportado"));
+      return new Promise((resolve, reject) => {
+        const RecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!RecognitionCtor) return reject(new Error("STT não suportado"));
 
-    // 👇 GARANTE QUE SÓ EXISTE UM MICROFONE
-    if (activeRecognition) {
-      try { activeRecognition.stop(); } catch {}
-    }
-
-    const recognition = new RecognitionCtor();
-    let textoFinal = "";
-    let textoParcial = "";
-    let finished = false;
-    let failsafeTimer = null;
-
-    const finish = (result) => {
-      if (finished) return;
-      finished = true;
-      recognitionRunning = false;
-      clearTimeout(failsafeTimer);
-      try { recognition.stop(); } catch {}
-      
-      // 👇 LIMPA REPETIÇÕES ANTES DE ENVIAR
-      let textoLimpo = result.text || "";
-      textoLimpo = textoLimpo.replace(/\b(\w+)\s+\1\b/gi, "$1"); // Remove palavra repetida
-      textoLimpo = textoLimpo.replace(/\s+/g, " ").trim();
-      
-      result.text = textoLimpo;
-      result.cleaned_text = stripPhrases(textoLimpo, stopPhrases);
-      
-      resolve(result);
-    };
-
-    const refreshFailsafe = () => {
-      clearTimeout(failsafeTimer);
-      failsafeTimer = setTimeout(() => {
-        const txtCompleto = (textoFinal + " " + textoParcial).trim();
-        finish({ ok: true, text: txtCompleto, timed_out: true });
-      }, silenceFailsafeMs);
-    };
-
-    recognition.lang = "pt-BR";
-    recognition.interimResults = interimResults;
-    recognition.continuous = continuous;
-
-    recognition.onstart = () => { 
-      recognitionRunning = true; 
-      refreshFailsafe(); 
-    };
-    
-    recognition.onresult = (event) => {
-      textoFinal = "";
-      textoParcial = "";
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const trecho = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          textoFinal += trecho + " ";
-        } else {
-          textoParcial += trecho + " ";
+        // Garante que só existe um microfone
+        if (activeRecognition) {
+          try { activeRecognition.stop(); } catch {}
         }
-      }
 
-      const textoCompleto = `${textoFinal}${textoParcial}`.trim();
-      
-      // Atualiza na tela em tempo real
-      if (onPartial) {
-        let textoTela = textoCompleto.replace(/\b(\w+)\s+\1\b/gi, "$1");
-        textoTela = textoTela.replace(/\s+/g, " ").trim();
+        const recognition = new RecognitionCtor();
+        let textoFinal = "";
+        let textoParcial = "";
+        let finished = false;
+        let failsafeTimer = null;
+
+        const finish = (result) => {
+          if (finished) return;
+          finished = true;
+          recognitionRunning = false;
+          clearTimeout(failsafeTimer);
+          try { recognition.stop(); } catch {}
+          
+          // Limpa repetições antes de enviar
+          let textoLimpo = result.text || "";
+          textoLimpo = textoLimpo.replace(/\b(\w+)\s+\1\b/gi, "$1");
+          textoLimpo = textoLimpo.replace(/\s+/g, " ").trim();
+          
+          result.text = textoLimpo;
+          result.cleaned_text = stripPhrases(textoLimpo, stopPhrases);
+          
+          resolve(result);
+        };
+
+        const refreshFailsafe = () => {
+          clearTimeout(failsafeTimer);
+          failsafeTimer = setTimeout(() => {
+            const txtCompleto = (textoFinal + " " + textoParcial).trim();
+            finish({ ok: true, text: txtCompleto, timed_out: true });
+          }, silenceFailsafeMs);
+        };
+
+        recognition.lang = "pt-BR";
+        recognition.interimResults = interimResults;
+        recognition.continuous = continuous;
+
+        recognition.onstart = () => { 
+          recognitionRunning = true; 
+          refreshFailsafe(); 
+        };
         
-        onPartial({ 
-          text: textoTela, 
-          cleaned_text: stripPhrases(textoTela, stopPhrases) 
-        });
-      }
-      
-      refreshFailsafe(); // Reseta o timer toda vez que fala algo
+        recognition.onresult = (event) => {
+          textoFinal = "";
+          textoParcial = "";
 
-      // Verifica se falou a frase de parada
-      const norm = normalizeText(textoCompleto);
-      const matched = stopPhrases.find(p => norm.includes(normalizeText(p)));
-      if (matched) {
-        finish({ 
-          ok: true, 
-          text: textoCompleto, 
-          matched_phrase: matched
-        });
-      }
-    };
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const trecho = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              textoFinal += trecho + " ";
+            } else {
+              textoParcial += trecho + " ";
+            }
+          }
 
-    recognition.onerror = (e) => { 
-      recognitionRunning = false; 
-      reject(e); 
-    };
-    
-    recognition.onend = () => { 
-      // 👇 SÓ FECHA MESMO SE FOI INTENCIONAL OU PASSOU O TEMPO GRANDE
-      if (!finished) {
-        const txtCompleto = (textoFinal + " " + textoParcial).trim();
-        finish({ ok: true, text: txtCompleto });
-      }
-    };
+          const textoCompleto = `${textoFinal}${textoParcial}`.trim();
+          
+          // Atualiza na tela em tempo real
+          if (onPartial) {
+            let textoTela = textoCompleto.replace(/\b(\w+)\s+\1\b/gi, "$1");
+            textoTela = textoTela.replace(/\s+/g, " ").trim();
+            
+            onPartial({ 
+              text: textoTela, 
+              cleaned_text: stripPhrases(textoTela, stopPhrases) 
+            });
+          }
+          
+          refreshFailsafe(); // Reseta o timer toda vez que fala algo
 
-    activeRecognition = recognition;
-    recognition.start();
-  });
-}
+          // Verifica se falou a frase de parada
+          const norm = normalizeText(textoCompleto);
+          const matched = stopPhrases.find(p => norm.includes(normalizeText(p)));
+          if (matched) {
+            finish({ 
+              ok: true, 
+              text: textoCompleto, 
+              matched_phrase: matched
+            });
+          }
+        };
 
+        recognition.onerror = (e) => { 
+          recognitionRunning = false; 
+          reject(e); 
+        };
+        
+        recognition.onend = () => { 
+          if (!finished) {
+            const txtCompleto = (textoFinal + " " + textoParcial).trim();
+            finish({ ok: true, text: txtCompleto });
+          }
+        };
+
+        activeRecognition = recognition;
+        recognition.start();
+      });
+    },
 
     // --- Métodos de Conveniência ---
     async listenForAnyPhrase(phrases = [], silence = 15000) {
@@ -221,7 +219,6 @@
   };
 
   const crs = {
-    // ✅ FUNÇÃO QUE ESTAVA FALTANDO
     buildPayload: function(texto, opcoes = {}) {
       return {
         text: texto,
