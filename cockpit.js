@@ -269,15 +269,17 @@ async function rodadaTutorial() {
   await falarComTexto(
 `Sistemas Elayon.
 
-Humanidade e Tecnologia em harmonia.
+Humanidade e Tecnologia, em Harmonia.
 
 Eu sou o PRESENÇA.
 
-Um espaço de auto escuta simbólica. Observe-se. Vizualizar seus próprios símbolos. Emanados da sua expressão de ser.`
+Um espaço de escuta e auto observação simbólica. Observe-se. Vizualize e identifique os símbolos da sua emanação no espaço tempo.
   );
 
   await falarComTexto(
-`Funciona assim. O microfone vai abrir. Você se expressa sobre seu tema. E, pra encerrar sua fala, diga a expressão, "ok ok".`
+`É de boa! Como num espelho. Só que de sinais além da visão. Você vai entender.
+
+Funciona assim. O microfone vai abrir. Você se expressa sobre seu tema livremente. Quando acabar de falar, diga a expressão, "ok ok". Só isso`
   );
 
   await falarComTexto(
