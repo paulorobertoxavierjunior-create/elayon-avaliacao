@@ -139,7 +139,20 @@ function escreverTextoProgressivo(texto, alvoId, velocidade = FLOW.TYPE_SPEED) {
   });
 }
 
+async function falarComTexto(texto, alvoId = "textoVivo") {
+  await sleep(FLOW.BETWEEN_ACTIONS_MS);
 
+  const escrita = escreverTextoProgressivo(texto, alvoId, FLOW.TYPE_SPEED);
+  const fala = window.ELAYON_TUNNEL.tts.speak(texto, {
+    rate: 0.94,
+    pitch: 1,
+    volume: 1,
+    cancelPrevious: true
+  });
+
+  await Promise.allSettled([escrita, fala]);
+  await sleep(FLOW.STEP_DELAY_MS);
+}
 
 // ============================
 // BIP
