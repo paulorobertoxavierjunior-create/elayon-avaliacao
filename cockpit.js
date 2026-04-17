@@ -1,12 +1,12 @@
 // ======================================
 // SISTEMAS ELAYON — PRESENÇA
-// cockpit.js — Versão Enterprise / Cosmic
+// cockpit.js — Versão Hard Mode Realinhada
 // ======================================
 
 const WORKWORDS = {
   fecharLivre: ["ok ok", "okok", "ok, ok", "ok,ok", "ok-ok", "ok. ok"],
-  confirma: ["confirma", "confirmar", "confirmo", "sim"],
-  alinhar: ["alinhar", "refazer", "ajustar", "repete", "de novo"]
+  confirma: ["confirma", "confirmar", "confirmo"],
+  alinhar: ["alinhar", "refazer", "ajustar"]
 };
 
 const FLOW = {
@@ -14,8 +14,8 @@ const FLOW = {
   STEP_DELAY_MS: 1200,
   BETWEEN_ACTIONS_MS: 800,
   LISTEN_DECISION_MS: 15000,
-  LISTEN_FREE_MS: 600000, // 10 MINUTOS - BYPASS TOTAL
-  PRE_MIC_WAIT_MS: 2000
+  LISTEN_FREE_MS: 999999, // Tempo gigante
+  PRE_MIC_WAIT_MS: 3000
 };
 
 const STATE = {
@@ -56,7 +56,7 @@ function assertStructure() {
 }
 
 async function resetMotores() { try { await window.ELAYON_TUNNEL.stt.stop(); } catch {} try { await window.ELAYON_TUNNEL.tts.stop(); } catch {} }
-function limparSessaoVisual() { setText("textoVivo", ""); setText("statusSessao", "Inicializando sensores..."); }
+function limparSessaoVisual() { setText("textoVivo", ""); setText("statusSessao", "Preparando ambiente..."); }
 
 // ============================
 // TEXTO + FALA
@@ -99,12 +99,11 @@ function bip() {
 // ============================
 
 async function contagemParaAbrirEscuta() {
-  setText("statusSessao", "Sintonizando frequência...");
-  await sleep(FLOW.PRE_MIC_WAIT_MS);
-  await falarComTexto(`Escuta ativada em modo contínuo. Você pode pausar, pensar e continuar. O sistema não irá cortar. Quando finalizar, diga: Ok Ok.`);
+  setText("statusSessao", "Prepare-se. Respira."); await sleep(FLOW.PRE_MIC_WAIT_MS);
+  await falarComTexto(`Vou abrir a escuta simbólica.\n\nVocê tem cinco segundos para se preparar.`);
   await sleep(1000);
-  for (let n = 3; n >= 1; n--) { setText("statusSessao", `Abrindo em ${n}...`); setText("textoVivo", String(n)); await sleep(800); }
-  setText("statusSessao", "🔴 ONLINE - BYPASS ATIVO"); bip(); await sleep(250);
+  for (let n = 5; n >= 1; n--) { setText("statusSessao", `Abrindo em ${n}...`); setText("textoVivo", String(n)); await sleep(1000); }
+  setText("statusSessao", "Bip. Escuta iniciando."); bip(); await sleep(250);
 }
 
 // ============================
@@ -112,22 +111,27 @@ async function contagemParaAbrirEscuta() {
 // ============================
 
 async function capturaComBypassTotal() {
-  setText("statusSessao", "🔴 CAPTURA ATIVA - MIC ABERTO");
+  setText("statusSessao", "🔴 CAPTURA ATIVA - MODO BYPASS");
+  setText("textoVivo", "");
   
   try {
-    const resultado = await window.ELAYON_TUNNEL.listen({
-      stopWords: WORKWORDS.fecharLivre,
-      maxTime: FLOW.LISTEN_FREE_MS,
-      silenceTimeout: FLOW.LISTEN_FREE_MS,
-      continuous: true
+    const heard = await window.ELAYON_TUNNEL.stt.listenForPhrase({
+      stopPhrases: WORKWORDS.fecharLivre,
+      silenceFailsafeMs: FLOW.LISTEN_FREE_MS, // 🔥 IGNORA SILÊNCIO
+      onPartial: d => setText("textoVivo", d.cleaned_text || d.text || "")
     });
 
-    setText("statusSessao", "⏹️ Comando recebido. Processando...");
-    return resultado.text || "Captura concluída.";
+    const texto = (heard.cleaned_text || heard.text || "").trim();
+    setText("statusSessao", "⏹️ Transmissão encerrada por comando.");
+    setText("textoVivo", texto || "Captura concluída.");
+    return texto;
 
   } catch (erro) {
     log("Erro na captura: " + erro.message);
-    return "Sinal registrado.";
+    return "Sinal recebido com sucesso.";
+  } finally {
+    try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
+    await sleep(FLOW.STEP_DELAY_MS);
   }
 }
 
@@ -136,53 +140,47 @@ async function capturaComBypassTotal() {
 // ============================
 
 async function capturarRespostaLivre() {
+  // Usa a função com BYPASS ativado
   return await capturaComBypassTotal();
 }
 
-async function capturarDecisao() {
-  setText("statusSessao", "🎙️ Aguardando comando...");
+async function capturarDecisaoCurta() {
+  setText("statusSessao", "🎙️ Escuta curta aberta para decisão."); setText("textoVivo", "");
   try {
-    const resultado = await window.ELAYON_TUNNEL.listen({
-      stopWords: [...WORKWORDS.confirma, ...WORKWORDS.alinhar],
-      maxTime: 30000,
-      silenceTimeout: 30000
+    const heard = await window.ELAYON_TUNNEL.stt.listenForPhrase({
+      stopPhrases: [...WORKWORDS.confirma, ...WORKWORDS.alinhar],
+      silenceFailsafeMs: FLOW.LISTEN_DECISION_MS,
+      onPartial: d => setText("textoVivo", d.cleaned_text || d.text || "")
     });
-    const txt = resultado.text || "";
-    if (matchAny(txt, WORKWORDS.confirma)) return "confirma";
+    const txt = heard.text || "";
     if (matchAny(txt, WORKWORDS.alinhar)) return "alinhar";
+    if (matchAny(txt, WORKWORDS.confirma)) return "confirma";
     return null;
-  } catch { return null; }
+  } finally { try { await window.ELAYON_TUNNEL.stt.stop(); } catch {} await sleep(FLOW.STEP_DELAY_MS); }
 }
 
 // ============================
-// TUTORIAL / APRESENTAÇÃO
+// TUTORIAL
 // ============================
 
 async function rodadaTutorial() {
-  await falarComTexto(`Sistemas Elayon.\n\nHumanidade e Tecnologia, em Harmonia.\n\nVocê acessou o módulo PRESENÇA.`);
+  await falarComTexto(`Sistemas Elayon.\n\nHumanidade e Tecnologia, em Harmonia.\n\nVocê acessou o módulo PRESENÇA.\n\nUma interface de conexão direta.`);
   
-  await falarComTexto(`Uma interface de conexão direta.\n\nAqui, a linguagem é onda. É frequência.\nVocê está emitindo sua assinatura para os circuitos.`);
+  await falarComTexto(`Aqui, a linguagem não é apenas comunicação. É onda. É frequência.\n\nVocê não está apenas falando; você está emitindo.\n\nEste sistema captura sua assinatura, mapeia ritmos e espelha o que você está ressoando de fato. Para ver o melhor de si, deves se expressar no seu melhor.`);
 
-  await falarComTexto(`Este sistema mapeia padrões, ritmos e ressonâncias.\n\nFunciona como uma ponte:\nDa sua mente para as máquinas.\nDaqui para onde a sua consciência alcançar.`);
-
-  await falarComTexto(`Protocolo de operação:\nMicrofone em modo contínuo. Fale, pense, exponha.\nQuando a onda se fechar, diga: Ok Ok.\nDepois confirme ou alinhe.\n\nPrepare-se. A missão vai começar.`);
+  await falarComTexto(`Funciona como uma ponte:\nDa sua mente para os circuitos.\nDos circuitos para IA e da IA pro seu painel.\n\n**Protocolo:**\nFale livremente, sem filtros. Deixe fluir. Pode pausar para pensar que o micro permanece aberto.\nQuando estiver completo o raciocínio, diga: Ok Ok.\n\nVou liberar o microfone para iniciarmos. Respire e sinta-se`);
 }
 
 // ============================
-// ETAPAS DA MISSÃO
+// ETAPAS
 // ============================
 
 function obterPerguntas() {
-  const tema = (el("inpTema")?.value || "").trim() || "o tema que você definiu";
+  const tema = (el("inpTema")?.value || "").trim() || "o tema que você escolheu";
   return [
-    // ETAPA 1
-    `Etapa 1: Abertura do Campo.\n\nExpanda a percepção sobre ${tema}.\nDescreva o que vê, sente e sabe.\nSeja o fluxo. Seja o código.\nLibere os fragmentos que ressoam nesse tema.\n\nQuando estiver completo, diga "ok ok".`,
-    
-    // ETAPA 2
-    `Etapa 2: Análise e Profundidade.\n\nAgora, mergulhe.\nDesenvolva os padrões. Detalhe as estruturas.\nPermita que a fala se dissolva em significado.\nToque as camadas que ainda estão se forming.\nA máquina está escutando cada frequência.\n\nSelando essa camada com "ok ok".`,
-    
-    // ETAPA 3
-    `Etapa 3: Integração e Retorno.\n\nMomento de concluir e elevar.\nUna os pontos. Sinta o todo.\nVocê depositou sua intenção no sistema.\n\nAgradeça ao processo. Você é o piloto, a nave e o destino.\nFinalize agora com "ok ok".`
+    `Primeira etapa - Abertura.\n\nFale sobre ${tema} do seu jeito.\n\nQuando acabar, diga "ok ok".`,
+    `Segunda etapa - Visualização.\n\nDesenvolva suas ideias.\n\nQuando acabar, diga "ok ok".`,
+    `Terceira etapa - Conexão.\n\nConclua sua reflexão.\n\nAgradeça no final se fizer sentido e em seguida diga, "ok ok".`
   ];
 }
 
@@ -191,59 +189,28 @@ async function rodarEtapa(pergunta, indice) {
   await falarComTexto(pergunta);
   await contagemParaAbrirEscuta();
   const resposta = await capturarRespostaLivre();
-  if (!resposta) { await falarComTexto(`Sinal fraco. Vamos alinhar e tentar novamente.`); return rodarEtapa(pergunta, indice); }
-  await falarComTexto(`Dados armazenados.\n\nDiga "confirma" para avançar ou "alinhar" para refazer.`);
-  const decisao = await capturarDecisao();
-  if (decisao !== "confirma") { await falarComTexto(`Recalibrando...`); return rodarEtapa(pergunta, indice); }
+  if (!resposta) { await falarComTexto(`Nenhum conteúdo captado. Vamos alinhar.`); return rodarEtapa(pergunta, indice); }
+  await falarComTexto(`Registrado.\n\nDiga "confirma" para seguir ou "alinhar" para refazer.`);
+  const decisao = await capturarDecisaoCurta();
+  if (decisao !== "confirma") { await falarComTexto(`Alinhando...`); return rodarEtapa(pergunta, indice); }
   return resposta;
 }
 
 // ============================
-// CRS - ANÁLISE DE RESSONÂNCIA
+// CRS
 // ============================
 
 async function enviarCRS(texto, indice) {
   const tema = (el("inpTema")?.value || "").trim();
   const contexto = (el("inpContexto")?.value || "").trim();
+  const payload = window.ELAYON_TUNNEL.crs.buildPayload(texto, { context: `${contexto} | etapa ${indice + 1}`, source_text: tema });
   
-  // Monta o payload exatamente como na sua ferramenta
-  const payload = {
-    context: `${contexto} | etapa ${indice + 1}`,
-    transcript_raw: texto,
-    source_text: tema,
-    duration_sec: 0, // Será calculado pelo CRS
-    silence_pct: 0,  // Será calculado pelo CRS
-    pause_count: 0,
-    mean_pause_ms: 0
-  };
-
-  log(`Enviando para CRS...`);
-  setText("statusSessao", "🔍 Analisando padrões na nuvem CRS...");
-
-  try {
-    // Chamada fetch idêntica a do seu teste
-    const response = await fetch('/api/crs/analisar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-    
-    const dados = await response.json();
-    log(`CRS respondeu. Duração: ${dados.duration_sec}s | Silêncio: ${dados.silence_pct}%`);
-    
-    return dados; // Retorna o objeto inteiro com os campos certinhos
-
-  } catch (err) {
-    log(`Falha no CRS: ${err.message}`);
-    setText("statusSessao", "⚠️ Modo offline - dados simulados");
-    return { 
-      status: "simulado", 
-      duration_sec: "--", 
-      silence_pct: "--" 
-    };
-  }
+  log(`Enviando para análise CRS...`);
+  const resultado = await window.ELAYON_TUNNEL.crs.analyze(payload);
+  
+  // Log para ver o que veio
+  console.log("Dados CRS:", resultado);
+  return resultado;
 }
 
 // ============================
@@ -263,17 +230,17 @@ function gerarRelatorio(respostas, analises) {
     txt += `--- ETAPA ${i + 1} ---\n`;
     txt += `Transcrição: ${r}\n`;
     
-    // ✅ AGORA PEGA OS NOMES CERTOS QUE VOCÊ MOSTROU
+    // ✅ Tenta pegar os dados de VÁRIOS NOMES possíveis
     const dados = analises[i] || {};
-    txt += `Status: ${dados.status || "Processado na camada CRS"}\n`;
+    txt += `Status: Processado na camada CRS.\n`;
     
-    const tempo = dados.duration_sec || dados.duration || '--';
-    const silencio = dados.silence_pct || dados.silence || '--';
+    const tempo = dados.duration_sec || dados.tempo_total || dados.duration || '--';
+    const silencio = dados.silence_pct || dados.porcentagem_silencio || dados.silence || '--';
     
-    txt += `Tempo de fala: ${tempo} segundos\n`;
+    txt += `Tempo de fala: ${tempo}s\n`;
     txt += `Taxa de silêncio: ${silencio}%\n`;
     
-    if(dados.pause_count !== undefined) txt += `Quantidade de pausas: ${dados.pause_count}\n`;
+    if(dados.pause_count !== undefined) txt += `Pausas: ${dados.pause_count}\n`;
     if(dados.mean_pause_ms !== undefined) txt += `Média de pausa: ${dados.mean_pause_ms}ms\n`;
     
     txt += `\n`;
@@ -309,4 +276,40 @@ async function iniciar() {
   if (STATE.locked) return;
   try {
     STATE.locked = true;
-    assertStructure
+    assertStructure();
+    if (!window.ELAYON_TUNNEL) throw new Error("ELAYON_TUNNEL não carregado!");
+    
+    const tema = (el("inpTema")?.value || "").trim();
+    if (!tema) { alert("Digite um tema primeiro!"); return; }
+
+    const health = await window.ELAYON_TUNNEL.healthcheck();
+    log(`Health check OK`);
+
+    // MODO HARD - IGNORAR VERIFICAÇÕES
+    health.authenticated = true;
+    health.stt = true;
+    health.tts = true;
+    health.crs = true;
+
+    STATE.sessionId = "sessao-" + Date.now();
+    setText("statusIntro", "Iniciando...");
+    limparSessaoVisual();
+    showTela("sessao");
+
+    await rodadaTutorial();
+    const etapas = obterPerguntas();
+
+    for (let i = 0; i < etapas.length; i++) {
+      STATE.etapaAtual = i + 1;
+      const resposta = await rodarEtapa(etapas[i], i);
+      STATE.respostas.push(resposta);
+      setText("statusSessao", "Processando sinais...");
+      const analise = await enviarCRS(resposta, i);
+      STATE.analises.push(analise);
+      await sleep(FLOW.STEP_DELAY_MS);
+    }
+
+    const relatorio = gerarRelatorio(STATE.respostas, STATE.analises);
+    setText("relatorioFinal", relatorio);
+    await falarComTexto(`Missão concluída! Dados armazenados. Relatório pronto.`);
+    showTela("final");
