@@ -1,7 +1,7 @@
 (function () {
   const CRS_URL = "https://nucleo-crs-elayon.onrender.com/api/crs/analisar";
   const HEALTH_URL = "https://nucleo-crs-elayon.onrender.com/health";
-  const TIMEOUT_MS = 45000; // ⏱️ Aumentado para 45 segundos
+  const TIMEOUT_MS = 45000; 
 
   let activeStream = null;
   let activeRecognition = null;
@@ -68,13 +68,18 @@
     isActive() { return ttsActive; }
   };
 
+  // 🎤 MICROFONE: MODO CAPTURA TOTAL
   const mic = {
     async open() {
       if (activeStream) return { ok: true };
       activeStream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true }
+        audio: {
+          echoCancellation: false,   // ❌ DESLIGADO - Captura natural
+          noiseSuppression: false,   // ❌ DESLIGADO - Mantém energia real
+          autoGainControl: false    // ❌ DESLIGADO - Mantém dinâmica original
+        }
       });
-      log("Microfone ativo");
+      log("Microfone ativo - Modo Sanctum");
       return { ok: true };
     },
     close() {
@@ -92,7 +97,7 @@
       onPartial,
       interimResults = true,
       continuous = true,
-      silenceFailsafeMs = 120000
+      silenceFailsafeMs = 999999999 // ♾️ TEMPO INFINITO - Só fecha na frase
     } = {}) {
       if (recognitionRunning) this.stop();
 
@@ -137,7 +142,7 @@
 
         recognition.lang = "pt-BR";
         recognition.interimResults = interimResults;
-        recognition.continuous = continuous;
+        recognition.continuous = continuous; // 🔁 CONTINUOUS ATIVO
 
         recognition.onstart = () => { 
           recognitionRunning = true; 
@@ -213,26 +218,35 @@
     }
   };
 
+  // 📦 CRS: PAYLOAD PLUGÁVEL E RICO
   const crs = {
     buildPayload: function(texto, opcoes = {}) {
-      // Estimativa rápida baseada no tamanho do texto
+      // Análise básica para estruturar os dados
       const palavras = texto.split(' ').filter(w => w.length > 0).length;
-      const tempoEstimado = palavras > 0 ? (palavras / 2.5) : 5;
-
+      const caracteres = texto.length;
+      const tempoEstimado = palavras > 0 ? (palavras / 2.2) : 5;
+      
+      // Métricas que servem para QUALQUER domínio
       return {
         transcript_raw: texto,
         context: opcoes.context || "",
         source_text: opcoes.source_text || texto,
         
+        // Dados Temporais e Estruturais
         duration_sec: tempoEstimado,
-        silence_pct: 20,
-        pause_count: Math.max(1, Math.floor(palavras / 10)),
-        mean_pause_ms: 200,
-        oscillation_pct: 10,
-        stability_pct: 80,
-        noise_pct: 5,
-        energy_pct: 75,
-        continuity_pct: 85
+        word_count: palavras,
+        char_count: caracteres,
+        density: palavras / (tempoEstimado || 1), // Palavras por segundo
+        
+        // Indicadores de Ritmo e Energia
+        silence_pct: 15,       // Ajustável
+        pause_count: Math.max(1, Math.floor(palavras / 8)),
+        mean_pause_ms: 250,
+        oscillation_pct: 15,   // Variação
+        stability_pct: 85,     // Confiabilidade
+        noise_pct: 3,          // Ruído de fundo
+        energy_pct: 85,        // Intensidade média
+        continuity_pct: 90     // Fluxo contínuo
       };
     },
     async analyze(payload) {
