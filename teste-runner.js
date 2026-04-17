@@ -1,104 +1,85 @@
 async function runTunnelTests() {
-  const logEl = document.getElementById("logTech");
+  const log = (msg) => {
+    const el = document.getElementById("logTech");
+    el.textContent += msg + "\n";
+  };
 
-  function log(msg) {
-    const line = `[${new Date().toLocaleTimeString("pt-BR")}] ${msg}`;
-    console.log(line);
-    if (logEl) logEl.textContent += line + "\n";
-  }
+  const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
-  function wait(ms) {
-    return new Promise((r) => setTimeout(r, ms));
-  }
+  log("🚀 INICIANDO DIAGNÓSTICO ELAYON...");
+  await wait(500);
 
-  log("=== INICIANDO DIAGNÓSTICO ELAYON ===");
-
+  // 1. Tunnel carregado
   if (!window.ELAYON_TUNNEL) {
-    log("❌ Tunnel NÃO carregado");
-    alert("ELAYON_TUNNEL não carregado.");
+    log("❌ ERRO: ELAYON_TUNNEL não carregado");
     return;
   }
 
-  const T = window.ELAYON_TUNNEL;
+  log("✅ Tunnel carregado");
+  await wait(500);
 
-  // ============================
-  // 1. HEALTHCHECK
-  // ============================
-  log("Testando healthcheck...");
+  const tunnel = window.ELAYON_TUNNEL;
+
+  // 2. Healthcheck
   try {
-    const health = await T.healthcheck();
-    log("✅ Healthcheck OK:");
+    log("🔍 Verificando saúde do sistema...");
+    const health = await tunnel.healthcheck();
+    log("✅ Healthcheck:");
     log(JSON.stringify(health, null, 2));
   } catch (e) {
-    log("❌ Healthcheck falhou: " + e.message);
+    log("❌ Erro no healthcheck: " + e.message);
   }
 
-  await wait(1500);
+  await wait(1000);
 
-  // ============================
-  // 2. MICROFONE
-  // ============================
-  log("Testando microfone...");
+  // 3. Microfone
   try {
-    await T.mic.open();
-    log("🎤 Microfone aberto");
-
-    await wait(2000);
-
-    await T.mic.close();
-    log("🎤 Microfone fechado");
+    log("🎤 Testando microfone...");
+    await tunnel.mic.open();
+    log("✅ Microfone OK");
   } catch (e) {
-    log("❌ Microfone erro: " + e.message);
+    log("❌ Erro microfone: " + e.message);
   }
 
-  await wait(1500);
+  await wait(1000);
 
-  // ============================
-  // 3. TTS
-  // ============================
-  log("Testando TTS...");
+  // 4. TTS
   try {
-    await T.tts.speak("Teste de voz do sistema Elayon.");
-    log("🔊 TTS executado com sucesso");
+    log("🔊 Testando voz...");
+    await tunnel.tts.speak("Teste de voz Elayon ativo.");
+    log("✅ TTS funcionando");
   } catch (e) {
-    log("❌ TTS erro: " + e.message);
+    log("❌ Erro TTS: " + e.message);
   }
 
-  await wait(2000);
+  await wait(1000);
 
-  // ============================
-  // 4. STT (fala)
-  // ============================
-  log("Testando STT...");
+  // 5. STT (escuta)
   try {
-    const result = await T.stt.listenOnce({
-      silenceMs: 5000,
-      onPartial: (data) => {
-        log("📝 Parcial: " + data.text);
-      }
-    });
+    log("🧠 Teste de escuta (fale algo por 4s)...");
+    const result = await tunnel.stt.listenOnce({ silenceMs: 4000 });
 
-    log("✅ STT final:");
+    log("✅ STT resultado:");
     log(JSON.stringify(result, null, 2));
   } catch (e) {
-    log("❌ STT erro: " + e.message);
+    log("❌ Erro STT: " + e.message);
   }
 
-  await wait(1500);
+  await wait(1000);
 
-  // ============================
-  // 5. CRS (se autenticado)
-  // ============================
-  log("Testando CRS...");
+  // 6. CRS
   try {
-    const payload = T.crs.buildPayload("teste de análise elayon");
+    log("📡 Testando CRS...");
 
-    const res = await T.crs.analyze(payload);
-    log("📊 CRS OK:");
+    const payload = tunnel.crs.buildPayload("teste de presença");
+
+    const res = await tunnel.crs.analyze(payload);
+
+    log("✅ CRS respondeu:");
     log(JSON.stringify(res, null, 2));
   } catch (e) {
-    log("⚠️ CRS falhou (normal se não autenticado): " + e.message);
+    log("❌ CRS erro: " + e.message);
   }
 
-  log("=== FIM DO DIAGNÓSTICO ===");
+  log("\n🏁 DIAGNÓSTICO FINALIZADO");
 }
