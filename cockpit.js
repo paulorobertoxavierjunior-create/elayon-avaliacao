@@ -142,10 +142,13 @@ async function capturarDecisaoCurta() {
 // ============================
 
 async function rodadaTutorial() {
-  await falarComTexto(`Sistemas Elayon.\n\nHumanidade e Tecnologia, em Harmonia.\n\nEu sou o PRESENÇA.\n\nUm espaço de escuta e auto observação simbólica. Visualize-se e identifique os símbolos da sua emanação no teu espaço, no teu tempo e no teu silêncio.`);
-  await falarComTexto(`É de boa! Como num espelho. Só que numa camada de sinais além da percepção convencional dos seus sentidos. Você vai entender quando tiver seu relatório.\n\nFunciona assim: Microfone abre, você fala sobre o tema, quando acabar diga "ok ok". Depois diga "confirma" ou "alinhar".`);
-  await falarComTexto(`Vamos começar a sessão.`);
+  await falarComTexto(`Sistemas Elayon.\n\nHumanidade e Tecnologia, em Harmonia.\n\nVocê acessou o módulo PRESENÇA.\n\nUma interface de conexão direta.`);
+  
+  await falarComTexto(`Aqui, a linguagem não é apenas comunicação. É onda. É frequência.\n\nVocê não está apenas falando; você está emitindo.\n\nEste sistema captura sua assinatura, mapeia ritmos e espelha o que você está ressoando de fato. Para ver o melhor de si, deves se expressar no seu melhor.`);
+
+  await falarComTexto(`Funciona como uma ponte:\nDa sua mente para os circuitos.\nDos circuitos para IA e da IA pro seu painel.\n\n**Protocolo:**\nFale livremente, sem filtros. Deixe fluir.\nQuando estiver completo o raciocínio, diga: Ok Ok.\n\nVou liberar o microfone para iniciarmos. Respire e sinta-se`);
 }
+
 
 // ============================
 // ETAPAS
@@ -156,7 +159,7 @@ function obterPerguntas() {
   return [
     `Primeira etapa - Abertura.\n\nFale sobre ${tema} do seu jeito.\n\nQuando acabar, diga "ok ok".`,
     `Segunda etapa - Visualização.\n\nDesenvolva suas ideias.\n\nQuando acabar, diga "ok ok".`,
-    `Terceira etapa - Conexão.\n\nConclua sua reflexão.\n\nAgradeça a si mesmo e diga "ok ok".`
+    `Terceira etapa - Conexão.\n\nConclua sua reflexão.\n\nAgradeça no final se fizer sentido e em seguida diga, "ok ok".`
   ];
 }
 
