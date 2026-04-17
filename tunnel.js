@@ -1,7 +1,7 @@
 (function () {
   const CRS_URL = "https://nucleo-crs-elayon.onrender.com/api/crs/analisar";
   const HEALTH_URL = "https://nucleo-crs-elayon.onrender.com/health";
-  const TIMEOUT_MS = 20000;
+  const TIMEOUT_MS = 45000;
 
   let activeStream = null;
   let activeRecognition = null;
@@ -92,7 +92,7 @@
       onPartial,
       interimResults = true,
       continuous = true,
-      silenceFailsafeMs = 120000
+      silenceFailsafeMs = 200000
     } = {}) {
       if (recognitionRunning) this.stop();
 
