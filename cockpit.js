@@ -273,13 +273,13 @@ Humanidade e Tecnologia, em Harmonia.
 
 Eu sou o PRESENÇA.
 
-Um espaço de escuta e auto observação simbólica. Observe-se. Vizualize e identifique os símbolos da sua emanação no espaço tempo.
+Um espaço de escuta e auto observação simbólica. Vizualize-se e identifique os símbolos da sua emanação no teu espaço, no teu tempo e no teu silêncio.
   );
 
   await falarComTexto(
-`É de boa! Como num espelho. Só que de sinais além da visão. Você vai entender.
+`É de boa! Como num espelho. Só que numa camada de sinais além da percepção convencional dos seus sentidos. Você vai entender quando tiver seu relatório ou estiver plugado em nossos Sistemas Elayon de conexão.
 
-Funciona assim. O microfone vai abrir. Você se expressa sobre seu tema livremente. Quando acabar de falar, diga a expressão, "ok ok". Só isso`
+O teste aqui é simples. Funciona assim. O microfone vai abrir. Você se expressa sobre seu tema livremente. Quando acabar de falar, diga a expressão, "ok ok". Só isso`
   );
 
   await falarComTexto(
