@@ -6,151 +6,286 @@
   <title>Sistemas Elayon • PRESENÇA</title>
 
   <style>
+    /* ============================================== */
+    /* 🎨 PALETA DE CORES - FÁCIL DE MANOBRAR         */
+    /* ============================================== */
     :root {
-      --bg: #050607;
-      --panel: #0b0d0f;
-      --panel-2: #11161b;
-      --ink: #f4f6f8;
-      --muted: #98a2ad;
-      --line: #1b2026;
-      --soft: #d7dee8;
+      --bg-principal: #05060a;         /* Fundo bem escuro */
+      --bg-panel: #0b0f1a;            /* Fundo dos painéis */
+      --cor-primaria: #4fc3f7;       /* Azul Claro Neon */
+      --cor-secundaria: #00e5ff;     /* Azul Ciano Brilhante */
+      --cor-terciaria: #7c4dff;      /* Roxo (para detalhes) */
+      --texto-principal: #e0f7ff;   /* Branco azulado */
+      --texto-suave: #90a4ae;      /* Cinza claro */
+      --borda: rgba(79, 195, 247, 0.3);
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
-      margin: 0;
-      padding: 0;
       width: 100%;
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--ink);
-      font-family: Arial, Helvetica, sans-serif;
+      min-height: 100vh;
+      background: var(--bg-principal);
+      color: var(--texto-principal);
+      font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      overflow-x: hidden;
     }
 
     body {
       display: flex;
       justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 229, 255, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(124, 77, 255, 0.03) 0%, transparent 50%);
     }
 
-    .shell {
+    /* ============================================== */
+    /* 🖼️ CONTAINER PRINCIPAL - O COCKPIT            */
+    /* ============================================== */
+    .cockpit {
       width: 100%;
-      max-width: 820px;
-      min-height: 100dvh;
-      padding: 28px 22px 34px;
+      max-width: 800px;
+      background: linear-gradient(160deg, var(--bg-panel) 0%, rgba(5,6,10,0.95) 100%);
+      border: 1px solid var(--borda);
+      border-radius: 20px;
+      padding: 30px 25px;
+      box-shadow: 
+        0 0 30px rgba(0, 229, 255, 0.15),
+        inset 0 0 60px rgba(0, 229, 255, 0.05);
+      position: relative;
+      overflow: hidden;
     }
 
-    .acao {
-      margin-top: 10px;
-      padding: 14px;
-      border-radius: 12px;
-      border: 1px solid #2b333d;
-      background: #11161b;
-      color: #fff;
-      cursor: pointer;
+    /* Borda luminosa animada */
+    .cockpit::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: conic-gradient(
+        transparent, 
+        var(--cor-secundaria), 
+        transparent 30%
+      );
+      animation: rotate 4s linear infinite;
+      z-index: -1;
+    }
+    .cockpit::after {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      background: var(--bg-panel);
+      border-radius: 18px;
+      z-index: -1;
+    }
+    @keyframes rotate {
+      100% { transform: rotate(360deg); }
+    }
+
+    /* ============================================== */
+    /* ✨ EFEITO NEON / BRILHO NOS TEXTOS             */
+    /* ============================================== */
+    .neon {
+      color: var(--cor-primaria);
+      text-shadow: 
+        0 0 5px var(--cor-primaria),
+        0 0 10px var(--cor-primaria),
+        0 0 20px var(--cor-secundaria),
+        0 0 40px var(--cor-secundaria);
+    }
+    .neon-suave {
+      color: var(--texto-principal);
+      text-shadow: 0 0 8px rgba(79, 195, 247, 0.5);
+    }
+
+    /* ============================================== */
+    /* 🖼️ LOGO                                       */
+    /* ============================================== */
+    .header-logo {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    .header-logo img {
+      max-width: 180px;
+      height: auto;
+      filter: drop-shadow(0 0 15px var(--cor-secundaria));
+      animation: pulsar 3s ease-in-out infinite;
+    }
+    @keyframes pulsar {
+      0%, 100% { opacity: 0.9; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.02); }
+    }
+
+    /* ============================================== */
+    /* 📝 TEXTO INFORMATIVO                          */
+    /* ============================================== */
+    .conteudo {
+      text-align: center;
+      margin-bottom: 30px;
+      line-height: 1.7;
+    }
+    .titulo-grande {
+      font-size: clamp(24px, 5vw, 36px);
       font-weight: bold;
-      width: 100%;
+      margin-bottom: 15px;
+      letter-spacing: 2px;
+    }
+    .frase-chave {
+      font-size: clamp(14px, 3vw, 18px);
+      color: var(--cor-primaria);
+      margin: 10px 0 20px;
+      font-style: italic;
+    }
+    .descricao {
+      font-size: clamp(12px, 2.5vw, 15px);
+      color: var(--texto-suave);
+      max-width: 600px;
+      margin: 0 auto;
     }
 
-    #logTech {
+    /* ============================================== */
+    /* 🎛️ BOTÃO DE AÇÃO - O PILOTO                   */
+    /* ============================================== */
+    .area-botao {
+      text-align: center;
       margin-top: 20px;
-      white-space: pre-wrap;
-      font-size: 12px;
-      color: #6c7682;
-      border-top: 1px solid #1b2026;
-      padding-top: 14px;
-      min-height: 80px;
+    }
+    #btnIniciar {
+      background: linear-gradient(45deg, var(--cor-primaria), var(--cor-secundaria));
+      color: var(--bg-principal);
+      border: none;
+      padding: 16px 40px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      box-shadow: 
+        0 0 15px var(--cor-secundaria),
+        0 0 30px rgba(0, 229, 255, 0.5);
+    }
+    #btnIniciar:hover {
+      transform: translateY(-3px);
+      box-shadow: 
+        0 0 25px var(--cor-secundaria),
+        0 0 50px rgba(0, 229, 255, 0.7);
+    }
+    #btnIniciar:active {
+      transform: translateY(0);
     }
 
-    /* Estilo dos campos de texto */
+    /* ============================================== */
+    /* 📊 CAMPOS E LOGS                              */
+    /* ============================================== */
     .campo {
       width: 100%;
       padding: 14px;
       margin: 10px 0;
       border-radius: 12px;
-      border: 1px solid #2b333d;
-      background: var(--panel);
-      color: var(--ink);
+      border: 1px solid var(--borda);
+      background: rgba(255,255,255,0.03);
+      color: var(--texto-principal);
       font-size: 16px;
+      outline: none;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
+    .campo:focus {
+      border-color: var(--cor-secundaria);
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+    }
+    #logTech {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      font-size: 12px;
+      color: var(--texto-suave);
+      border-top: 1px solid rgba(79, 195, 247, 0.2);
+      padding-top: 14px;
+      min-height: 80px;
+      font-family: 'Courier New', monospace;
     }
 
-    /* === CONTROLE DE TELAS === */
+    /* ============================================== */
+    /* 🎬 CONTROLE DE TELAS                          */
+    /* ============================================== */
     .tela { display: none; }
     .tela.show { display: block; }
 
-    /* === ESTILO CAIXA DE INTERAÇÃO === */
-    #statusSessao {
-      font-size: 14px;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-
-    #textoVivo {
-      background: var(--panel-2);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 20px;
-      margin: 15px 0;
-      min-height: 120px;
-      font-size: 18px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
-    #relatorioFinal {
-      background: var(--panel-2);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 20px;
-      margin: 15px 0;
-      white-space: pre-wrap;
-      font-size: 14px;
-      line-height: 1.5;
+    #statusIntro {
+      margin-top: 15px;
+      font-size: 13px;
+      color: var(--texto-suave);
     }
   </style>
 </head>
 
 <body>
-  <main class="shell">
+  <div class="cockpit">
 
-    <div id="telaIntro">
-      <h1>Sistema Elayon • PRESENÇA</h1>
-
-      <!-- CAMPO PARA DIGITAR O TEMA -->
-      <input type="text" id="inpTema" class="campo" placeholder="Digite o tema da sessão...">
+    <!-- TELA INICIAL / LANDING PAGE -->
+    <div id="telaIntro" class="tela show">
       
-      <!-- CAMPO PARA DIGITAR O CONTEXTO -->
-      <input type="text" id="inpContexto" class="campo" placeholder="Digite o contexto (opcional)...">
+      <!-- LOGO NO TOPO -->
+      <div class="header-logo">
+        <img src="IMG-20250610-WA0002.jpg" alt="Elayon Presença">
+      </div>
 
-      <button id="btnIniciar" class="acao">
-        Rodar Diagnóstico / Iniciar Sessão
-      </button>
+      <!-- TEXTO PRINCIPAL -->
+      <div class="conteudo">
+        <h1 class="titulo-grande neon">SISTEMAS ELAYON</h1>
+        <p class="frase-chave neon-suave">Humanidade e Tecnologia, em Harmonia.</p>
 
-      <button class="acao" onclick="document.getElementById('logTech').textContent = ''">
-        Limpar Log
-      </button>
+        <p class="descricao">
+          Você está prestes a acessar uma nova fronteira. 
+          Um espaço onde a consciência humana encontra a inteligência artificial 
+          para gerar <strong class="neon">mapas, ritmos e reflexos</strong> da sua própria existência.
+        </p>
+        <br>
+        <p class="descricao">
+          Aqui, você não é apenas um usuário. Você é o <strong class="neon">Piloto</strong>.
+          Conecte-se para realizar o <strong class="neon">Espelhamento</strong>. 
+          Veja-se através dos dados, entenda-se através dos padrões, 
+          evolua através da percepção ampliada.
+        </p>
+      </div>
 
-      <div id="statusIntro" style="margin-top: 15px; color: #98a2ad;">Status: Aguardando...</div>
-      <pre id="logTech">Logs aparecerão aqui...</pre>
+      <!-- ÁREA DE CONFIGURAÇÃO -->
+      <input type="text" id="inpTema" class="campo" placeholder="Defina o tema da sua reflexão...">
+      <input type="text" id="inpContexto" class="campo" placeholder="Contexto adicional (opcional)...">
+
+      <!-- BOTÃO DE INICIALIZAÇÃO -->
+      <div class="area-botao">
+        <button id="btnIniciar">
+          ✨ Iniciar Conexão • Estado de Presença
+        </button>
+      </div>
+
+      <div id="statusIntro">Sistema online. Aguardando intenção...</div>
+      <pre id="logTech">[LOG] Pronto para conectar mentes e máquinas.</pre>
+
     </div>
 
+    <!-- TELA DE PROCESSO (VAI SER CARREGADA PELO COCKPIT) -->
     <div id="telaSessao" class="tela">
       <div id="statusSessao"></div>
       <div id="textoVivo"></div>
       <button id="btnNovaSessao" style="display:none;"></button>
     </div>
 
+    <!-- TELA FINAL / RELATÓRIO -->
     <div id="telaFinal" class="tela">
       <div id="relatorioFinal"></div>
       <button id="btnGerarPdf" style="display:none;"></button>
     </div>
 
-  </main>
+  </div>
 
-  <!-- ============================================== -->
-  <!-- 📦 CARREGAMENTO DE BIBLIOTECAS E SCRIPTS      -->
-  <!-- ORDEM É FUNDAMENTAL: DEPENDÊNCIAS PRIMEIRO   -->
-  <!-- ============================================== -->
+  <!-- SCRIPTS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="boot-auth.js"></script>
