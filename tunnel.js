@@ -92,7 +92,7 @@
       onPartial,
       interimResults = true,
       continuous = true,
-      silenceFailsafeMs = 60000
+      silenceFailsafeMs = 120000
     } = {}) {
       if (recognitionRunning) this.stop();
 
