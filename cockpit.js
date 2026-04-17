@@ -10,13 +10,14 @@ const WORKWORDS = {
 };
 
 const FLOW = {
-  TYPE_SPEED: 24,
-  STEP_DELAY_MS: 900,
-  BETWEEN_ACTIONS_MS: 700,
+  TYPE_SPEED: 45, // 👈 Esse número controla a velocidade da digitação (antes era 24, agora 45 fica mais humano)
+  STEP_DELAY_MS: 1200, // 👈 Aumentei o tempo de espera depois de falar
+  BETWEEN_ACTIONS_MS: 800, // 👈 Tempo de espera antes de começar a falar
   LISTEN_DECISION_MS: 15000,
   LISTEN_FREE_MS: 999999,
   PRE_MIC_WAIT_MS: 3000
 };
+
 
 const STATE = {
   respostas: [],
