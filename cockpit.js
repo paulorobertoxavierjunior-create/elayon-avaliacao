@@ -145,7 +145,7 @@ async function falarComTexto(texto, alvoId = "textoVivo") {
 
   const escrita = escreverTextoProgressivo(texto, alvoId, FLOW.TYPE_SPEED);
   const fala = window.ELAYON_TUNNEL.tts.speak(texto, {
-    rate: 0.94,
+    rate: 0.88,
     pitch: 1,
     volume: 1,
     cancelPrevious: true
