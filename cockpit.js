@@ -301,7 +301,7 @@ function obterPerguntas() {
 
 Fale sobre o tema ${tema} do seu jeito.
 
-Lembre-se da instrução: Ouvi o Bip do microfone? Fala. Acabou? diga "ok ok", pra encerrar. Depois, alinha de novo, ou confirma e continua. Prepare-se. 5 segundos, e avançamos.`
+Lembre-se da instrução: Ouvi o Bip do microfone? Fala. Acabou? diga "ok ok", pra encerrar. Depois, alinha de novo, ou confirma e continua. Prepare-se. 5 segundos, e avançamos.`,
 
     `Segunda etapa - Visualização ou Desenvolvimento.
 
