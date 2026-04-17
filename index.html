@@ -157,6 +157,21 @@
 <script src="memoria.js"></script>
 <script src="cockpit.js"></script>
 
+<script>
+// GARANTIA FINAL - SÓ PRA TESTAR
+setTimeout(() => {
+  console.log("TESTE: Verificando se TUNNEL existe...");
+  console.log("OBJETO:", window.ELAYON_TUNNEL);
+  
+  if(!window.ELAYON_TUNNEL) {
+     alert("DEU RUIM: ELAYON_TUNNEL NÃO EXISTE!");
+  } else {
+     alert("TUDO BEM: ELAYON_TUNNEL CARREGOU!");
+  }
+}, 1000);
+</script>
+
+
 
 </body>
 </html>
