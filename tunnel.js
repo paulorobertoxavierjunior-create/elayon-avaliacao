@@ -164,7 +164,7 @@
       });
     },
 
-    // --- Métodos de Conveniência (Com as vírgulas corrigidas) ---
+    // --- Métodos de Conveniência ---
     async listenForAnyPhrase(phrases = [], silence = 15000) {
       return this.listenForPhrase({ stopPhrases: phrases, silenceFailsafeMs: silence });
     },
@@ -180,6 +180,14 @@
   };
 
   const crs = {
+    // ✅ FUNÇÃO QUE ESTAVA FALTANDO
+    buildPayload: function(texto, opcoes = {}) {
+      return {
+        text: texto,
+        context: opcoes.context || "",
+        source_text: opcoes.source_text || texto
+      };
+    },
     async analyze(payload) {
       const token = await getAccessToken();
       if (!token) throw new Error("Não autenticado");
@@ -207,4 +215,3 @@
     utils: { normalizeText, stripPhrases, getAccessToken }
   };
 })();
-
