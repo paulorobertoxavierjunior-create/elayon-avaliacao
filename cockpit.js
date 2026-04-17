@@ -191,11 +191,7 @@ async function contagemParaAbrirEscuta() {
   await falarComTexto(
 `Vou abrir a escuta.
 
-Respira.
-
-Pensa no tema e no contexto.
-
-Pensa no objetivo desta etapa.
+Inspire-se! É o seu momento. Apresente-se!
 
 Vou contar até cinco.`
   );
@@ -277,15 +273,15 @@ async function rodadaTutorial() {
 
 Bem-vindo ao PRESENÇA.
 
-Espaço de auto escuta simbólica. Observe-se. E aprenda com seus próprios símbolos.`
+Seu espaço de auto escuta simbólica. Observe-se. E aprenda com seus próprios símbolos emanados da sua expressão de ser.`
   );
 
   await falarComTexto(
-`Funciona assim, o microfone vai abrir e você pode falar à vontade. Pra encerrar sua fala, diga "ok ok".`
+`Funciona assim, o microfone vai abrir e você pode falar à vontade. Pra encerrar sua fala, diga a expressão "ok ok".`
   );
 
   await falarComTexto(
-`Depois confirma pra enviar ou alinha para refazer.`
+`Depois, confirma pra enviar ou diga "alinhar" para refazer.`
   );
 
   await falarComTexto(`Vamos começar a sessão.`);
@@ -303,22 +299,18 @@ function obterPerguntas() {
 
 Fale sobre o tema ${tema} do jeito mais natural possível.
 
-Lembra da instrução: Abriu o microfone, fala e diz "ok ok" pra encerrar, alinha ou confirma e foi. Prepara-se
+Lembra da instrução: Abriu o microfone, fala e diz "ok ok" pra encerrar, alinha ou confirma e foi. Prepare-se. Faz teu melhor! Você consegue!
 .`,
 
     `Segunda etapa.
 
-Agora aprofunde um pouco mais.
-
-Dentro do que você trouxe, o que merece mais atenção neste momento?
+Dentro do que você trouxe, qual foi sua intenção final
 
 Quando terminar sua fala, diga ok ok.`,
 
     `Terceira etapa.
 
-Para concluir, diga qual é o próximo passo mais honesto para você agora.
-
-No final, diga ok ok. Mesmo esquema.`
+Para concluir, diga se isso é realmente importante pra vc e, no final, diga apenas "ok ok" pra terminar. Do mesmo jeito.`
   ];
 }
 
@@ -338,9 +330,9 @@ async function rodarEtapa(pergunta, indice) {
   await falarComTexto(
 `Sua fala foi registrada.
 
-Se quiser seguir, diga confirma.
+Para continuar, diga confirma.
 
-Se quiser refazer, diga alinhar.`
+Pra refazer, diga alinhar.`
   );
 
   const decisao = await capturarDecisaoCurta();
