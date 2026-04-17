@@ -1,50 +1,120 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Elayon - Cockpit</title>
-    <style>
-        /* Estilo básico para não ficar feio */
-        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-       .tela { background: white; padding: 25px; margin: 15px 0; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        input, button { padding: 12px; margin: 8px 0; width: 100%; border-radius: 8px; border: 1px solid #ddd; }
-        button { background: #000; color: #fff; font-weight: bold; cursor: pointer; }
-       .status { color: #666; font-size: 14px; margin-top: 10px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistemas Elayon • PRESENÇA</title>
+
+  <style>
+    :root {
+      --bg: #050607;
+      --panel: #0b0d0f;
+      --panel-2: #11161b;
+      --ink: #f4f6f8;
+      --muted: #98a2ad;
+      --line: #1b2026;
+      --soft: #d7dee8;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 820px;
+      min-height: 100dvh;
+      padding: 28px 22px 34px;
+    }
+
+    .acao {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #2b333d;
+      background: #11161b;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #logTech {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      font-size: 12px;
+      color: #6c7682;
+      border-top: 1px solid #1b2026;
+      padding-top: 14px;
+      min-height: 80px;
+    }
+
+    /* Esconde as outras telas mas deixa elas existirem */
+    .tela { display: none; }
+  </style>
 </head>
+
 <body>
+  <main class="shell">
 
-    <h1>Sistemas Elayon • PRESENÇA</h1>
+    <!-- ============================================== -->
+    <!-- ✅ TELA INTRO (A QUE VOCÊ VÊ) -->
+    <!-- ============================================== -->
+    <div id="telaIntro">
+      <h1>Sistemas Elayon • PRESENÇA</h1>
 
-    <!-- 👇 ELEMENTOS COM OS IDS QUE FALTAVAM 👇 -->
+      <button id="btnIniciar" class="acao">
+        Rodar Diagnóstico / Iniciar Sessão
+      </button>
 
-    <div id="telaintro" class="tela">
-        <h2>Bem-vindo ao Cockpit</h2>
-        <p>Pronto para iniciar sua análise de presença.</p>
-        <button id="btnIniciar">Iniciar Nova Sessão</button>
-        <div id="statusIntro" class="status">Aguardando início...</div>
+      <button class="acao" onclick="document.getElementById('logTech').textContent = ''">
+        Limpar Log
+      </button>
+
+      <div id="statusIntro" style="margin-top: 15px; color: #98a2ad;">Status: Aguardando...</div>
+      <pre id="logTech">Logs aparecerão aqui...</pre>
     </div>
 
-    <div id="telaSessao" class="tela" style="display:none;">
-        <label>Tema da Sessão:</label>
-        <input type="text" id="inpTema" placeholder="Digite o tema">
-        
-        <label>Contexto:</label>
-        <input type="text" id="inpContexto" placeholder="Descreva o contexto">
-
-        <button id="btnNovaSessao">Começar Captura</button>
-        <div id="statusSessao" class="status">Status: Pronto</div>
-        <div id="textoVivo" class="status">Texto aparecerá aqui em tempo real...</div>
+    <!-- ============================================== -->
+    <!-- ✅ TELA SESSAO (OCULTA, MAS EXISTE) -->
+    <!-- ============================================== -->
+    <div id="telaSessao" class="tela">
+      <input type="text" id="inpTema" placeholder="Tema" style="display:none;">
+      <input type="text" id="inpContexto" placeholder="Contexto" style="display:none;">
+      <div id="statusSessao"></div>
+      <div id="textoVivo"></div>
+      <button id="btnNovaSessao" style="display:none;"></button>
     </div>
 
-    <div id="telaFinal" class="tela" style="display:none;">
-        <h2>Relatório Final</h2>
-        <div id="relatorioFinal">
-            <!-- O resultado vai aparecer aqui -->
-            Análise concluída. Resultados abaixo.
-        </div>
-        <button id="btnGerarPdf">Baixar Relatório em PDF</button>
+    <!-- ============================================== -->
+    <!-- ✅ TELA FINAL (OCULTA, MAS EXISTE) -->
+    <!-- ============================================== -->
+    <div id="telaFinal" class="tela">
+      <div id="relatorioFinal"></div>
+      <button id="btnGerarPdf" style="display:none;"></button>
     </div>
+
+  </main>
+
+  <!-- ORDEM CORRETA DOS SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="boot-auth.js"></script>
+  <script src="tunnel.js"></script>
+  <script src="teste-runner.js"></script>
+  <script src="memoria.js"></script>
+  <script src="cockpit.js"></script> <!-- 👈 O cockpit que você mandou -->
 
 </body>
 </html>
