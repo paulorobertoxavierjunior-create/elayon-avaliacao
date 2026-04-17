@@ -185,17 +185,17 @@
   };
 
   // --- Exportação Global ---
-  window.ELAYON_TUNNEL = {
-    healthcheck: async () => ({
-      tts: "speechSynthesis" in window,
-      mic: !!activeStream,
-      stt: recognitionRunning,
-      authenticated: !!(await getAccessToken())
-    }),
-    tts,
-    mic,
-    stt,
-    crs,
-    utils: { normalizeText, stripPhrases, getAccessToken }
-  };
+window.ELAYON_TUNNEL = {
+  healthcheck: async () => ({
+    authenticated: !!(await getAccessToken()),
+    stt: "SpeechRecognition" in window || "webkitSpeechRecognition" in window,
+    tts: "speechSynthesis" in window,
+    crs: true
+  }),
+  tts,
+  mic,
+  stt,
+  crs,
+  utils: { normalizeText, stripPhrases, getAccessToken }
+};
 })();
