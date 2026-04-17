@@ -74,7 +74,40 @@
       font-size: 16px;
     }
 
-    .tela { display: none; }
+/* === NOVO: CONTROLE DE TELAS === */
+.tela { display: none; }
+.tela.show { display: block; }
+
+/* === NOVO: ESTILO CAIXA DE INTERAÇÃO === */
+#statusSessao {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+#textoVivo {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 15px 0;
+  min-height: 120px;
+  font-size: 18px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+#relatorioFinal {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 15px 0;
+  white-space: pre-wrap;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
   </style>
 </head>
 
@@ -83,6 +116,8 @@
 
     <div id="telaIntro">
       <h1>Sistemas Elayon • PRESENÇA</h1>
+
+
 
       <!-- 👇 CAMPO PARA DIGITAR O TEMA 👇 -->
       <input type="text" id="inpTema" class="campo" placeholder="Digite o tema da sessão...">
