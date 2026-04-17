@@ -184,18 +184,19 @@
     }
   };
 
-  // --- Exportação Global ---
-window.ELAYON_TUNNEL = {
-  healthcheck: async () => ({
-    authenticated: !!(await getAccessToken()),
-    stt: "SpeechRecognition" in window || "webkitSpeechRecognition" in window,
-    tts: "speechSynthesis" in window,
-    crs: true
-  }),
-  tts,
-  mic,
-  stt,
-  crs,
-  utils: { normalizeText, stripPhrases, getAccessToken }
-};
+ // --- Exportação Global ---
+  window.ELAYON_TUNNEL = {
+    healthcheck: async () => ({
+      authenticated: !!(await getAccessToken()),
+      stt: "SpeechRecognition" in window || "webkitSpeechRecognition" in window,
+      tts: "speechSynthesis" in window,
+      crs: true
+    }),
+    tts,
+    mic,
+    stt,
+    crs,
+    utils: { normalizeText, stripPhrases, getAccessToken }
+  };
 })();
+
