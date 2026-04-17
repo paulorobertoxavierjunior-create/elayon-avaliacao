@@ -548,12 +548,12 @@ document.addEventListener("DOMContentLoaded", () => {
     showTela("intro");
 
     const btn = document.getElementById("btnIniciar");
-if (btn) {
-    btn.onclick = iniciar; // Liga direto
-    console.log("BOTÃO LIGADO!");
-} else {
-    alert("ERRO: Botão não encontrado!");
-}
+    if (btn) {
+        btn.onclick = iniciar; // Liga direto
+        console.log("BOTÃO LIGADO!");
+    } else {
+        alert("ERRO: Botão não encontrado!");
+    }
 
     el("btnNovaSessao")?.addEventListener("click", novaSessao);
     el("btnGerarPdf")?.addEventListener("click", gerarPdfRelatorio);
