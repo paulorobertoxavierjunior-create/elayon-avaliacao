@@ -171,6 +171,39 @@ setTimeout(() => {
 }, 1000);
 </script>
 
+<script>
+// CÓDIGO DE EMERGÊNCIA
+setTimeout(function() {
+  console.log("✅ PÁGINA CARREGOU TOTAL");
+  
+  const botao = document.getElementById("btnIniciar");
+  
+  if(botao) {
+    console.log("✅ BOTÃO ENCONTRADO! ID:", botao.id);
+    
+    // LIGANDO O BOTÃO COM FORÇA TOTAL
+    botao.onclick = function() {
+      alert("🔵 BOTÃO CLICADO! O SISTEMA ESTÁ VIVO!");
+      
+      // TENTA CHAMAR A FUNÇÃO
+      if(typeof iniciar === 'function') {
+        console.log("✅ Função iniciar existe! Chamando...");
+        iniciar();
+      } else {
+        alert("🔴 ERRO: Função iniciar NÃO EXISTE!");
+        console.log("O que existe no window:", window);
+      }
+    };
+    
+  } else {
+    alert("🔴 ERRO TOTAL: Botão #btnIniciar NÃO EXISTE NA TELA!");
+  }
+  
+}, 1500); // Espera 1.5 segundos para garantir
+</script>
+
+</body>
+</html>
 
 
 </body>
