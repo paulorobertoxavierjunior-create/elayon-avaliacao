@@ -74,40 +74,39 @@
       font-size: 16px;
     }
 
-/* === NOVO: CONTROLE DE TELAS === */
-.tela { display: none; }
-.tela.show { display: block; }
+    /* === CONTROLE DE TELAS === */
+    .tela { display: none; }
+    .tela.show { display: block; }
 
-/* === NOVO: ESTILO CAIXA DE INTERAÇÃO === */
-#statusSessao {
-  font-size: 14px;
-  color: var(--muted);
-  margin-bottom: 10px;
-}
+    /* === ESTILO CAIXA DE INTERAÇÃO === */
+    #statusSessao {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
 
-#textoVivo {
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 20px;
-  margin: 15px 0;
-  min-height: 120px;
-  font-size: 18px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-}
+    #textoVivo {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 15px 0;
+      min-height: 120px;
+      font-size: 18px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
 
-#relatorioFinal {
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 20px;
-  margin: 15px 0;
-  white-space: pre-wrap;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
+    #relatorioFinal {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 15px 0;
+      white-space: pre-wrap;
+      font-size: 14px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 
@@ -117,11 +116,10 @@
     <div id="telaIntro">
       <h1>Sistema Elayon • PRESENÇA</h1>
 
-
-      <!-- 👇 CAMPO PARA DIGITAR O TEMA 👇 -->
+      <!-- CAMPO PARA DIGITAR O TEMA -->
       <input type="text" id="inpTema" class="campo" placeholder="Digite o tema da sessão...">
       
-      <!-- 👇 CAMPO PARA DIGITAR O CONTEXTO 👇 -->
+      <!-- CAMPO PARA DIGITAR O CONTEXTO -->
       <input type="text" id="inpContexto" class="campo" placeholder="Digite o contexto (opcional)...">
 
       <button id="btnIniciar" class="acao">
@@ -149,62 +147,17 @@
 
   </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="boot-auth.js"></script>
-<script src="tunnel.js"></script>
-<script src="teste-runner.js"></script>
-<script src="memoria.js"></script>
-<script src="cockpit.js"></script>
-
-<script>
-// GARANTIA FINAL - SÓ PRA TESTAR
-setTimeout(() => {
-  console.log("TESTE: Verificando se TUNNEL existe...");
-  console.log("OBJETO:", window.ELAYON_TUNNEL);
-  
-  if(!window.ELAYON_TUNNEL) {
-     alert("DEU RUIM: ELAYON_TUNNEL NÃO EXISTE!");
-  } else {
-     alert("TUDO BEM: ELAYON_TUNNEL CARREGOU!");
-  }
-}, 1000);
-</script>
-
-<script>
-// CÓDIGO DE EMERGÊNCIA
-setTimeout(function() {
-  console.log("✅ PÁGINA CARREGOU TOTAL");
-  
-  const botao = document.getElementById("btnIniciar");
-  
-  if(botao) {
-    console.log("✅ BOTÃO ENCONTRADO! ID:", botao.id);
-    
-    // LIGANDO O BOTÃO COM FORÇA TOTAL
-    botao.onclick = function() {
-      alert("🔵 BOTÃO CLICADO! O SISTEMA ESTÁ VIVO!");
-      
-      // TENTA CHAMAR A FUNÇÃO
-      if(typeof iniciar === 'function') {
-        console.log("✅ Função iniciar existe! Chamando...");
-        iniciar();
-      } else {
-        alert("🔴 ERRO: Função iniciar NÃO EXISTE!");
-        console.log("O que existe no window:", window);
-      }
-    };
-    
-  } else {
-    alert("🔴 ERRO TOTAL: Botão #btnIniciar NÃO EXISTE NA TELA!");
-  }
-  
-}, 1500); // Espera 1.5 segundos para garantir
-</script>
-
-</body>
-</html>
-
+  <!-- ============================================== -->
+  <!-- 📦 CARREGAMENTO DE BIBLIOTECAS E SCRIPTS      -->
+  <!-- ORDEM É FUNDAMENTAL: DEPENDÊNCIAS PRIMEIRO   -->
+  <!-- ============================================== -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="boot-auth.js"></script>
+  <script src="tunnel.js"></script>
+  <script src="memoria.js"></script>
+  <script src="teste-runner.js"></script>
+  <script src="cockpit.js"></script>
 
 </body>
 </html>
