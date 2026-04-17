@@ -168,8 +168,8 @@ function bip() {
     osc.connect(gain);
     gain.connect(ctx.destination);
 
-    osc.frequency.value = 880;
-    gain.gain.value = 0.08;
+    osc.frequency.value = 432;
+    gain.gain.value = 0.18;
 
     osc.start();
 
@@ -189,11 +189,9 @@ async function contagemParaAbrirEscuta() {
   await sleep(FLOW.PRE_MIC_WAIT_MS);
 
   await falarComTexto(
-`Vou abrir a escuta.
+`Vou abrir a escuta simbólica.
 
-Inspire-se! É o seu momento. Apresente-se!
-
-Vou contar até cinco.`
+Você tem cinco segundos para se preparar.`
   );
 
   await sleep(1000);
@@ -269,19 +267,21 @@ async function capturarDecisaoCurta() {
 
 async function rodadaTutorial() {
   await falarComTexto(
-`Sistemas Elai on.
+`Sistemas Elayon.
 
-Bem-vindo ao PRESENÇA.
+Humanidade e Tecnologia em harmonia.
 
-Seu espaço de auto escuta simbólica. Observe-se. E aprenda com seus próprios símbolos emanados da sua expressão de ser.`
+Eu sou o PRESENÇA.
+
+Um espaço de auto escuta simbólica. Observe-se. Vizualizar seus próprios símbolos. Emanados da sua expressão de ser.`
   );
 
   await falarComTexto(
-`Funciona assim, o microfone vai abrir e você pode falar à vontade. Pra encerrar sua fala, diga a expressão "ok ok".`
+`Funciona assim. O microfone vai abrir. Você se expressa sobre seu tema. E, pra encerrar sua fala, diga a expressão, "ok ok".`
   );
 
   await falarComTexto(
-`Depois, confirma pra enviar ou diga "alinhar" para refazer.`
+`Diga, "confirma", pra enviar, ou diga "alinhar" para refazer a etapa.`
   );
 
   await falarComTexto(`Vamos começar a sessão.`);
@@ -295,22 +295,19 @@ function obterPerguntas() {
   const tema = (el("inpTema")?.value || "").trim() || "o tema que você escolheu";
 
   return [
-    `Primeira etapa.
+    `Primeira etapa - Abertura ou Introdução.
 
-Fale sobre o tema ${tema} do jeito mais natural possível.
+Fale sobre o tema ${tema} do seu jeito.
 
-Lembra da instrução: Abriu o microfone, fala e diz "ok ok" pra encerrar, alinha ou confirma e foi. Prepare-se. Faz teu melhor! Você consegue!
-.`,
+Lembre-se da instrução: Ouvi o Bip do microfone? Fala. Acabou? diga "ok ok", pra encerrar. Depois, alinha de novo, ou confirma e continua. Prepare-se. 5 segundos, e avançamos.`
 
-    `Segunda etapa.
-
-Dentro do que você trouxe, qual foi sua intenção final
+    `Segunda etapa - Visualização ou Desenvolvimento.
 
 Quando terminar sua fala, diga ok ok.`,
 
-    `Terceira etapa.
+    `Terceira etapa. Conexão ou Conclusão.
 
-Para concluir, diga se isso é realmente importante pra vc e, no final, diga apenas "ok ok" pra terminar. Do mesmo jeito.`
+Para concluir essa etapa, aproveite para agradecer a si mesmo pela postura diante de si, no final, diga apenas "ok ok" pra terminar. Do mesmo jeito.`
   ];
 }
 
@@ -323,7 +320,7 @@ async function rodarEtapa(pergunta, indice) {
   const resposta = await capturarRespostaLivre();
 
   if (!resposta) {
-    await falarComTexto(`Nenhum conteúdo válido foi captado. Vamos alinhar e repetir esta etapa.`);
+    await falarComTexto(`Nenhum conteúdo válido foi captado. Vamos alinhar esta etapa sem erro.`);
     return rodarEtapa(pergunta, indice);
   }
 
@@ -338,7 +335,7 @@ Pra refazer, diga alinhar.`
   const decisao = await capturarDecisaoCurta();
 
   if (decisao !== "confirma") {
-    await falarComTexto(`Vamos refazer esta etapa com calma.`);
+    await falarComTexto(`Vamos alinhar esta etapa com calma.`);
     return rodarEtapa(pergunta, indice);
   }
 
