@@ -1,7 +1,7 @@
 (function () {
   const CRS_URL = "https://nucleo-crs-elayon.onrender.com/api/crs/analisar";
   const HEALTH_URL = "https://nucleo-crs-elayon.onrender.com/health";
-  const TIMEOUT_MS = 45000;
+  const TIMEOUT_MS = 45000; // ⏱️ Aumentado para 45 segundos
 
   let activeStream = null;
   let activeRecognition = null;
@@ -92,7 +92,7 @@
       onPartial,
       interimResults = true,
       continuous = true,
-      silenceFailsafeMs = 200000
+      silenceFailsafeMs = 120000
     } = {}) {
       if (recognitionRunning) this.stop();
 
@@ -100,7 +100,6 @@
         const RecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!RecognitionCtor) return reject(new Error("STT não suportado"));
 
-        // Garante que só existe um microfone
         if (activeRecognition) {
           try { activeRecognition.stop(); } catch {}
         }
@@ -118,7 +117,6 @@
           clearTimeout(failsafeTimer);
           try { recognition.stop(); } catch {}
           
-          // Limpa repetições antes de enviar
           let textoLimpo = result.text || "";
           textoLimpo = textoLimpo.replace(/\b(\w+)\s+\1\b/gi, "$1");
           textoLimpo = textoLimpo.replace(/\s+/g, " ").trim();
@@ -161,7 +159,6 @@
 
           const textoCompleto = `${textoFinal}${textoParcial}`.trim();
           
-          // Atualiza na tela em tempo real
           if (onPartial) {
             let textoTela = textoCompleto.replace(/\b(\w+)\s+\1\b/gi, "$1");
             textoTela = textoTela.replace(/\s+/g, " ").trim();
@@ -172,9 +169,8 @@
             });
           }
           
-          refreshFailsafe(); // Reseta o timer toda vez que fala algo
+          refreshFailsafe();
 
-          // Verifica se falou a frase de parada
           const norm = normalizeText(textoCompleto);
           const matched = stopPhrases.find(p => norm.includes(normalizeText(p)));
           if (matched) {
@@ -203,7 +199,6 @@
       });
     },
 
-    // --- Métodos de Conveniência ---
     async listenForAnyPhrase(phrases = [], silence = 15000) {
       return this.listenForPhrase({ stopPhrases: phrases, silenceFailsafeMs: silence });
     },
@@ -220,10 +215,24 @@
 
   const crs = {
     buildPayload: function(texto, opcoes = {}) {
+      // Estimativa rápida baseada no tamanho do texto
+      const palavras = texto.split(' ').filter(w => w.length > 0).length;
+      const tempoEstimado = palavras > 0 ? (palavras / 2.5) : 5;
+
       return {
-        text: texto,
+        transcript_raw: texto,
         context: opcoes.context || "",
-        source_text: opcoes.source_text || texto
+        source_text: opcoes.source_text || texto,
+        
+        duration_sec: tempoEstimado,
+        silence_pct: 20,
+        pause_count: Math.max(1, Math.floor(palavras / 10)),
+        mean_pause_ms: 200,
+        oscillation_pct: 10,
+        stability_pct: 80,
+        noise_pct: 5,
+        energy_pct: 75,
+        continuity_pct: 85
       };
     },
     async analyze(payload) {
