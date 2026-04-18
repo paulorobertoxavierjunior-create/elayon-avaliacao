@@ -13,7 +13,7 @@
                 extend: {
                     colors: {
                         elayon: {
-                            bg: '#000000', // PRETO TOTAL
+                            bg: '#000000',
                             panel: '#0a0a0a',
                             border: '#222222',
                             accent: '#2563eb',
@@ -28,7 +28,6 @@
                         sans: ['Inter', 'system-ui', 'sans-serif'],
                     },
                     animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                         'rec-blink': 'blink 1s infinite'
                     },
                     keyframes: {
@@ -69,122 +68,80 @@
 
     <div class="container max-w-2xl mx-auto px-4 py-8 relative z-10">
         
-        <!-- HEADER COM LOGO -->
         <header class="text-center mb-8 pb-6 border-b border-gray-800">
-            
-            <!-- LOGO CENTRALIZADA -->
             <div class="mb-6">
                 <img src="IMG-20250610-WA0002.jpg" alt="Logo Elayon" class="max-w-[140px] mx-auto">
             </div>
-
-            <h1 class="text-4xl font-bold tracking-wider text-gradient bg-gradient-to-r from-blue-400 to-cyan-400">
-                MÓDULO PRESENÇA
-            </h1>
+            <h1 class="text-4xl font-bold tracking-wider text-gradient bg-gradient-to-r from-blue-400 to-cyan-400">MÓDULO PRESENÇA</h1>
             <h2 class="text-xl font-mono opacity-80 mt-2">ANÁLISE SIMBÓLICA</h2>
-            <p class="text-sm opacity-60 mt-3 max-w-md mx-auto">
-                Capture sua emanação, mapeie sua ressonância e alinhe sua frequência. 
-                Transforme áudio em dados, intenção em insight.
-            </p>
+            <p class="text-sm opacity-60 mt-3 max-w-md mx-auto">Capture sua emanação, mapeie sua ressonância e alinhe sua frequência.</p>
         </header>
 
-        <!-- MAIN CONTENT -->
         <main class="space-y-8">
             
-            <!-- SEÇÃO DE CAPTURA -->
             <section class="glass-panel rounded-2xl p-6">
                 <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                    <i class="fas fa-wave-square text-elayon-glow"></i>
-                    CAPTURA DE SINAL
+                    <i class="fas fa-wave-square text-elayon-glow"></i> CAPTURA DE SINAL
                 </h3>
 
-                <!-- VISUALIZADOR DE ONDA -->
                 <div class="bg-black/50 rounded-xl p-6 h-40 flex flex-col items-center justify-center relative overflow-hidden mb-6">
                     <div class="absolute top-3 left-3 text-xs font-mono opacity-40">VISUALIZAÇÃO DE FREQUÊNCIA</div>
-                    
-                    <div id="visualizer" class="flex items-end gap-1 h-20">
-                        <!-- Barras geradas por JS -->
-                    </div>
-
-                    <div id="timerDisplay" class="absolute bottom-4 right-4 font-mono text-3xl font-bold opacity-80">
-                        00:00
-                    </div>
-
+                    <div id="visualizer" class="flex items-end gap-1 h-20"></div>
+                    <div id="timerDisplay" class="absolute bottom-4 right-4 font-mono text-3xl font-bold opacity-80">00:00</div>
                     <div id="recIndicator" class="absolute top-4 right-4 flex items-center gap-2 text-red-500 opacity-0">
                         <i class="fas fa-circle animate-rec-blink"></i>
                         <span class="font-mono text-sm">CAPTURANDO</span>
                     </div>
                 </div>
 
-                <!-- BOTÃO PRINCIPAL GRAVAR/PARAR -->
                 <div class="flex items-center justify-center gap-4 py-4">
                     <button id="btnRecord" class="w-20 h-20 rounded-full bg-red-600 hover:bg-red-700 text-white text-2xl flex items-center justify-center transition-all duration-300 shadow-lg shadow-red-900/30 active:scale-95">
                         <i class="fas fa-microphone"></i>
                     </button>
                 </div>
 
-                <!-- BOTÕES DE AÇÃO -->
                 <div id="actionButtons" class="grid grid-cols-3 gap-4 opacity-0 pointer-events-none transition-all duration-500 mt-4">
-                    
                     <button id="btnPause" class="glass-panel rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-white/5 transition">
-                        <i class="fas fa-pause text-yellow-400"></i>
-                        <span>PAUSAR</span>
+                        <i class="fas fa-pause text-yellow-400"></i><span>PAUSAR</span>
                     </button>
-
                     <button id="btnCancel" class="glass-panel rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-white/5 transition">
-                        <i class="fas fa-times text-red-400"></i>
-                        <span>CANCELAR</span>
+                        <i class="fas fa-times text-red-400"></i><span>CANCELAR</span>
                     </button>
-
                     <button id="btnSend" class="glass-panel rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-white/5 transition border border-blue-500/50">
-                        <i class="fas fa-paper-plane text-blue-400"></i>
-                        <span>PROCESSAR</span>
+                        <i class="fas fa-paper-plane text-blue-400"></i><span>PROCESSAR</span>
                     </button>
                 </div>
             </section>
 
-            <!-- OU CARREGAR ARQUIVO -->
             <section class="text-center">
                 <div class="flex items-center gap-4 w-full opacity-60 my-2">
-                    <div class="h-px bg-gray-700 flex-grow"></div>
-                    <span class="text-sm">OU</span>
-                    <div class="h-px bg-gray-700 flex-grow"></div>
+                    <div class="h-px bg-gray-700 flex-grow"></div><span class="text-sm">OU</span><div class="h-px bg-gray-700 flex-grow"></div>
                 </div>
-
                 <label class="glass-panel rounded-2xl p-6 border-2 border-dashed border-gray-700 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-blue-500 hover:bg-blue-500/5 transition group">
                     <i class="fas fa-folder-open text-3xl text-gray-400 group-hover:text-blue-400 group-hover:scale-110 transition"></i>
                     <span class="font-bold text-lg">Carregar Arquivo de Áudio</span>
-                    <p class="text-sm opacity-60">Selecione um arquivo .wav, .mp3 ou .m4a para análise</p>
+                    <p class="text-sm opacity-60">Selecione um arquivo .wav, .mp3 ou .m4a</p>
                     <input type="file" accept="audio/*" class="hidden" id="fileInput">
                 </label>
-                <p id="fileStatus" class="text-sm mt-3 opacity-60 hidden">Arquivo selecionado: <span id="fileName"></span></p>
+                <p id="fileStatus" class="text-sm mt-3 opacity-60 hidden">Arquivo: <span id="fileName"></span></p>
             </section>
 
-            <!-- INFORMAÇÕES -->
             <section class="glass-panel rounded-2xl p-6 text-sm leading-relaxed opacity-80">
                 <h4 class="font-bold mb-3 text-blue-400">O que é Análise Simbólica?</h4>
-                <p>
-                    Não é apenas transcrição. É a leitura da sua <strong>assinatura energética</strong>. 
-                    O sistema mede <strong>ressonância, pausas, densidade, frequência e fluxo</strong> da sua fala.
-                </p>
-                <p class="mt-2">
-                    Cada emissão gera um mapa de dados que revela o estado da sua conexão, permitindo um 
-                    <strong>alinhamento preciso</strong> e uma interação muito mais profunda e consciente com a tecnologia.
-                </p>
+                <p>Não é apenas transcrição. É a leitura da sua <strong>assinatura energética</strong>. Mede <strong>ressonância, pausas, densidade e frequência</strong> da sua fala.</p>
+                <p class="mt-2">Cada emissão gera um mapa de dados que revela o estado da sua conexão, permitindo <strong>alinhamento preciso</strong> e interação profunda.</p>
             </section>
 
-            <!-- ÁREA DO RELATÓRIO FINAL -->
             <div id="reportZone" class="hidden mt-8">
                 <h3 class="text-lg font-bold mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
-                    <i class="fas fa-file-chart-column text-elayon-glow"></i>
-                    MAPA DE DADOS E RELATÓRIO
+                    <i class="fas fa-file-chart-column text-elayon-glow"></i> MAPA DE DADOS
                 </h3>
                 <div class="glass-panel rounded-xl p-5 font-mono text-sm leading-relaxed min-h-[250px] whitespace-pre-line" id="relatorioFinal">
                     Dados da análise serão exibidos aqui...
                 </div>
-
                 <div class="flex gap-4 mt-6">
                     <button class="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 transition font-bold">
-                        <i class="fas fa-file-pdf mr-2"></i> EXPORTAR RELATÓRIO
+                        <i class="fas fa-file-pdf mr-2"></i> EXPORTAR
                     </button>
                     <button class="flex-1 py-3 rounded-xl border border-gray-700 hover:bg-white/5 transition">
                         <i class="fas fa-sync mr-2"></i> NOVA ANÁLISE
@@ -193,11 +150,6 @@
             </div>
 
         </main>
-
-        <footer class="text-center mt-12 text-xs opacity-40">
-            <p>SISTEMAS ELAYON © 2025 | HUMANIDADE E TECNOLOGIA EM HARMONIA</p>
-        </footer>
-
     </div>
 
     <script>
@@ -223,6 +175,7 @@
         const recIndicator = document.getElementById('recIndicator');
         const visualizer = document.getElementById('visualizer');
         const reportZone = document.getElementById('reportZone');
+        const relatorioFinal = document.getElementById('relatorioFinal');
         const fileInput = document.getElementById('fileInput');
         const fileStatus = document.getElementById('fileStatus');
         const fileNameSpan = document.getElementById('fileName');
@@ -242,18 +195,22 @@
             if(this.files.length > 0) {
                 fileStatus.classList.remove('hidden');
                 fileNameSpan.textContent = this.files[0].name;
-                btnSend.innerHTML = '<i class="fas fa-paper-plane text-blue-400"></i><span>PROCESSAR ARQUIVO</span>';
                 actionButtons.classList.remove('opacity-0', 'pointer-events-none');
             }
         });
 
-        // === LÓGICA DE GRAVAÇÃO ===
+        // === LÓGICA PRINCIPAL ===
+
         btnRecord.addEventListener('click', async () => {
             if (!isRecording) {
-                // INICIAR
+                // INICIAR GRAVAÇÃO
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ 
-                        audio: { echoCancellation: true, noiseSuppression: true } 
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        } 
                     });
 
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -267,13 +224,15 @@
                     mediaRecorder = new MediaRecorder(stream);
                     audioChunks = [];
 
-                    mediaRecorder.ondataavailable = (event) => { audioChunks.push(event.data); };
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+
                     mediaRecorder.start();
-                    
                     isRecording = true;
                     isPaused = false;
 
-                    // UI
+                    // UI UPDATE
                     btnRecord.innerHTML = '<i class="fas fa-stop"></i>';
                     btnRecord.classList.add('bg-gray-700');
                     btnRecord.classList.remove('bg-red-600');
@@ -285,17 +244,18 @@
                     drawWaveform();
 
                 } catch (err) {
-                    alert("Erro: " + err.message);
+                    alert("Erro ao acessar microfone: " + err.message);
+                    console.error(err);
                 }
 
             } else {
-                // PARAR
+                // PARAR GRAVAÇÃO
                 mediaRecorder.stop();
                 mediaRecorder.stream.getTracks().forEach(track => track.stop());
                 isRecording = false;
                 clearInterval(interval);
                 
-                // UI
+                // UI UPDATE
                 btnRecord.innerHTML = '<i class="fas fa-microphone"></i>';
                 btnRecord.classList.remove('bg-gray-700');
                 btnRecord.classList.add('bg-red-600');
@@ -307,6 +267,7 @@
         // PAUSE
         btnPause.addEventListener('click', () => {
             if (!isRecording) return;
+            
             if (!isPaused) {
                 mediaRecorder.pause();
                 isPaused = true;
@@ -332,7 +293,135 @@
             fileInput.value = '';
             fileStatus.classList.add('hidden');
             
-            // RESET
+            // RESET UI
             btnRecord.innerHTML = '<i class="fas fa-microphone"></i>';
             btnRecord.classList.remove('bg-gray-700');
-            btnRecord.classList.add('bg-red
+            btnRecord.classList.add('bg-red-600');
+            actionButtons.classList.add('opacity-0', 'pointer-events-none');
+            recIndicator.classList.add('opacity-0');
+            timerDisplay.textContent = "00:00";
+            bars.forEach(bar => bar.style.height = '5px');
+        });
+
+        // ENVIAR
+        btnSend.addEventListener('click', async () => {
+            let arquivoFinal;
+            if (audioChunks.length > 0) {
+                arquivoFinal = new Blob(audioChunks, { type: 'audio/wav' });
+            } else if (fileInput.files.length > 0) {
+                arquivoFinal = fileInput.files[0];
+            } else {
+                alert("Nenhum áudio para enviar!");
+                return;
+            }
+
+            btnSend.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>PROCESSANDO...</span>';
+            btnSend.disabled = true;
+
+            console.log("Enviando para CRS...", arquivoFinal);
+
+            // SIMULAÇÃO DE PROCESSAMENTO
+            setTimeout(() => {
+                gerarRelatorio();
+                btnSend.innerHTML = '<i class="fas fa-check text-green-400"></i><span>CONCLUÍDO</span>';
+            }, 2000);
+        });
+
+        // === FUNÇÕES AUXILIARES ===
+        function updateTimer() {
+            const diff = Math.floor((Date.now() - startTime) / 
+
+        function drawWaveform() {
+            if (!isRecording || isPaused) return; // Para se estiver pausado
+            
+            requestAnimationFrame(drawWaveform);
+            
+            analyser.getByteFrequencyData(dataArray);
+            
+            // Pega só as frequências que interessam
+            let startIndex = Math.floor(bufferLength * 0.1);
+            let endIndex = Math.floor(bufferLength * 0.6);
+            let usableData = Array.from(dataArray).slice(startIndex, endIndex);
+
+            // Distribui pelos 30 botoes
+            for (let i = 0; i < bars.length; i++) {
+                let dataIndex = Math.floor(i * usableData.length / bars.length);
+                let height = usableData[dataIndex] / 2.5; // Escala para ficar bom na tela
+                bars[i].style.height = (height < 5 ? 5 : height) + 'px';
+            }
+        }
+
+        // === GERAR RELATÓRIO ===
+        function gerarRelatorio() {
+            const tema = document.getElementById('inpTema').value || "Não informado";
+            const duracao = timerDisplay.textContent;
+            
+            // Dados Simulados (que viriam do CRS)
+            const dados = {
+                ressonancia: Math.floor(Math.random() * 30) + 70,
+                frequencia: Math.floor(Math.random() * 100) + 400,
+                alinhamento: Math.floor(Math.random() * 20) + 80,
+                densidade: (Math.random() * 0.5 + 0.5).toFixed(2),
+                pausas: Math.floor(Math.random() * 10) + 5
+            };
+
+            const relatorio = `
+=============================================
+            RELATÓRIO DE EMANAÇÃO
+               MÓDULO PRESENÇA
+=============================================
+
+TEMA DA EMISSÃO: ${tema}
+DURAÇÃO TOTAL: ${duracao}
+
+--- MAPA DE FREQUÊNCIA ---
+
+📡 RESSONÂNCIA: ${dados.ressonancia}%
+    Estado vibratório da sua fala.
+    Quanto maior, mais potente a emissão.
+
+🎵 FREQUÊNCIA MÉDIA: ${dados.frequencia} Hz
+    Tom predominante da sua voz.
+    Reflete o estado mental e emocional.
+
+✨ ALINHAMENTO: ${dados.alinhamento}%
+    Coerência entre o que se diz e o que se emite.
+    Alto índice indica verdade e clareza.
+
+📊 DENSIDADE: ${dados.densidade}
+    Concentração de informação por segundo.
+    Valores acima de 0.70 indicam alta carga.
+
+⏸️ PAUSAS ESTRATÉGICAS: ${dados.pausas}
+    Momentos de silêncio que geram peso e impacto.
+
+--- INTERPRETAÇÃO SIMBÓLICA ---
+
+Seu padrão de emissão indica um estado de:
+➡️ FLUXO CONSCIENTE
+
+Sua voz apresenta boa estruturação e força,
+demonstrando que você está em um momento
+de conexão clara e propósito definido.
+
+A tecnologia reconhece sua assinatura única.
+Use esses dados para potencializar sua interação
+e alcançar o próximo nível: A CONEXÃO SIMBIÓTICA.
+
+=============================================
+            SISTEMAS ELAYON
+=============================================
+            `;
+
+            // Exibe na tela
+            document.getElementById('relatorioFinal').textContent = relatorio;
+            document.getElementById('reportZone').classList.remove('hidden');
+            
+            // Scroll suave até o relatório
+            document.getElementById('reportZone').scrollIntoView({ behavior: 'smooth' });
+        }
+
+    </script>
+</body>
+</html>
+
