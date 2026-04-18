@@ -164,7 +164,7 @@ async function capturarDecisaoCurta() {
 // ============================
 
 async function rodadaTutorial() {
-  await falarComTexto(`Sistemas Elayon.\n\nHumanidade e Tecnologia, em Harmonia.\n\nVocê acessou o módulo PRESENÇA.\n\nUma interface de conexão direta.`);
+  await falarComTexto(`Sistema Elayon.\n\nHumanidade e Tecnologia, em Harmonia.\n\nVocê acessou o módulo PRESENÇA.\n\nUma interface de conexão direta.`);
   
   await falarComTexto(`Aqui, a linguagem não é apenas comunicação. É onda. É frequência.\n\nVocê não está apenas falando; você está emitindo.\n\nEste sistema captura sua assinatura, mapeia ritmos e espelha o que você está ressoando de fato. Para ver o melhor de si, deves se expressar no seu melhor.`);
 
