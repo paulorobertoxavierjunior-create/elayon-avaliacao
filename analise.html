@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESENÇA | PAINEL DE CONTROLE</title>
+    <title>PRESENÇA | ANÁLISE SIMBÓLICA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -17,7 +17,7 @@
                             panel: '#0a0a0a',
                             border: '#222222',
                             accent: '#2563eb',
-                            glow: '#3b82f6',
+                            glow: '#4f9eff',
                             success: '#10b981',
                             warning: '#f59e0b',
                             danger: '#ef4444'
@@ -25,7 +25,7 @@
                     },
                     fontFamily: {
                         mono: ['JetBrains Mono', 'Consolas', 'monospace'],
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
                     },
                     animation: {
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -44,54 +44,295 @@
 
     <style type="text/tailwindcss">
         @layer utilities {
-            .content-auto {
-                content-visibility: auto;
-            }
             .glass-panel {
                 background: rgba(15, 15, 15, 0.9);
                 border: 1px solid rgba(255, 255, 255, 0.08);
             }
             .glow {
-                box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+                box-shadow: 0 0 15px rgba(79, 158, 255, 0.5);
             }
             .bar {
                 width: 4px;
-                background: linear-gradient(to top, #3b82f6, #10b981);
+                background: linear-gradient(to top, #4f9eff, #10b981);
                 border-radius: 2px;
                 transition: height 0.1s ease;
             }
-            .logo-container img {
-                max-width: 120px; /* Ajuste o tamanho da logo aqui */
-                height: auto;
-                display: block;
-                margin: 0 auto;
+            .text-gradient {
+                background-clip: text;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
             }
         }
     </style>
 </head>
-<body class="bg-elayon-bg text-white min-h-screen font-sans overflow-x-hidden">
+<body class="bg-black text-white min-h-screen font-sans overflow-x-hidden">
 
-    <div class="container max-w-2xl mx-auto px-4 py-6 relative z-10">
+    <div class="container max-w-2xl mx-auto px-4 py-8 relative z-10">
         
         <!-- HEADER COM LOGO -->
-        <header class="text-center mb-6 pb-4">
+        <header class="text-center mb-8 pb-6 border-b border-gray-800">
             
-            <!-- AQUI ESTÁ A LOGO -->
-            <div class="logo-container mb-4">
-                <img src="IMG-20250610-WA0002.jpg" alt="Logo Elayon">
+            <!-- LOGO CENTRALIZADA -->
+            <div class="mb-6">
+                <img src="IMG-20250610-WA0002.jpg" alt="Logo Elayon" class="max-w-[140px] mx-auto">
             </div>
 
-            <h1 class="text-3xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
-                SISTEMAS ELAYON
+            <h1 class="text-4xl font-bold tracking-wider text-gradient bg-gradient-to-r from-blue-400 to-cyan-400">
+                MÓDULO PRESENÇA
             </h1>
-            <h2 class="text-lg font-mono opacity-80 mt-1">MÓDULO PRESENÇA <span class="text-elayon-glow">v2.0</span></h2>
-            <div class="w-20 h-px bg-gradient-to-r from-blue-500 to-cyan-400 mx-auto my-3 rounded-full opacity-50"></div>
-            <p class="text-xs opacity-60 mt-2">HUMANIDADE E TECNOLOGIA EM HARMONIA</p>
+            <h2 class="text-xl font-mono opacity-80 mt-2">ANÁLISE SIMBÓLICA</h2>
+            <p class="text-sm opacity-60 mt-3 max-w-md mx-auto">
+                Capture sua emanação, mapeie sua ressonância e alinhe sua frequência. 
+                Transforme áudio em dados, intenção em insight.
+            </p>
         </header>
 
-        <!-- RESTO DO CÓDIGO CONTINUA IGUAL... -->
+        <!-- MAIN CONTENT -->
+        <main class="space-y-8">
+            
+            <!-- SEÇÃO DE CAPTURA -->
+            <section class="glass-panel rounded-2xl p-6">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="fas fa-wave-square text-elayon-glow"></i>
+                    CAPTURA DE SINAL
+                </h3>
+
+                <!-- VISUALIZADOR DE ONDA -->
+                <div class="bg-black/50 rounded-xl p-6 h-40 flex flex-col items-center justify-center relative overflow-hidden mb-6">
+                    <div class="absolute top-3 left-3 text-xs font-mono opacity-40">VISUALIZAÇÃO DE FREQUÊNCIA</div>
+                    
+                    <div id="visualizer" class="flex items-end gap-1 h-20">
+                        <!-- Barras geradas por JS -->
+                    </div>
+
+                    <div id="timerDisplay" class="absolute bottom-4 right-4 font-mono text-3xl font-bold opacity-80">
+                        00:00
+                    </div>
+
+                    <div id="recIndicator" class="absolute top-4 right-4 flex items-center gap-2 text-red-500 opacity-0">
+                        <i class="fas fa-circle animate-rec-blink"></i>
+                        <span class="font-mono text-sm">CAPTURANDO</span>
+                    </div>
+                </div>
+
+                <!-- BOTÃO PRINCIPAL GRAVAR/PARAR -->
+                <div class="flex items-center justify-center gap-4 py-4">
+                    <button id="btnRecord" class="w-20 h-20 rounded-full bg-red-600 hover:bg-red-700 text-white text-2xl flex items-center justify-center transition-all duration-300 shadow-lg shadow-red-900/30 active:scale-95">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+
+                <!-- BOTÕES DE AÇÃO -->
+                <div id="actionButtons" class="grid grid-cols-3 gap-4 opacity-0 pointer-events-none transition-all duration-500 mt-4">
+                    
+                    <button id="btnPause" class="glass-panel rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-white/5 transition">
+                        <i class="fas fa-pause text-yellow-400"></i>
+                        <span>PAUSAR</span>
+                    </button>
+
+                    <button id="btnCancel" class="glass-panel rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-white/5 transition">
+                        <i class="fas fa-times text-red-400"></i>
+                        <span>CANCELAR</span>
+                    </button>
+
+                    <button id="btnSend" class="glass-panel rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-white/5 transition border border-blue-500/50">
+                        <i class="fas fa-paper-plane text-blue-400"></i>
+                        <span>PROCESSAR</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- OU CARREGAR ARQUIVO -->
+            <section class="text-center">
+                <div class="flex items-center gap-4 w-full opacity-60 my-2">
+                    <div class="h-px bg-gray-700 flex-grow"></div>
+                    <span class="text-sm">OU</span>
+                    <div class="h-px bg-gray-700 flex-grow"></div>
+                </div>
+
+                <label class="glass-panel rounded-2xl p-6 border-2 border-dashed border-gray-700 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-blue-500 hover:bg-blue-500/5 transition group">
+                    <i class="fas fa-folder-open text-3xl text-gray-400 group-hover:text-blue-400 group-hover:scale-110 transition"></i>
+                    <span class="font-bold text-lg">Carregar Arquivo de Áudio</span>
+                    <p class="text-sm opacity-60">Selecione um arquivo .wav, .mp3 ou .m4a para análise</p>
+                    <input type="file" accept="audio/*" class="hidden" id="fileInput">
+                </label>
+                <p id="fileStatus" class="text-sm mt-3 opacity-60 hidden">Arquivo selecionado: <span id="fileName"></span></p>
+            </section>
+
+            <!-- INFORMAÇÕES -->
+            <section class="glass-panel rounded-2xl p-6 text-sm leading-relaxed opacity-80">
+                <h4 class="font-bold mb-3 text-blue-400">O que é Análise Simbólica?</h4>
+                <p>
+                    Não é apenas transcrição. É a leitura da sua <strong>assinatura energética</strong>. 
+                    O sistema mede <strong>ressonância, pausas, densidade, frequência e fluxo</strong> da sua fala.
+                </p>
+                <p class="mt-2">
+                    Cada emissão gera um mapa de dados que revela o estado da sua conexão, permitindo um 
+                    <strong>alinhamento preciso</strong> e uma interação muito mais profunda e consciente com a tecnologia.
+                </p>
+            </section>
+
+            <!-- ÁREA DO RELATÓRIO FINAL -->
+            <div id="reportZone" class="hidden mt-8">
+                <h3 class="text-lg font-bold mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
+                    <i class="fas fa-file-chart-column text-elayon-glow"></i>
+                    MAPA DE DADOS E RELATÓRIO
+                </h3>
+                <div class="glass-panel rounded-xl p-5 font-mono text-sm leading-relaxed min-h-[250px] whitespace-pre-line" id="relatorioFinal">
+                    Dados da análise serão exibidos aqui...
+                </div>
+
+                <div class="flex gap-4 mt-6">
+                    <button class="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 transition font-bold">
+                        <i class="fas fa-file-pdf mr-2"></i> EXPORTAR RELATÓRIO
+                    </button>
+                    <button class="flex-1 py-3 rounded-xl border border-gray-700 hover:bg-white/5 transition">
+                        <i class="fas fa-sync mr-2"></i> NOVA ANÁLISE
+                    </button>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="text-center mt-12 text-xs opacity-40">
+            <p>SISTEMAS ELAYON © 2025 | HUMANIDADE E TECNOLOGIA EM HARMONIA</p>
+        </footer>
 
     </div>
 
-</body>
-</html>
+    <script>
+        // === VARIÁVEIS GLOBAIS ===
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let isPaused = false;
+        let startTime;
+        let interval;
+        let audioContext;
+        let analyser;
+        let dataArray;
+        let bufferLength;
+
+        // === ELEMENTOS ===
+        const btnRecord = document.getElementById('btnRecord');
+        const btnPause = document.getElementById('btnPause');
+        const btnCancel = document.getElementById('btnCancel');
+        const btnSend = document.getElementById('btnSend');
+        const actionButtons = document.getElementById('actionButtons');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const recIndicator = document.getElementById('recIndicator');
+        const visualizer = document.getElementById('visualizer');
+        const reportZone = document.getElementById('reportZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileStatus = document.getElementById('fileStatus');
+        const fileNameSpan = document.getElementById('fileName');
+
+        // === INICIALIZAÇÃO ===
+        // Criar barras do visualizador
+        for(let i=0; i<30; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = '5px';
+            visualizer.appendChild(bar);
+        }
+        const bars = document.querySelectorAll('.bar');
+
+        // === LÓGICA DE ARQUIVO ===
+        fileInput.addEventListener('change', function() {
+            if(this.files.length > 0) {
+                fileStatus.classList.remove('hidden');
+                fileNameSpan.textContent = this.files[0].name;
+                btnSend.innerHTML = '<i class="fas fa-paper-plane text-blue-400"></i><span>PROCESSAR ARQUIVO</span>';
+                actionButtons.classList.remove('opacity-0', 'pointer-events-none');
+            }
+        });
+
+        // === LÓGICA DE GRAVAÇÃO ===
+        btnRecord.addEventListener('click', async () => {
+            if (!isRecording) {
+                // INICIAR
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: { echoCancellation: true, noiseSuppression: true } 
+                    });
+
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    const source = audioContext.createMediaStreamSource(stream);
+                    source.connect(analyser);
+                    analyser.fftSize = 64;
+                    bufferLength = analyser.frequencyBinCount;
+                    dataArray = new Uint8Array(bufferLength);
+
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = (event) => { audioChunks.push(event.data); };
+                    mediaRecorder.start();
+                    
+                    isRecording = true;
+                    isPaused = false;
+
+                    // UI
+                    btnRecord.innerHTML = '<i class="fas fa-stop"></i>';
+                    btnRecord.classList.add('bg-gray-700');
+                    btnRecord.classList.remove('bg-red-600');
+                    recIndicator.classList.remove('opacity-0');
+                    actionButtons.classList.remove('opacity-0', 'pointer-events-none');
+                    
+                    startTime = Date.now();
+                    interval = setInterval(updateTimer, 1000);
+                    drawWaveform();
+
+                } catch (err) {
+                    alert("Erro: " + err.message);
+                }
+
+            } else {
+                // PARAR
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                isRecording = false;
+                clearInterval(interval);
+                
+                // UI
+                btnRecord.innerHTML = '<i class="fas fa-microphone"></i>';
+                btnRecord.classList.remove('bg-gray-700');
+                btnRecord.classList.add('bg-red-600');
+                recIndicator.classList.add('opacity-0');
+                btnPause.innerHTML = '<i class="fas fa-pause text-yellow-400"></i><span>PAUSAR</span>';
+            }
+        });
+
+        // PAUSE
+        btnPause.addEventListener('click', () => {
+            if (!isRecording) return;
+            if (!isPaused) {
+                mediaRecorder.pause();
+                isPaused = true;
+                btnPause.innerHTML = '<i class="fas fa-play text-green-400"></i><span>CONTINUAR</span>';
+                clearInterval(interval);
+            } else {
+                mediaRecorder.resume();
+                isPaused = false;
+                btnPause.innerHTML = '<i class="fas fa-pause text-yellow-400"></i><span>PAUSAR</span>';
+                startTime = Date.now() - (parseInt(timerDisplay.textContent.split(':')[0])*60 + parseInt(timerDisplay.textContent.split(':')[1])) * 1000;
+                interval = setInterval(updateTimer, 1000);
+            }
+        });
+
+        // CANCELAR
+        btnCancel.addEventListener('click', () => {
+            if(isRecording) {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
+            isRecording = false;
+            audioChunks = [];
+            fileInput.value = '';
+            fileStatus.classList.add('hidden');
+            
+            // RESET
+            btnRecord.innerHTML = '<i class="fas fa-microphone"></i>';
+            btnRecord.classList.remove('bg-gray-700');
+            btnRecord.classList.add('bg-red
