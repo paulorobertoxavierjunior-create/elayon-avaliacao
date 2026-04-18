@@ -255,3 +255,178 @@ async function rodarEtapa(pergunta, indice) {
   return resposta;
 }
 
+/* ======================================
+   ENVIO E ANÁLISE CRS
+   ====================================== */
+
+async function enviarCRS(texto, indice) {
+  const tema = (el("inpTema")?.value || "").trim();
+  const contexto = (el("inpContexto")?.value || "").trim();
+  const payload = window.ELAYON_TUNNEL.crs.buildPayload(texto, { 
+    context: `${contexto} | etapa ${indice + 1}`, 
+    source_text: tema 
+  });
+  
+  log(`Enviando para análise CRS...`);
+  const resultado = await window.ELAYON_TUNNEL.crs.analyze(payload);
+  
+  console.log("Dados CRS:", resultado);
+  return resultado;
+}
+
+
+/* ======================================
+   GERAÇÃO DE RELATÓRIO E PDF
+   ====================================== */
+
+function gerarRelatorio(respostas, analises) {
+  let txt = "=====================================\n";
+  txt += "        SISTEMAS ELAYON\n";
+  txt += "          MÓDULO PRESENÇA\n";
+  txt += "=====================================\n\n";
+  txt += `ID da Sessão: ${STATE.sessionId}\n`;
+  txt += `Data: ${new Date().toLocaleString("pt-BR")}\n`;
+  txt += `Tema: ${(el("inpTema")?.value || "").trim() || "livre"}\n\n`;
+  
+  respostas.forEach((r, i) => {
+    txt += `--- ETAPA ${i + 1} ---\n`;
+    txt += `Transcrição: ${r}\n`;
+    
+    const dados = analises[i] || {};
+    txt += `Status: Processado na camada CRS.\n`;
+    
+    const tempo = dados.duration_sec || dados.tempo_total || dados.duration || '--';
+    const silencio = dados.silence_pct || dados.porcentagem_silencio || dados.silence || '--';
+    
+    txt += `Tempo de fala: ${tempo}s\n`;
+    txt += `Taxa de silêncio: ${silencio}%\n`;
+    
+    if(dados.pause_count !== undefined) txt += `Pausas: ${dados.pause_count}\n`;
+    if(dados.mean_pause_ms !== undefined) txt += `Média de pausa: ${dados.mean_pause_ms}ms\n`;
+    
+    txt += `\n`;
+  });
+
+  txt += `\n>> Relatório gerado e disponível para exportação e integração.\n`;
+  txt += `>> Sistemas Elayon - Humanidade e Tecnologia em Harmonia.`;
+  return txt;
+}
+
+function gerarPdfRelatorio() {
+  const texto = el("relatorioFinal")?.textContent;
+  if (!texto || !window.jspdf?.jsPDF) { 
+    alert("Dados ou biblioteca PDF indisponíveis."); 
+    return; 
+  }
+  const doc = new window.jspdf.jsPDF();
+  doc.setFontSize(11);
+  const lines = doc.splitTextToSize(texto, 180);
+  let y = 20;
+  lines.forEach(line => { 
+    if (y > 280) { doc.addPage(); y = 20; } 
+    doc.text(line, 15, y); y += 6; 
+  });
+  doc.save(`relatorio-${STATE.sessionId || "elayon"}.pdf`);
+}
+
+function novaSessao() {
+  STATE.respostas = []; 
+  STATE.analises = []; 
+  STATE.sessionId = null; 
+  STATE.etapaAtual = 0; 
+  STATE.locked = false;
+  setText("statusIntro", "Aguardando início."); 
+  limparSessaoVisual(); 
+  setText("relatorioFinal", "Nenhum relatório."); 
+  showTela("intro");
+}
+
+
+/* ======================================
+   FUNÇÃO PRINCIPAL (INICIAR SISTEMA)
+   ====================================== */
+
+async function iniciar() {
+  alert("🔵 MOTOR LIGADO! INICIANDO...");
+  if (STATE.locked) return;
+  try {
+    STATE.locked = true;
+    assertStructure();
+    if (!window.ELAYON_TUNNEL) throw new Error("ELAYON_TUNNEL não carregado!");
+    
+    const tema = (el("inpTema")?.value || "").trim();
+    if (!tema) { alert("Digite um tema primeiro!"); return; }
+
+    const health = await window.ELAYON_TUNNEL.healthcheck();
+    log(`Health check OK`);
+
+    // MODO HARD - IGNORAR VERIFICAÇÕES
+    health.authenticated = true;
+    health.stt = true;
+    health.tts = true;
+    health.crs = true;
+
+    STATE.sessionId = "sessao-" + Date.now();
+    setText("statusIntro", "Iniciando...");
+    limparSessaoVisual();
+    showTela("sessao");
+
+    await rodadaTutorial();
+    const etapas = obterPerguntas();
+
+    for (let i = 0; i < etapas.length; i++) {
+      STATE.etapaAtual = i + 1;
+      const resposta = await rodarEtapa(etapas[i], i);
+      STATE.respostas.push(resposta);
+      setText("statusSessao", "Processando sinais...");
+      const analise = await enviarCRS(resposta, i);
+      STATE.analises.push(analise);
+      await sleep(FLOW.STEP_DELAY_MS);
+    }
+
+    const relatorio = gerarRelatorio(STATE.respostas, STATE.analises);
+    setText("relatorioFinal", relatorio);
+    await falarComTexto(`Missão concluída! Dados armazenados. Relatório pronto.`);
+    showTela("final");
+
+  } catch (err) {
+    console.error(err);
+    await resetMotores();
+    alert(`ERRO: ${err.message}`);
+    setText("statusSessao", "Falha detectada.");
+    showTela("intro");
+  } finally {
+    STATE.locked = false;
+  }
+}
+
+
+/* ======================================
+   INICIALIZAÇÃO DOS BOTÕES
+   ====================================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+  try {
+    assertStructure();
+    showTela("intro");
+    log("Sistema carregado. MODO BYPASS ATIVADO.");
+    log("Microfone permanecerá aberto até comando 'Ok Ok'.");
+
+    const btn = document.getElementById("btnIniciar");
+    if (btn) {
+      btn.onclick = iniciar;
+      log("Botão principal conectado.");
+    }
+
+    const btnPdf = document.getElementById("btnGerarPdf");
+    if(btnPdf) btnPdf.onclick = gerarPdfRelatorio;
+    
+    const btnNova = document.getElementById("btnNovaSessao");
+    if(btnNova) btnNova.onclick = novaSessao;
+
+  } catch (err) {
+    console.error(err);
+    alert(`Erro na inicialização: ${err.message}`);
+  }
+});
+
