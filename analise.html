@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESENÇA | CAPTURA DE ÁUDIO BRUTO</title> 
+    <title>PRESENÇA | CAPTURA DE ÁUDIO BRUTO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- 🔌 CARREGA O TÚNEL -->
-    <script src="tunnel.js"></script>
     
     <script>
         tailwind.config = {
@@ -84,7 +81,7 @@
         
         <header class="text-center mb-8 pb-6 border-b border-gray-800">
             <div class="mb-6">
-                <img src="IMG-20250610-WA0002.jpg" alt="Logo Elayon" class="max-w-[140px mx-auto">
+                <img src="IMG-20250610-WA0002.jpg" alt="Logo Elayon" class="max-w-[140px] mx-auto">
             </div>
             <h1 class="text-4xl font-bold tracking-wider text-gradient bg-gradient-to-r from-blue-400 to-cyan-400">MÓDULO PRESENÇA</h1>
             <h2 class="text-xl font-mono opacity-80 mt-2">CAPTURA DE ÁUDIO BRUTO</h2>
@@ -93,9 +90,6 @@
 
         <main class="space-y-8">
             
-            <!-- ================================================== -->
-            <!-- 📦 SEÇÃO 1: PAINEL DE CONTROLE                     -->
-            <!-- ================================================== -->
             <section class="glass-panel rounded-2xl p-6">
                 <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
                     <i class="fas fa-microphone-lines text-elayon-glow"></i> ESTÚDIO DE CAPTAÇÃO
@@ -130,9 +124,6 @@
                 </div>
             </section>
 
-            <!-- ================================================== -->
-            <!-- 📦 SEÇÃO 2: UPLOAD DE ARQUIVO                      -->
-            <!-- ================================================== -->
             <section class="text-center">
                 <div class="flex items-center gap-4 w-full opacity-60 my-2">
                     <div class="h-px bg-gray-700 flex-grow"></div><span class="text-sm">OU</span><div class="h-px bg-gray-700 flex-grow"></div>
@@ -146,9 +137,6 @@
                 <p id="fileStatus" class="text-sm mt-3 opacity-60 hidden">Arquivo: <span id="fileName"></span></p>
             </section>
 
-            <!-- ================================================== -->
-            <!-- 📦 SEÇÃO 3: ARQUIVO GERADO / CARREGADO            -->
-            <!-- ================================================== -->
             <section id="fileSection" class="glass-panel rounded-2xl p-6 hidden">
                 <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
                     <i class="fas fa-file-audio text-elayon-glow"></i> ARQUIVO PRONTO
@@ -168,9 +156,6 @@
                 </div>
             </section>
 
-            <!-- ================================================== -->
-            <!-- 📦 SEÇÃO 4: CAIXA DE LOG                          -->
-            <!-- ================================================== -->
             <section class="glass-panel rounded-2xl p-6">
                 <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
                     <i class="fas fa-terminal text-gray-400"></i> LOG DO SISTEMA
@@ -181,12 +166,9 @@
                 <button id="btnClearLog" class="text-xs text-gray-500 mt-2 hover:text-white">Limpar Log</button>
             </section>
 
-            <!-- ================================================== -->
-            <!-- 📦 SEÇÃO 5: RELATÓRIO CRS                         -->
-            <!-- ================================================== -->
             <div id="reportZone" class="hidden mt-8">
                 <h3 class="text-lg font-bold mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
-                    <i class="fas fa-file-chart-column text-elayon-glow"></i> MAPA DE DADOS | CRS
+                    <i class="fas fa-file-chart-column text-elayon-glow"></i> MAPA DE DATOS | CRS
                 </h3>
                 <div class="glass-panel rounded-xl p-5 font-mono text-sm leading-relaxed min-h-[250px] whitespace-pre-line" id="relatorioFinal">
                     Dados da análise aparecerão aqui...
@@ -198,7 +180,7 @@
 
     <script>
         // ==================================================
-        // 🚀 INICIALIZAÇÃO GERAL
+        // 🚀 VARIAVEIS GLOBAIS
         // ==================================================
         let mediaRecorder;
         let audioChunks = [];
@@ -214,7 +196,7 @@
         let bars;
 
         // ==================================================
-        // 📡 ELEMENTOS DA INTERFACE
+        // 📡 ELEMENTOS
         // ==================================================
         const btnRecord = document.getElementById('btnRecord');
         const btnPause = document.getElementById('btnPause');
@@ -231,7 +213,6 @@
         const reportZone = document.getElementById('reportZone');
         const relatorioFinal = document.getElementById('relatorioFinal');
         const fileInput = document.getElementById('fileInput');
-        const fileStatus = document.getElementById('fileStatus');
         const fileNameSpan = document.getElementById('fileName');
 
         // ==================================================
@@ -252,7 +233,6 @@
                 visualizer.appendChild(bar);
             }
             bars = document.querySelectorAll('.bar');
-            log("🎨 Visualizador inicializado");
         }
 
         function updateTimer() {
@@ -278,12 +258,12 @@
         }
 
         // ==================================================
-        // 📂 FUNÇÕES DE UPLOAD DE ARQUIVO
+        // 📂 UPLOAD DE ARQUIVO
         // ==================================================
         fileInput.addEventListener('change', function() {
             if(this.files.length > 0) {
                 const file = this.files[0];
-                audioBlob = file; // Usa o arquivo carregado como fonte
+                audioBlob = file;
                 const audioUrl = URL.createObjectURL(file);
                 
                 fileNameSpan.textContent = file.name;
@@ -298,88 +278,159 @@
         });
 
         // ==================================================
-        // 🎤 FUNÇÕES PRINCIPAIS DO MICROFONE
+        // 🎤 FUNÇÃO PRINCIPAL DE GRAVAÇÃO (CORRIGIDA)
+        // ==================================================
+        async function startRecording() {
+            try {
+                log("🎤 Iniciando gravação...");
+
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false
+                    } 
+                });
+
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+
+                source.connect(analyser);
+                analyser.fftSize = 256;
+
+                bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = e => {
+                    if (e.data.size > 0) {
+                        audioChunks.push(e.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+
+                    audioPlayer.src = audioUrl;
+                    btnDownload.href = audioUrl;
+
+                    fileSection.classList.remove('hidden');
+
+                    log("📁 Áudio gerado com sucesso.");
+                };
+
+                mediaRecorder.start();
+
+                isRecording = true;
+                isPaused = false;
+                startTime = Date.now();
+                interval = setInterval(updateTimer, 1000);
+
+                recIndicator.classList.remove('opacity-0');
+                btnRecord.innerHTML = '<i class="fas fa-stop"></i>';
+                btnRecord.classList.remove('bg-red-600');
+                btnRecord.classList.add('bg-gray-700');
+
+                initVisualizer();
+                drawWaveform();
+
+                log("🔴 Gravação ativa.");
+
+            } catch (err) {
+                log(`❌ ERRO: ${err.message}`);
+                alert("Erro ao acessar microfone.");
+            }
+        }
+
+        // ==================================================
+        // 🎛️ BOTÃO RECORD
         // ==================================================
         btnRecord.addEventListener('click', async () => {
             if (!isRecording) {
                 await startRecording();
+            } else {
+                stopRecording();
             }
         });
 
-        btnPause.addEventListener('click', () => {
-            if (!isRecording) return;
-            
-            if (!isPaused) {
-                mediaRecorder.pause();
-                isPaused = true;
-                btnPause.innerHTML = '<i class="fas fa-play text-green-400"></i><span>CONTINUAR</span>';
-                clearInterval(interval);
-                log("⏸️ Gravação Pausada");
-            } else {
-                mediaRecorder.resume();
-                isPaused = false;
-                btnPause.innerHTML = '<i class="fas fa-pause text-yellow-400"></i><span>PAUSAR</span>';
-                startTime = Date.now() - (parseInt(timerDisplay.textContent.split(':')[0])*60 + parseInt(timerDisplay.textContent.split(':')[1])) * 1000;
-                interval = setInterval(updateTimer, 1000);
-               
-                drawWaveform();
+       // ==================================================
+// ⏸️ BOTÃO PAUSAR
+// ==================================================
+btnPause.addEventListener('click', () => {
+    if (!isRecording) return;
 
-            } catch (err) {
-                log(`❌ ERRO: ${err.message}`);
-                alert("Erro ao acessar microfone: " + err.message);
-            }
-        }
+    if (!isPaused) {
+        mediaRecorder.pause();
+        isPaused = true;
+        btnPause.innerHTML = '<i class="fas fa-play text-green-400"></i><span>CONTINUAR</span>';
+        clearInterval(interval);
+        log("⏸️ Pausado");
+    } else {
+        mediaRecorder.resume();
+        isPaused = false;
+        btnPause.innerHTML = '<i class="fas fa-pause text-yellow-400"></i><span>PAUSAR</span>';
+        startTime = Date.now() - (parseInt(timerDisplay.textContent.split(':')[0])*60 + parseInt(timerDisplay.textContent.split(':')[1])) * 1000;
+        interval = setInterval(updateTimer, 1000);
+        drawWaveform();
+        log("▶️ Retomado");
+    }
+});
 
-        // --- PARAR GRAVAÇÃO ---
-        function stopRecording() {
-            if (!isRecording) return;
-            
-            mediaRecorder.stop();
-            mediaRecorder.stream.getTracks().forEach(track => track.stop());
-            
-            isRecording = false;
-            clearInterval(interval);
-            
-            btnRecord.innerHTML = '<i class="fas fa-microphone"></i>';
-            btnRecord.classList.remove('bg-gray-700');
-            btnRecord.classList.add('bg-red-600');
-            recIndicator.classList.add('opacity-0');
-            btnPause.innerHTML = '<i class="fas fa-pause text-yellow-400"></i><span>PAUSAR</span>';
+// ==================================================
+// 🛑 BOTÃO PARAR / FINALIZAR
+// ==================================================
+function stopRecording() {
+    if (!isRecording) return;
+    
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    
+    isRecording = false;
+    clearInterval(interval);
+    
+    btnRecord.innerHTML = '<i class="fas fa-circle"></i>';
+    btnRecord.classList.remove('bg-gray-700');
+    btnRecord.classList.add('bg-red-600');
+    recIndicator.classList.add('opacity-0');
+    btnPause.innerHTML = '<i class="fas fa-pause text-yellow-400"></i><span>PAUSAR</span>';
 
-            log("🛑 Gravação finalizada.");
-        }
+    log("🛑 Gravação finalizada.");
+}
 
-        // ==================================================
-        // 📡 INTEGRAÇÃO COM O CRS - MODO TREINAMENTO LOCAL
-        // ==================================================
-        btnSendCRS.addEventListener('click', async () => {
-            if (!audioBlob) {
-                log("⚠️ Nenhum áudio carregado ou gravado!");
-                return;
-            }
+btnStop.addEventListener('click', stopRecording);
 
-            log("🚀 Iniciando análise CRS...");
-            reportZone.classList.remove('hidden');
-            relatorioFinal.textContent = "Processando emanação...\nGerando mapa de frequências...\nAguarde...";
+// ==================================================
+// 📡 INTEGRAÇÃO COM O CRS (MOCKADO)
+// ==================================================
+btnSendCRS.addEventListener('click', async () => {
+    if (!audioBlob) {
+        log("⚠️ Nenhum áudio carregado ou gravado!");
+        return;
+    }
 
-            try {
-                // 🧪 SIMULAÇÃO LOCAL PARA TREINAMENTO
-                // Aqui geramos os dados fictícios mas com lógica real
-                // Depois trocamos por: await window.ELAYON_TUNNEL.crs.analyze(payload)
-                
-                const dadosSimulados = {
-                    ressonancia: Math.floor(Math.random() * 25) + 75,
-                    frequencia: Math.floor(Math.random() * 150) + 420,
-                    alinhamento: Math.floor(Math.random() * 20) + 80,
-                    densidade: (Math.random() * 0.4 + 0.6).toFixed(2),
-                    pausas: Math.floor(Math.random() * 8) + 4,
-                    interpretacao: "Análise concluída em modo local.\nOs índices indicam alta coerência e conexão estável.\nSeu padrão energético está registrado no sistema."
-                };
+    log("🚀 Iniciando análise CRS...");
+    reportZone.classList.remove('hidden');
+    relatorioFinal.textContent = "Processando emanação...\nGerando mapa de frequências...\nAguarde...";
 
-                log("✅ Análise concluída (Modo Local)");
+    try {
+        // 🧪 SIMULAÇÃO LOCAL PARA TREINAMENTO
+        const dadosSimulados = {
+            ressonancia: Math.floor(Math.random() * 25) + 75,
+            frequencia: Math.floor(Math.random() * 150) + 420,
+            alinhamento: Math.floor(Math.random() * 20) + 80,
+            densidade: (Math.random() * 0.4 + 0.6).toFixed(2),
+            pausas: Math.floor(Math.random() * 8) + 4,
+            interpretacao: "Análise concluída em modo local.\nOs índices indicam alta coerência e conexão estável.\nSeu padrão energético está registrado no sistema."
+        };
 
-                // Monta o relatório final
-                const relatorio = `
+        log("✅ Análise concluída (Modo Local)");
+
+        // Monta o relatório final
+        const relatorio = `
 =============================================
             RELATÓRIO DE EMANAÇÃO
                MÓDULO PRESENÇA
@@ -414,42 +465,42 @@ ${dadosSimulados.interpretacao}
 =============================================
             SISTEMAS ELAYON
 =============================================
-                `;
+        `;
 
-                relatorioFinal.textContent = relatorio;
+        relatorioFinal.textContent = relatorio;
 
-            } catch (err) {
-                log(`❌ FALHA NA ANÁLISE: ${err.message}`);
-                relatorioFinal.textContent = `⚠️ ERRO NO SISTEMA\n\n${err.message}`;
-            }
-        });
+    } catch (err) {
+        log(`❌ FALHA NA ANÁLISE: ${err.message}`);
+        relatorioFinal.textContent = `⚠️ ERRO NO SISTEMA\n\n${err.message}`;
+    }
+});
 
-        // ==================================================
-        // 🧹 LIMPAR LOG E RESET
-        // ==================================================
-        document.getElementById('btnClearLog').addEventListener('click', () => {
-            logBox.textContent = "";
-            log("[LOG ZEBRADO]");
-        });
+// ==================================================
+// 🧹 LIMPAR LOG E RESET
+// ==================================================
+document.getElementById('btnClearLog').addEventListener('click', () => {
+    logBox.textContent = "";
+    log("[LOG ZEBRADO]");
+});
 
-        btnClear.addEventListener('click', () => {
-            audioChunks = [];
-            audioBlob = null;
-            fileInput.value = '';
-            fileStatus.classList.add('hidden');
-            fileSection.classList.add('hidden');
-            reportZone.classList.add('hidden');
-            timerDisplay.textContent = "00:00";
-            if(bars) bars.forEach(bar => bar.style.height = '5px');
-            log("🧹 Sistema resetado. Pronto para nova captação.");
-        });
+btnClear.addEventListener('click', () => {
+    audioChunks = [];
+    audioBlob = null;
+    fileInput.value = '';
+    if(fileStatus) fileStatus.classList.add('hidden');
+    fileSection.classList.add('hidden');
+    reportZone.classList.add('hidden');
+    timerDisplay.textContent = "00:00";
+    if(bars) bars.forEach(bar => bar.style.height = '5px');
+    log("🧹 Sistema resetado. Pronto para nova captação.");
+});
 
-        // ==================================================
-        // 🚀 INICIALIZAÇÃO FINAL
-        // ==================================================
-        initVisualizer();
-        log("⚡ Sistema carregado. Modo Áudio Bruto ativo.");
+// ==================================================
+// 🚀 INICIALIZAÇÃO FINAL
+// ==================================================
+initVisualizer();
+log("⚡ Sistema carregado. Modo Áudio Bruto ativo.");
 
-    </script>
+</script>
 </body>
 </html>
