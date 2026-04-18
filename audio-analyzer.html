@@ -157,6 +157,47 @@
             return { duracaoTotal, silencioTotalSeg };
         }
 
+
+// ==========================================
+// ❤️ ANÁLISE SENTIMENTAL E COGNITIVA
+// ==========================================
+function analisarPercepcao(g, m, a, r, est, sil) {
+    let emocao = "";
+    let simbolo = "";
+    let detalhe = "";
+
+    // ANÁLISE DA VOZ
+    if (g > 55 && m > 60 && a < 45) {
+        simbolo = "🔷";
+        emocao = "AUTORIDADE E CALMA";
+        detalhe = "Voz grave e média forte. Transmite segurança, peso e confiança. Dicção precisa.";
+    } 
+    else if (a > 50 && fluxo > 30) {
+        simbolo = "⚡";
+        emocao = "AGILIDADE E EXCITAÇÃO";
+        detalhe = "Voz clara e rápida. Mente ativa, ideias fluindo rápido, energia elevada.";
+    }
+    else if (r < 15 && coerencia > 40) {
+        simbolo = "🧿";
+        emocao = "FOCO E CLAREZA";
+        detalhe = "Sinal limpo e coerente. Pensamento organizado, sem ruído interno.";
+    }
+    else {
+        simbolo = "➡️";
+        emocao = "FLUXO NORMAL";
+        detalhe = "Comunicação estável, ritmo natural.";
+    }
+
+    // ANÁLISE DAS AFASIAS E HESITAÇÕES
+    if (sil > 25) {
+        detalhe += " | Usa o silêncio como ferramenta: pensamento profundo, escolha cuidadosa das palavras.";
+    } else if (sil < 5 && m > 70) {
+        detalhe += " | Falação contínua: fluidez elevada, pensamento em alta velocidade.";
+    }
+
+    return { simbolo, emocao, detalhe };
+}
+
         // ==========================================
         // 🔌 ATUALIZAÇÃO VISUAL
         // ==========================================
