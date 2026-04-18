@@ -72,6 +72,13 @@
                 overflow-y: auto;
                 white-space: pre-wrap;
             }
+            .audio-item {
+                border-bottom: 1px solid #222;
+                padding: 8px 0;
+            }
+            .audio-item:last-child {
+                border-bottom: none;
+            }
         }
     </style>
 </head>
@@ -90,6 +97,9 @@
 
         <main class="space-y-8">
             
+            <!-- ================================================== -->
+            <!-- 🎙️ SEÇÃO 1: GRAVAÇÃO                              -->
+            <!-- ================================================== -->
             <section class="glass-panel rounded-2xl p-6">
                 <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
                     <i class="fas fa-microphone-lines text-elayon-glow"></i> ESTÚDIO DE CAPTAÇÃO
@@ -119,43 +129,78 @@
                         <i class="fas fa-check text-green-400"></i><span>FINALIZAR</span>
                     </button>
                     <button id="btnClear" class="glass-panel rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-white/5 transition">
-                        <i class="fas fa-trash text-red-400"></i><span>APAGAR</span>
+                        <i class="fas fa-eraser text-red-400"></i><span>LIMPAR TUDO</span>
                     </button>
                 </div>
             </section>
 
+            <!-- ================================================== -->
+            <!-- 📂 SEÇÃO 2: UPLOAD                                 -->
+            <!-- ================================================== -->
             <section class="text-center">
                 <div class="flex items-center gap-4 w-full opacity-60 my-2">
                     <div class="h-px bg-gray-700 flex-grow"></div><span class="text-sm">OU</span><div class="h-px bg-gray-700 flex-grow"></div>
                 </div>
                 <label class="glass-panel rounded-2xl p-6 border-2 border-dashed border-gray-700 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-blue-500 hover:bg-blue-500/5 transition group">
                     <i class="fas fa-folder-open text-3xl text-gray-400 group-hover:text-blue-400 group-hover:scale-110 transition"></i>
-                    <span class="font-bold text-lg">CARREGAR ARQUIVO DO CELULAR</span>
+                    <span class="font-bold text-lg">CARREGAR ARQUIVO EXTERNO</span>
                     <p class="text-sm opacity-60">Selecione .wav, .mp3, .m4a</p>
                     <input type="file" accept="audio/*" class="hidden" id="fileInput">
                 </label>
-                <p id="fileStatus" class="text-sm mt-3 opacity-60 hidden">Arquivo: <span id="fileName"></span></p>
             </section>
 
-            <section id="fileSection" class="glass-panel rounded-2xl p-6 hidden">
+            <!-- ================================================== -->
+            <!-- 📋 SEÇÃO 3: LISTA DE ÁUDIOS (HISTÓRICO)           -->
+            <!-- ================================================== -->
+            <section id="audioListSection" class="glass-panel rounded-2xl p-6 hidden">
                 <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                    <i class="fas fa-file-audio text-elayon-glow"></i> ARQUIVO PRONTO
+                    <i class="fas fa-list-ol text-elayon-glow"></i> HISTÓRICO DE CAPTAÇÕES
+                </h3>
+                <div id="audioList" class="max-h-60 overflow-y-auto">
+                    <!-- Os áudios aparecem aqui -->
+                </div>
+            </section>
+
+            <!-- ================================================== -->
+            <!-- 📡 SEÇÃO 4: ENVIO E RETORNO CRS                    -->
+            <!-- ================================================== -->
+            <section id="crsSection" class="glass-panel rounded-2xl p-6 hidden">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="fas fa-satellite-dish text-elayon-glow"></i> OPERAÇÃO CRS
                 </h3>
                 
                 <div class="flex flex-col gap-4">
                     <audio id="audioPlayer" controls class="w-full">
                     
                     <div class="grid grid-cols-2 gap-4">
-                        <a id="btnDownload" href="#" download="emanacao_bruta.wav" class="glass-panel rounded-xl p-4 text-center hover:bg-blue-500/10 transition">
-                            <i class="fas fa-download text-blue-400"></i> SALVAR ARQUIVO
+                        <a id="btnDownload" href="#" class="glass-panel rounded-xl p-4 text-center hover:bg-blue-500/10 transition">
+                            <i class="fas fa-download text-blue-400"></i> SALVAR ÁUDIO
                         </a>
                         <button id="btnSendCRS" class="glass-panel rounded-xl p-4 hover:bg-green-500/10 transition">
-                            <i class="fas fa-satellite-dish text-green-400"></i> ENVIAR PARA CRS
+                            <i class="fas fa-paper-plane text-green-400"></i> ENVIAR PARA ANÁLISE
                         </button>
                     </div>
                 </div>
             </section>
 
+            <!-- ================================================== -->
+            <!-- 📄 SEÇÃO 5: RELATÓRIO FINAL                       -->
+            <!-- ================================================== -->
+            <div id="reportZone" class="hidden mt-8">
+                <h3 class="text-lg font-bold mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
+                    <i class="fas fa-file-chart-column text-elayon-glow"></i> MAPA DE DADOS | RELATÓRIO CRS
+                </h3>
+                <div class="glass-panel rounded-xl p-5 font-mono text-sm leading-relaxed min-h-[250px] whitespace-pre-line relative" id="relatorioFinal">
+                    Dados da análise aparecerão aqui...
+                    <button id="btnDownloadReport" class="absolute top-4 right-4 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded hidden">
+                        <i class="fas fa-download"></i> Baixar Relatório
+                    </button>
+                </div>
+            </div>
+
+            <!-- ================================================== -->
+            <!-- 🖥️ SEÇÃO 6: LOG DO SISTEMA                        -->
+            <!-- ================================================== -->
             <section class="glass-panel rounded-2xl p-6">
                 <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
                     <i class="fas fa-terminal text-gray-400"></i> LOG DO SISTEMA
@@ -166,15 +211,6 @@
                 <button id="btnClearLog" class="text-xs text-gray-500 mt-2 hover:text-white">Limpar Log</button>
             </section>
 
-            <div id="reportZone" class="hidden mt-8">
-                <h3 class="text-lg font-bold mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
-                    <i class="fas fa-file-chart-column text-elayon-glow"></i> MAPA DE DATOS | CRS
-                </h3>
-                <div class="glass-panel rounded-xl p-5 font-mono text-sm leading-relaxed min-h-[250px] whitespace-pre-line" id="relatorioFinal">
-                    Dados da análise aparecerão aqui...
-                </div>
-            </div>
-
         </main>
     </div>
 
@@ -184,7 +220,7 @@
         // ==================================================
         let mediaRecorder;
         let audioChunks = [];
-        let audioBlob;
+        let currentAudioBlob;
         let isRecording = false;
         let isPaused = false;
         let startTime;
@@ -194,6 +230,7 @@
         let dataArray;
         let bufferLength;
         let bars;
+        let audioHistory = []; // Array para guardar os últimos 10
 
         // ==================================================
         // 📡 ELEMENTOS
@@ -208,12 +245,14 @@
         const recIndicator = document.getElementById('recIndicator');
         const visualizer = document.getElementById('visualizer');
         const logBox = document.getElementById('logTech');
-        const fileSection = document.getElementById('fileSection');
+        const audioListSection = document.getElementById('audioListSection');
+        const audioList = document.getElementById('audioList');
+        const crsSection = document.getElementById('crsSection');
         const audioPlayer = document.getElementById('audioPlayer');
         const reportZone = document.getElementById('reportZone');
         const relatorioFinal = document.getElementById('relatorioFinal');
         const fileInput = document.getElementById('fileInput');
-        const fileNameSpan = document.getElementById('fileName');
+        const btnDownloadReport = document.getElementById('btnDownloadReport');
 
         // ==================================================
         // 🛠️ FUNÇÕES AUXILIARES
@@ -258,27 +297,119 @@
         }
 
         // ==================================================
+        // 📜 GERENCIADOR DE HISTÓRICO (LISTA)
+        // ==================================================
+        function addToHistory(blob, name = "audio") {
+            const url = URL.createObjectURL(blob);
+            const timeStamp = new Date().toLocaleTimeString("pt-BR");
+            
+            const audioObj = { url, blob, name, time: timeStamp };
+            
+            // Adiciona no início da lista
+            audioHistory.unshift(audioObj);
+            
+            // Mantém só os últimos 10
+            if(audioHistory.length > 10) {
+                audioHistory.pop();
+            }
+
+            renderHistoryList();
+            log(`📜 Adicionado ao histórico. Total: ${audioHistory.length}`);
+        }
+
+        function renderHistoryList() {
+            audio
+
+        }
+
+        // ==================================================
+        // 📜 GERENCIADOR DE HISTÓRICO (LISTA)
+        // ==================================================
+        function addToHistory(blob, name = "audio") {
+            const url = URL.createObjectURL(blob);
+            const timeStamp = new Date().toLocaleTimeString("pt-BR");
+            
+            const audioObj = { url, blob, name, time: timeStamp };
+            
+            // Adiciona no início da lista
+            audioHistory.unshift(audioObj);
+            
+            // Mantém só os últimos 10
+            if(audioHistory.length > 10) {
+                audioHistory.pop();
+            }
+
+            renderHistoryList();
+            log(`📜 Adicionado ao histórico. Total: ${audioHistory.length}`);
+        }
+
+        function renderHistoryList() {
+            audioList.innerHTML = ""; // Limpa a lista
+
+            if(audioHistory.length === 0) {
+                audioList.innerHTML = "<p class='text-gray-500 text-sm'>Nenhuma captação ainda.</p>";
+                return;
+            }
+
+            audioHistory.forEach((item, index) => {
+                const div = document.createElement("div");
+                div.className = "audio-item flex items-center justify-between py-2";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-wave-square text-blue-400"></i>
+                        <div>
+                            <p class="font-medium text-sm">${item.name}</p>
+                            <p class="text-xs text-gray-500">${item.time}</p>
+                        </div>
+                    </div>
+                    <button class="text-xs bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded load-audio-btn" data-index="${index}">
+                        <i class="fas fa-play"></i> Carregar
+                    </button>
+                `;
+                audioList.appendChild(div);
+            });
+
+            // Adiciona evento nos botões
+            document.querySelectorAll('.load-audio-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const idx = this.getAttribute('data-index');
+                    const item = audioHistory[idx];
+                    
+                    currentAudioBlob = item.blob;
+                    audioPlayer.src = item.url;
+                    btnDownload.href = item.url;
+                    btnDownload.download = item.name;
+                    
+                    crsSection.classList.remove('hidden');
+                    log(`📂 Áudio carregado do histórico: ${item.name}`);
+                });
+            });
+
+            audioListSection.classList.remove('hidden');
+        }
+
+        // ==================================================
         // 📂 UPLOAD DE ARQUIVO
         // ==================================================
         fileInput.addEventListener('change', function() {
             if(this.files.length > 0) {
                 const file = this.files[0];
-                audioBlob = file;
+                currentAudioBlob = file;
                 const audioUrl = URL.createObjectURL(file);
                 
-                fileNameSpan.textContent = file.name;
-                fileStatus.classList.remove('hidden');
+                addToHistory(file, file.name);
+                
                 audioPlayer.src = audioUrl;
                 btnDownload.href = audioUrl;
                 btnDownload.download = file.name;
                 
-                fileSection.classList.remove('hidden');
+                crsSection.classList.remove('hidden');
                 log(`📂 Arquivo carregado: ${file.name} (${file.size.toLocaleString()} bytes)`);
             }
         });
 
         // ==================================================
-        // 🎤 FUNÇÃO PRINCIPAL DE GRAVAÇÃO (CORRIGIDA)
+        // 🎤 FUNÇÃO PRINCIPAL DE GRAVAÇÃO
         // ==================================================
         async function startRecording() {
             try {
@@ -312,15 +443,21 @@
                 };
 
                 mediaRecorder.onstop = () => {
-                    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    currentAudioBlob = blob;
+                    
+                    const timestamp = new Date().toLocaleTimeString("pt-BR").replace(/:/g, '-');
+                    const fileName = `captura_${timestamp}.webm`;
+                    
+                    addToHistory(blob, fileName);
 
+                    const audioUrl = URL.createObjectURL(blob);
                     audioPlayer.src = audioUrl;
                     btnDownload.href = audioUrl;
+                    btnDownload.download = fileName;
 
-                    fileSection.classList.remove('hidden');
-
-                    log("📁 Áudio gerado com sucesso.");
+                    crsSection.classList.remove('hidden');
+                    log("📁 Áudio gerado e salvo no histórico.");
                 };
 
                 mediaRecorder.start();
@@ -357,150 +494,178 @@
             }
         });
 
-       // ==================================================
-// ⏸️ BOTÃO PAUSAR
-// ==================================================
-btnPause.addEventListener('click', () => {
-    if (!isRecording) return;
+        // ==================================================
+        // ⏸️ BOTÃO PAUSAR
+        // ==================================================
+        btnPause.addEventListener('click', () => {
+            if (!isRecording) return;
 
-    if (!isPaused) {
-        mediaRecorder.pause();
-        isPaused = true;
-        btnPause.innerHTML = '<i class="fas fa-play text-green-400"></i><span>CONTINUAR</span>';
-        clearInterval(interval);
-        log("⏸️ Pausado");
-    } else {
-        mediaRecorder.resume();
-        isPaused = false;
-        btnPause.innerHTML = '<i class="fas fa-pause text-yellow-400"></i><span>PAUSAR</span>';
-        startTime = Date.now() - (parseInt(timerDisplay.textContent.split(':')[0])*60 + parseInt(timerDisplay.textContent.split(':')[1])) * 1000;
-        interval = setInterval(updateTimer, 1000);
-        drawWaveform();
-        log("▶️ Retomado");
-    }
-});
+            if (!isPaused) {
+                mediaRecorder.pause();
+                isPaused = true;
+                btnPause.innerHTML = '<i class="fas fa-play text-green-400"></i><span>CONTINUAR</span>';
+                clearInterval(interval);
+                log("⏸️ Pausado");
+            } else {
+                mediaRecorder.resume();
+                isPaused = false;
+                btnPause.innerHTML = '<i class="fas fa-pause text-yellow-400"></i><span>PAUSAR</span>';
+                startTime = Date.now() - (parseInt(timerDisplay.textContent.split(':')[0])*60 + parseInt(timerDisplay.textContent.split(':')[1])) * 1000;
+                interval = setInterval(updateTimer, 1000);
+                drawWaveform();
+                log("▶️ Retomado");
+            }
+        });
 
-// ==================================================
-// 🛑 BOTÃO PARAR / FINALIZAR
-// ==================================================
-function stopRecording() {
-    if (!isRecording) return;
-    
-    mediaRecorder.stop();
-    mediaRecorder.stream.getTracks().forEach(track => track.stop());
-    
-    isRecording = false;
-    clearInterval(interval);
-    
-    btnRecord.innerHTML = '<i class="fas fa-circle"></i>';
-    btnRecord.classList.remove('bg-gray-700');
-    btnRecord.classList.add('bg-red-600');
-    recIndicator.classList.add('opacity-0');
-    btnPause.innerHTML = '<i class="fas fa-pause text-yellow-400"></i><span>PAUSAR</span>';
+        // ==================================================
+        // 🛑 BOTÃO PARAR / FINALIZAR
+        // ==================================================
+        function stopRecording() {
+            if (!isRecording) return;
+            
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            
+            isRecording = false;
+            clearInterval(interval);
+            
+            btnRecord.innerHTML = '<i class="fas fa-circle"></i>';
+            btnRecord.classList.remove('bg-gray-700');
+            btnRecord.classList.add('bg-red-600');
+            recIndicator.classList.add('opacity-0');
+            btnPause.innerHTML = '<i class="fas fa-pause text-yellow-400"></i><span>PAUSAR</span>';
 
-    log("🛑 Gravação finalizada.");
-}
+            log("🛑 Gravação finalizada.");
+        }
 
-btnStop.addEventListener('click', stopRecording);
+        btnStop.addEventListener('click', stopRecording);
 
-// ==================================================
-// 📡 INTEGRAÇÃO COM O CRS (MOCKADO)
-// ==================================================
-btnSendCRS.addEventListener('click', async () => {
-    if (!audioBlob) {
-        log("⚠️ Nenhum áudio carregado ou gravado!");
-        return;
-    }
+        // ==================================================
+        // 📡 INTEGRAÇÃO COM O CRS
+        // ==================================================
+        btnSendCRS.addEventListener('click', async () => {
+            if (!currentAudioBlob) {
+                log("⚠️ Nenhum áudio carregado!");
+                return;
+            }
 
-    log("🚀 Iniciando análise CRS...");
-    reportZone.classList.remove('hidden');
-    relatorioFinal.textContent = "Processando emanação...\nGerando mapa de frequências...\nAguarde...";
+            log("🚀 Enviando para o Núcleo CRS...");
+            reportZone.classList.remove('hidden');
+            relatorioFinal.textContent = "Processando emanação...\nAguarde o retorno do núcleo...";
+            btnDownloadReport.classList.add('hidden');
 
-    try {
-        // 🧪 SIMULAÇÃO LOCAL PARA TREINAMENTO
-        const dadosSimulados = {
-            ressonancia: Math.floor(Math.random() * 25) + 75,
-            frequencia: Math.floor(Math.random() * 150) + 420,
-            alinhamento: Math.floor(Math.random() * 20) + 80,
-            densidade: (Math.random() * 0.4 + 0.6).toFixed(2),
-            pausas: Math.floor(Math.random() * 8) + 4,
-            interpretacao: "Análise concluída em modo local.\nOs índices indicam alta coerência e conexão estável.\nSeu padrão energético está registrado no sistema."
-        };
+            try {
+                // 📤 PREPARAÇÃO DO ENVIO
+                // Aqui enviamos o arquivo puro
+                const formData = new FormData();
+                formData.append('audio', currentAudioBlob, 'captura_bruta.webm');
 
-        log("✅ Análise concluída (Modo Local)");
+                // 🧪 SIMULAÇÃO (TROCAR DEPOIS PELA URL REAL)
+                // const response = await fetch('SUA_URL_RENDER/api/crs', { method: 'POST', body: formData });
+                // const dados = await response.json();
 
-        // Monta o relatório final
-        const relatorio = `
+                // Simulação local para teste
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                const dados = {
+                    status: "ANALISADO",
+                    ressonancia: Math.floor(Math.random() * 20) + 80,
+                    frequencia: Math.floor(Math.random() * 100) + 440,
+                    alinhamento: Math.floor(Math.random() * 15) + 85,
+                    densidade: (Math.random() * 0.5 + 0.5).toFixed(2),
+                    interpretacao: "Relatório gerado com sucesso.\nOs padrões de emanação foram capturados e armazenados na base.\nSistema pronto para próxima operação."
+                };
+
+                log("✅ Relatório CRS recebido.");
+
+                // 📄 MONTAGEM DO RELATÓRIO FINAL
+                const relatorio = `
 =============================================
             RELATÓRIO DE EMANAÇÃO
                MÓDULO PRESENÇA
 =============================================
 
-STATUS: CONCLUÍDO
-ORIGEM: ${fileNameSpan.textContent || "Gravação Interna"}
-TAMANHO: ${audioBlob.size.toLocaleString()} bytes
-DURAÇÃO: ${timerDisplay.textContent}
+STATUS: ${dados.status}
+ARQUIVO: ${btnDownload.download || "Áudio Bruto"}
+TAMANHO: ${currentAudioBlob.size.toLocaleString()} bytes
+DATA: ${new Date().toLocaleDateString()}
+HORA: ${new Date().toLocaleTimeString()}
 
 --- MAPA DE FREQUÊNCIA ---
 
-📡 RESSONÂNCIA: ${dadosSimulados.ressonancia}%
-    Nível de vibração e presença.
+📡 RESSONÂNCIA: ${dados.ressonancia}%
+    Intensidade do sinal capturado.
 
-🎵 FREQUÊNCIA MÉDIA: ${dadosSimulados.frequencia} Hz
-    Tom predominante da emissão.
+🎵 FREQUÊNCIA MÉDIA: ${dados.frequencia} Hz
+    Faixa predominante de vibração.
 
-✨ ALINHAMENTO: ${dadosSimulados.alinhamento}%
-    Coerência entre intenção e emissão.
+✨ ALINHAMENTO: ${dados.alinhamento}%
+    Coerência e estabilidade da emissão.
 
-📊 DENSIDADE: ${dadosSimulados.densidade}
-    Concentração de informação.
+📊 DENSIDADE: ${dados.densidade}
+    Concentração de dados no arquivo.
 
-⏸️ PAUSAS ESTRATÉGICAS: ${dadosSimulados.pausas}
-    Momentos de silêncio e peso.
+--- INTERPRETAÇÃO ---
 
---- INTERPRETAÇÃO SIMBÓLICA ---
-
-${dadosSimulados.interpretacao}
+${dados.interpretacao}
 
 =============================================
             SISTEMAS ELAYON
 =============================================
-        `;
+                `;
 
-        relatorioFinal.textContent = relatorio;
+                relatorioFinal.textContent = relatorio;
+                btnDownloadReport.classList.remove('hidden');
 
-    } catch (err) {
-        log(`❌ FALHA NA ANÁLISE: ${err.message}`);
-        relatorioFinal.textContent = `⚠️ ERRO NO SISTEMA\n\n${err.message}`;
-    }
-});
+                // 💾 SALVAR RELATÓRIO
+                btnDownloadReport.onclick = () => {
+                    const blobReport = new Blob([relatorio], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blobReport);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `relatorio_${new Date().toISOString().slice(0,19).replace(/[:T]/g, '-')}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    log("📄 Relatório salvo.");
+                };
 
-// ==================================================
-// 🧹 LIMPAR LOG E RESET
-// ==================================================
-document.getElementById('btnClearLog').addEventListener('click', () => {
-    logBox.textContent = "";
-    log("[LOG ZEBRADO]");
-});
+            } catch (err) {
+                log(`❌ FALHA: ${err.message}`);
+                relatorioFinal.textContent = `⚠️ ERRO NA TRANSMISSÃO\n\n${err.message}`;
+            }
+        });
 
-btnClear.addEventListener('click', () => {
-    audioChunks = [];
-    audioBlob = null;
-    fileInput.value = '';
-    if(fileStatus) fileStatus.classList.add('hidden');
-    fileSection.classList.add('hidden');
-    reportZone.classList.add('hidden');
-    timerDisplay.textContent = "00:00";
-    if(bars) bars.forEach(bar => bar.style.height = '5px');
-    log("🧹 Sistema resetado. Pronto para nova captação.");
-});
+        // ==================================================
+        // 🧹 LIMPAR TUDO
+        // ==================================================
+        document.getElementById('btnClearLog').addEventListener('click', () => {
+            logBox.textContent = "";
+            log("[LOG ZEBRADO]");
+        });
 
-// ==================================================
-// 🚀 INICIALIZAÇÃO FINAL
-// ==================================================
-initVisualizer();
-log("⚡ Sistema carregado. Modo Áudio Bruto ativo.");
+        btnClear.addEventListener('click', () => {
+            audioChunks = [];
+            currentAudioBlob = null;
+            audioHistory = [];
+            fileInput.value = '';
+            audioList.innerHTML = "";
+            audioListSection.classList.add('hidden');
+            crsSection.classList.add('hidden');
+            reportZone.classList.add('hidden');
+            timerDisplay.textContent = "00:00";
+            if(bars) bars.forEach(bar => bar.style.height = '5px');
+            log("🧹 Histórico, arquivos e log resetados. Pronto de novo.");
+        });
 
-</script>
+        // ==================================================
+        // 🚀 INICIALIZAÇÃO
+        // ==================================================
+        initVisualizer();
+        log("⚡ Sistema carregado. Modo Áudio Bruto ativo.");
+
+    </script>
 </body>
 </html>
+
