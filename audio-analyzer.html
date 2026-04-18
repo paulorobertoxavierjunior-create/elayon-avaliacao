@@ -13,12 +13,17 @@
         .value { font-size: 1.2em; font-weight: bold; }
         #textoCapturado { margin-top: 20px; padding: 15px; background: #0a0a0f; border: 1px solid #333; min-height: 100px; }
         button { background: #00ffcc; color: #000; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; margin: 5px; }
+        button:disabled { background: #444; color: #888; cursor: not-allowed; }
+        .status { text-align: center; margin: 15px 0; padding: 10px; border-radius: 5px; }
+        .status.active { background: rgba(0,255,204,0.1); border: 1px solid #00ffcc; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🔊 PAINEL DE ANÁLISE DE ÁUDIO CRS</h1>
         
+        <div id="statusBox" class="status">Aguardando início...</div>
+
         <div class="metric">
             <span class="label">Tempo Total:</span>
             <span class="value" id="duration">--s</span>
@@ -46,15 +51,85 @@
         <h3>Payload Final (JSON):</h3>
         <pre id="jsonOutput">{}</pre>
 
-        <button onclick="testarCaptura()">TESTAR CAPTURA</button>
+        <button id="btnStart" onclick="iniciarCaptura()">TESTAR CAPTURA</button>
+        <button id="btnStop" onclick="pararCaptura()" disabled>PARAR E GERAR JSON</button>
         <button onclick="baixarJSON()">BAIXAR JSON</button>
     </div>
 
     <script>
-        // Aqui a gente vai conectar com o motor que já fizemos
+        // ==========================================
+        // 🧠 MOTOR DE ANÁLISE DE ÁUDIO LOCAL
+        // ==========================================
+        
+        let audioAnalysis = {
+            startTime: null,
+            endTime: null,
+            totalSilenceTime: 0,
+            pauseCount: 0,
+            lastSoundTime: 0,
+            isRunning: false
+        };
+
         let dadosFinais = null;
+        let recognition = null;
+
+        function startAudioAnalysis() {
+            audioAnalysis = {
+                startTime: Date.now(),
+                endTime: null,
+                totalSilenceTime: 0,
+                pauseCount: 0,
+                lastSoundTime: Date.now(),
+                isRunning: true
+            };
+            console.log("Iniciando análise...");
+        }
+
+        function registerSound() {
+            if (!audioAnalysis.isRunning) return;
+            
+            const now = Date.now();
+            const silenceDuration = now - audioAnalysis.lastSoundTime;
+            
+            if (silenceDuration > 1500) { // > 1.5s considera pausa
+                audioAnalysis.pauseCount++;
+                audioAnalysis.totalSilenceTime += silenceDuration;
+                console.log(`Pausa: ${(silenceDuration/1000).toFixed(1)}s`);
+            }
+            
+            audioAnalysis.lastSoundTime = now;
+        }
+
+        function stopAudioAnalysis() {
+            if (!audioAnalysis.isRunning) return null;
+            
+            audioAnalysis.endTime = Date.now();
+            audioAnalysis.isRunning = false;
+            
+            const totalTimeSec = (audioAnalysis.endTime - audioAnalysis.startTime) / 1000;
+            const speakingTimeSec = totalTimeSec - (audioAnalysis.totalSilenceTime / 1000);
+            const silencePercentage = totalTimeSec > 0 ? 
+                ((audioAnalysis.totalSilenceTime / 1000) / totalTimeSec) * 100 : 0;
+            
+            const result = {
+                duration_sec: parseFloat(totalTimeSec.toFixed(2)),
+                speaking_time_sec: parseFloat(speakingTimeSec.toFixed(2)),
+                silence_pct: parseFloat(silencePercentage.toFixed(1)),
+                pause_count: audioAnalysis.pauseCount,
+                mean_pause_ms: audioAnalysis.pauseCount > 0 ? 
+                    parseFloat((audioAnalysis.totalSilenceTime / audioAnalysis.pauseCount).toFixed(0)) : 0
+            };
+            
+            console.log("Análise concluída:", result);
+            return result;
+        }
+
+        // ==========================================
+        // 🔌 INTERFACE COM A TELA
+        // ==========================================
 
         function atualizarPainel(dados) {
+            if(!dados) return;
             document.getElementById('duration').textContent = dados.duration_sec + 's';
             document.getElementById('speaking').textContent = dados.speaking_time_sec + 's';
             document.getElementById('silence').textContent = dados.silence_pct + '%';
@@ -66,22 +141,97 @@
 
         function atualizarTexto(texto) {
             document.getElementById('textoCapturado').textContent = texto;
+            if(texto && texto.trim().length > 0) {
+                registerSound(); // Marca atividade
+            }
+        }
+
+        function setStatus(texto, ativo = false) {
+            const box = document.getElementById('statusBox');
+            box.textContent = texto;
+            box.classList.toggle('active', ativo);
         }
 
         function baixarJSON() {
-            if(!dadosFinais) return alert("Nenhum dado para baixar!");
-            const blob = new Blob([JSON.stringify(dadosFinais, null, 2)], {type: 'application/json'});
+            if(!dadosFinais) {
+                alert("Nenhum dado para baixar! Capture primeiro.");
+                return;
+            }
+            const payloadCompleto = {
+                text: document.getElementById('textoCapturado').textContent,
+                theme: "TESTE - ANÁLISE DE ÁUDIO",
+                context: "Debug Ferramenta",
+                metrics: dadosFinais
+            };
+            
+            const blob = new Blob([JSON.stringify(payloadCompleto, null, 2)], {type: 'application/json'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url; a.download = `analise-audio-${Date.now()}.json`;
             a.click();
         }
 
-        // Função que o cockpit vai chamar quando tiver dados
-        window.receberDadosAudio = function(texto, metrics) {
-            atualizarTexto(texto);
-            atualizarPainel(metrics);
+        // ==========================================
+        // 🎤 CAPTURA DE VOZ
+        // ==========================================
+
+        function iniciarCaptura() {
+            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                alert("Seu navegador não suporta reconhecimento de voz. Use Chrome.");
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+
+            // 🔥 CONFIGURAÇÕES CHAVE
+            recognition.continuous = true;       // Não para sozinho
+            recognition.interimResults = true;  // Mostra enquanto fala
+            recognition.lang = 'pt-BR';
+
+            recognition.onstart = () => {
+                startAudioAnalysis();
+                setStatus("🎙️ CAPTURA ATIVA... Fale agora!", true);
+                document.getElementById('btnStart').disabled = true;
+                document.getElementById('btnStop').disabled = false;
+                atualizarTexto("");
+            };
+
+            recognition.onresult = (event) => {
+                let transcript = "";
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                atualizarTexto(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Erro:", event.error);
+                setStatus(`Erro: ${event.error}`);
+            };
+
+            recognition.onend = () => {
+                // Se ainda estiver rodando, liga de novo
+                if (document.getElementById('btnStop').disabled === false) {
+                    recognition.start();
+                }
+            };
+
+            recognition.start();
         }
+
+        function pararCaptura() {
+            if(recognition) {
+                recognition.stop();
+            }
+            
+            dadosFinais = stopAudioAnalysis();
+            atualizarPainel(dadosFinais);
+            setStatus("✅ CONCLUÍDO! Dados gerados.");
+            document.getElementById('btnStart').disabled = false;
+            document.getElementById('btnStop').disabled = true;
+        }
+
     </script>
 </body>
 </html>
