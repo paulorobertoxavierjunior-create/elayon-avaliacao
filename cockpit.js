@@ -1,6 +1,9 @@
 /* ======================================
-   CONSTANTES E ESTADO GLOBAL
+   SISTEMAS ELAYON — PRESENÇA
+   COCKPIT.JS — VERSÃO COMPLETA E MODULARIZADA
    ====================================== */
+
+/* ========== 🎛️ CONSTANTES E ESTADO GLOBAL ========== */
 
 const WORKWORDS = {
   fecharLivre: ["ok ok", "okok", "ok, ok", "ok,ok", "ok-ok", "ok. ok"],
@@ -25,10 +28,7 @@ const STATE = {
   locked: false
 };
 
-
-/* ======================================
-   FUNÇÕES AUXILIARES (HELPERS)
-   ====================================== */
+/* =========- 🛠️ FUNÇÕES AUXILIARES (HELPERS) ========== */
 
 function el(id) { 
   return document.getElementById(id); 
@@ -88,9 +88,7 @@ function limparSessaoVisual() {
   setText("statusSessao", "Preparando ambiente..."); 
 }
 
-/* ======================================
-   TEXTO PROGRESSIVO E FALA (TTS)
-   ====================================== */
+/* ========== ✍️ TEXTO PROGRESSIVO E FALA (TTS) ========== */
 
 function escreverTextoProgressivo(texto, alvoId, velocidade = FLOW.TYPE_SPEED) {
   return new Promise((resolve) => {
@@ -115,10 +113,7 @@ async function falarComTexto(texto, alvoId = "textoVivo") {
   await sleep(FLOW.STEP_DELAY_MS);
 }
 
-
-/* ======================================
-   EFEITOS SONOROS E CONTAGEM
-   ====================================== */
+/* =========- 🔊 EFEITOS SONOROS E CONTAGEM ========== */
 
 function bip() {
   try {
@@ -146,9 +141,7 @@ async function contagemParaAbrirEscuta() {
   setText("statusSessao", "Bip. Escuta iniciando."); bip(); await sleep(250);
 }
 
-/* ======================================
-   🧠 MOTOR DE ANÁLISE DE ÁUDIO LOCAL
-   ====================================== */
+/* ========== 🧠 MOTOR DE ANÁLISE DE ÁUDIO LOCAL ========== */
 
 let audioAnalysis = {
   startTime: null,
@@ -159,7 +152,6 @@ let audioAnalysis = {
   isRunning: false
 };
 
-// Variável global para guardar os dados calculados
 let dadosAnalisadosLocalmente = null;
 
 function startAudioAnalysis() {
@@ -180,7 +172,6 @@ function registerSound() {
   const now = Date.now();
   const silenceDuration = now - audioAnalysis.lastSoundTime;
   
-  // Considera pausa se passou mais de 1.5s sem falar
   if (silenceDuration > 1500) {
     audioAnalysis.pauseCount++;
     audioAnalysis.totalSilenceTime += silenceDuration;
@@ -213,33 +204,27 @@ function stopAudioAnalysis() {
   return result;
 }
 
-
-/* ======================================
-   🔴 GAMBIARRA TECNOLÓGICA - BYPASS TOTAL
-   ====================================== */
+/* =========- 🎤 CAPTURA E MICROFONE (COM BYPASS) ========== */
 
 async function capturaComBypassTotal() {
   setText("statusSessao", "🔴 CAPTURA ATIVA - MODO BYPASS");
   setText("textoVivo", "");
   
-  // 🔌 INICIA A ANÁLISE LOCAL
   startAudioAnalysis();
 
   try {
     const heard = await window.ELAYON_TUNNEL.stt.listenForPhrase({
       stopPhrases: WORKWORDS.fecharLivre,
-      silenceFailsafeMs: FLOW.LISTEN_FREE_MS, // 🔥 IGNORA SILÊNCIO
+      silenceFailsafeMs: FLOW.LISTEN_FREE_MS,
       onPartial: d => {
         const text = d.cleaned_text || d.text || "";
         setText("textoVivo", text);
-        // Toda vez que chega texto, marca que teve som
         if(text.trim().length > 0) {
           registerSound();
         }
       }
     });
 
-    // ⏹️ PARA A ANÁLISE E GUARDA OS NÚMEROS
     dadosAnalisadosLocalmente = stopAudioAnalysis();
 
     const texto = (heard.cleaned_text || heard.text || "").trim();
@@ -250,7 +235,7 @@ async function capturaComBypassTotal() {
 
   } catch (erro) {
     log("Erro na captura: " + erro.message);
-    stopAudioAnalysis(); // Garante que para mesmo se der erro
+    stopAudioAnalysis();
     return "Sinal recebido com sucesso.";
   } finally {
     try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
@@ -258,12 +243,7 @@ async function capturaComBypassTotal() {
   }
 }
 
-/* ======================================
-   FUNÇÕES DE CAPTURA
-   ====================================== */
-
 async function capturarRespostaLivre() {
-  // Chama a função com BYPASS ativado
   return await capturaComBypassTotal();
 }
 
@@ -289,9 +269,7 @@ async function capturarDecisaoCurta() {
   }
 }
 
-/* ======================================
-   TUTORIAL E APRESENTAÇÃO
-   ====================================== */
+/* =========- 📖 TUTORIAL E APRESENTAÇÃO ========== */
 
 async function rodadaTutorial() {
   await falarComTexto(`Sistema Elayon.\n\nHumanidade e Tecnologia, em Harmonia.\n\nVocê acessou o módulo PRESENÇA.\n\nUma interface de conexão direta.`);
@@ -301,10 +279,7 @@ async function rodadaTutorial() {
   await falarComTexto(`Funciona como uma ponte:\nDa sua mente para os circuitos.\nDos circuitos para IA e da IA pro seu painel.\n\n**Protocolo:**\nFale livremente, sem filtros. Deixe fluir. Pode pausar para pensar que o micro permanece aberto.\nQuando estiver completo o raciocínio, diga: Ok Ok.\n\nVou liberar o microfone para iniciarmos. Respire e sinta-se`);
 }
 
-
-/* ======================================
-   PERGUNTAS E EXECUÇÃO DAS ETAPAS
-   ====================================== */
+/* =========- 📋 PERGUNTAS E FLUXO DAS ETAPAS ========== */
 
 function obterPerguntas() {
   const tema = (el("inpTema")?.value || "").trim() || "o tema que você escolheu";
@@ -337,70 +312,29 @@ async function rodarEtapa(pergunta, indice) {
   return resposta;
 }
 
-/* ======================================
-   ENVIO E ANÁLISE CRS
-   ====================================== */
+/* =========- 📡 ENVIO E ANÁLISE CRS ========== */
 
 async function enviarCRS(texto, indice) {
   const tema = (el("inpTema")?.value || "").trim();
   const contexto = (el("inpContexto")?.value || "").trim();
   
-  // 📦 Monta o pacote COMPLETO com dados calculados
   const payload = {
     text: texto,
     theme: tema,
     context: `${contexto} | etapa ${indice + 1}`,
-    // Dados da análise local
     metrics: dadosAnalisadosLocalmente || {}
   };
   
   log(`Enviando para análise CRS...`);
   console.log("Payload completo:", payload);
 
-  // Envia pro CRS receber e armazenar
   const resultado = await window.ELAYON_TUNNEL.crs.analyze(payload);
   
   console.log("Resposta CRS:", resultado);
   return resultado;
 }
 
-
-/* ======================================
-   GERAÇÃO DE RELATÓRIO E PDF
-   ====================================== */
-
-function gerarRelatorio(respostas, analises) {
-  let txt = "=====================================\n";
-  txt += "        SISTEMAS ELAYON\n";
-  txt += "          MÓDULO PRESENÇA\n";
-  txt += "=====================================\n\n";
-  txt += `ID da Sessão: ${STATE.sessionId}\n`;
-  txt += `Data: ${new Date().toLocaleString("pt-BR")}\n`;
-  txt += `Tema: ${(el("inpTema")?.value || "").trim() || "livre"}\n\n`;
-  
-  respostas.forEach((r, i) => {
-    txt += `--- ETAPA ${i + 1} ---\n`;
-    txt += `Transcrição: ${r}\n`;
-    
-    const dados = analises[i] || {};
-    txt += `Status: Processado na camada CRS.\n`;
-    
-    const tempo = dados.duration_sec || dados.tempo_total || dados.duration || '--';
-    const silencio = dados.silence_pct || dados.porcentagem_silencio || dados.silence || '--';
-    
-    txt += `Tempo de fala: ${tempo}s\n`;
-    txt += `Taxa de silêncio: ${silencio}%\n`;
-    
-    if(dados.pause_count !== undefined) txt += `Pausas: ${dados.pause_count}\n`;
-    if(dados.mean_pause_ms !== undefined) txt += `Média de pausa: ${dados.mean_pause_ms}ms\n`;
-    
-    txt += `\n`;
-  });
-
-  txt += `\n>> Relatório gerado e disponível para exportação e integração.\n`;
-  txt += `>> Sistemas Elayon - Humanidade e Tecnologia em Harmonia.`;
-  return txt;
-}
+/* =========- 📄 RELATÓRIO E PDF (CONTINUAÇÃO) ========== */
 
 function gerarPdfRelatorio() {
   const texto = el("relatorioFinal")?.textContent;
@@ -431,10 +365,7 @@ function novaSessao() {
   showTela("intro");
 }
 
-
-/* ======================================
-   FUNÇÃO PRINCIPAL (INICIAR SISTEMA)
-   ====================================== */
+/* ========== 🚀 FUNÇÃO PRINCIPAL (INICIAR SISTEMA) ========== */
 
 async function iniciar() {
   alert("🔵 MOTOR LIGADO! INICIANDO...");
@@ -490,10 +421,7 @@ async function iniciar() {
   }
 }
 
-
-/* ======================================
-   INICIALIZAÇÃO DOS BOTÕES
-   ====================================== */
+/* ========== 🔌 INICIALIZAÇÃO DOS BOTÕES ========== */
 
 document.addEventListener("DOMContentLoaded", () => {
   try {
@@ -502,10 +430,13 @@ document.addEventListener("DOMContentLoaded", () => {
     log("Sistema carregado. MODO BYPASS ATIVADO.");
     log("Microfone permanecerá aberto até comando 'Ok Ok'.");
 
+    // ✅ CONEXÃO FORÇADA DO BOTÃO PRINCIPAL
     const btn = document.getElementById("btnIniciar");
     if (btn) {
       btn.onclick = iniciar;
-      log("Botão principal conectado.");
+      log("✅ Botão principal conectado com sucesso!");
+    } else {
+      alert("🔴 ERRO: Botão #btnIniciar não encontrado na tela!");
     }
 
     const btnPdf = document.getElementById("btnGerarPdf");
@@ -519,4 +450,3 @@ document.addEventListener("DOMContentLoaded", () => {
     alert(`Erro na inicialização: ${err.message}`);
   }
 });
-
