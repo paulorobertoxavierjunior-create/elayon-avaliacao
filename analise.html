@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRESENÇA | ANÁLISE SIMBÓLICA</title>
+    <title>PRESENÇA | CAPTURA DE ÁUDIO BRUTO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- 🔌 CARREGA O TÚNEL DE COMUNICAÇÃO -->
+    <!-- 🔌 CARREGA O TÚNEL (PARA O CRS DEPOIS) -->
     <script src="tunnel.js"></script>
     
     <script>
@@ -64,6 +64,17 @@
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
             }
+            .log-box {
+                background: #050505;
+                border: 1px solid #222;
+                color: #0f0;
+                font-family: monospace;
+                font-size: 12px;
+                padding: 10px;
+                height: 150px;
+                overflow-y: auto;
+                white-space: pre-wrap;
+            }
         }
     </style>
 </head>
@@ -76,61 +87,94 @@
                 <img src="IMG-20250610-WA0002.jpg" alt="Logo Elayon" class="max-w-[140px mx-auto">
             </div>
             <h1 class="text-4xl font-bold tracking-wider text-gradient bg-gradient-to-r from-blue-400 to-cyan-400">MÓDULO PRESENÇA</h1>
-            <h2 class="text-xl font-mono opacity-80 mt-2">ANÁLISE SIMBÓLICA</h2>
-            <p class="text-sm opacity-60 mt-3 max-w-md mx-auto">Capture sua emanação, mapeie sua ressonância e alinhe sua frequência.</p>
+            <h2 class="text-xl font-mono opacity-80 mt-2">CAPTURA DE ÁUDIO BRUTO</h2>
+            <p class="text-sm opacity-60 mt-3">Microfone aberto contínuo. Sem cortes, sem ruídos, sem plop-plop.</p>
         </header>
 
         <main class="space-y-8">
             
+            <!-- ================================================== -->
+            <!-- 📦 SEÇÃO 1: PAINEL DE CONTROLE E VISUALIZAÇÃO      -->
+            <!-- ================================================== -->
             <section class="glass-panel rounded-2xl p-6">
                 <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                    <i class="fas fa-wave-square text-elayon-glow"></i> CAPTURA DE SINAL
+                    <i class="fas fa-microphone-lines text-elayon-glow"></i> ESTÚDIO DE CAPTAÇÃO
                 </h3>
 
                 <div class="bg-black/50 rounded-xl p-6 h-40 flex flex-col items-center justify-center relative overflow-hidden mb-6">
-                    <div class="absolute top-3 left-3 text-xs font-mono opacity-40">VISUALIZAÇÃO</div>
+                    <div class="absolute top-3 left-3 text-xs font-mono opacity-40">WAVEFORM</div>
                     <div id="visualizer" class="flex items-end gap-1 h-20"></div>
                     <div id="timerDisplay" class="absolute bottom-4 right-4 font-mono text-3xl font-bold opacity-80">00:00</div>
                     <div id="recIndicator" class="absolute top-4 right-4 flex items-center gap-2 text-red-500 opacity-0">
                         <i class="fas fa-circle animate-rec-blink"></i>
-                        <span class="font-mono text-sm">CAPTURANDO</span>
+                        <span class="font-mono text-sm">LIVE</span>
                     </div>
                 </div>
 
-                <!-- TEXTO QUE VOCÊ FALA APARECE AQUI -->
-                <div id="textoVivo" class="min-h-[60px] text-center text-lg font-medium text-gray-300 mb-4 px-4 py-2 bg-black/30 rounded-xl">
-                    Clique no botão abaixo e comece a falar...
-                </div>
-
+                <!-- BOTÕES DE CONTROLE -->
                 <div class="flex items-center justify-center gap-4 py-4">
                     <button id="btnRecord" class="w-20 h-20 rounded-full bg-red-600 hover:bg-red-700 text-white text-2xl flex items-center justify-center transition-all duration-300 shadow-lg shadow-red-900/30 active:scale-95">
-                        <i class="fas fa-microphone"></i>
+                        <i class="fas fa-circle"></i>
                     </button>
                 </div>
 
-                <div id="actionButtons" class="grid grid-cols-2 gap-4 opacity-0 pointer-events-none transition-all duration-500 mt-4">
-                    <button id="btnStop" class="glass-panel rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-white/5 transition border border-blue-500/50">
-                        <i class="fas fa-check text-blue-400"></i><span>FINALIZAR (OK OK)</span>
+                <div id="actionButtons" class="grid grid-cols-3 gap-4 opacity-100 transition-all duration-500 mt-4">
+                    <button id="btnPause" class="glass-panel rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-white/5 transition">
+                        <i class="fas fa-pause text-yellow-400"></i><span>PAUSAR</span>
                     </button>
-                    <button id="btnCancel" class="glass-panel rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-white/5 transition">
-                        <i class="fas fa-times text-red-400"></i><span>CANCELAR</span>
+                    <button id="btnStop" class="glass-panel rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-white/5 transition border border-green-500/50">
+                        <i class="fas fa-check text-green-400"></i><span>FINALIZAR</span>
+                    </button>
+                    <button id="btnClear" class="glass-panel rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-white/5 transition">
+                        <i class="fas fa-trash text-red-400"></i><span>APAGAR</span>
                     </button>
                 </div>
             </section>
 
-            <section class="glass-panel rounded-2xl p-6 text-sm leading-relaxed opacity-80">
-                <h4 class="font-bold mb-3 text-blue-400">Como funciona:</h4>
-                <p>1. Clique em gravar e fale normalmente o que quiser analisar.</p>
-                <p>2. O sistema fica ouvindo <strong>até você dizer "OK OK"</strong> ou clicar em Finalizar.</p>
-                <p>3. Os dados são enviados para o Núcleo CRS processar sua <strong>assinatura energética</strong>.</p>
+            <!-- ================================================== -->
+            <!-- 📦 SEÇÃO 2: ARQUIVO GERADO                         -->
+            <!-- ================================================== -->
+            <section id="fileSection" class="glass-panel rounded-2xl p-6 hidden">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i class="fas fa-file-audio text-elayon-glow"></i> ARQUIVO CAPTURADO
+                </h3>
+                
+                <div class="flex flex-col gap-4">
+                    <audio id="audioPlayer" controls class="w-full">
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <a id="btnDownload" href="#" download="emanação_bruta.wav" class="glass-panel rounded-xl p-4 text-center hover:bg-blue-500/10 transition">
+                            <i class="fas fa-download text-blue-400"></i> SALVAR ARQUIVO
+                        </a>
+                        <button id="btnSendCRS" class="glass-panel rounded-xl p-4 hover:bg-green-500/10 transition">
+                            <i class="fas fa-satellite-dish text-green-400"></i> ENVIAR PARA CRS
+                        </button>
+                    </div>
+                </div>
             </section>
 
+            <!-- ================================================== -->
+            <!-- 📦 SEÇÃO 3: CAIXA DE LOG / DIAGNÓSTICO            -->
+            <!-- ================================================== -->
+            <section class="glass-panel rounded-2xl p-6">
+                <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
+                    <i class="fas fa-terminal text-gray-400"></i> LOG DO SISTEMA
+                </h3>
+                <div id="logTech" class="log-box">
+[INFO] Sistema pronto. Aguardando comando...
+                </div>
+                <button id="btnClearLog" class="text-xs text-gray-500 mt-2 hover:text-white">Limpar Log</button>
+            </section>
+
+            <!-- ================================================== -->
+            <!-- 📦 SEÇÃO 4: RESULTADO / RELATÓRIO CRS             -->
+            <!-- ================================================== -->
             <div id="reportZone" class="hidden mt-8">
                 <h3 class="text-lg font-bold mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
-                    <i class="fas fa-file-chart-column text-elayon-glow"></i> MAPA DE DADOS
+                    <i class="fas fa-file-chart-column text-elayon-glow"></i> MAPA DE DADOS (CRS)
                 </h3>
                 <div class="glass-panel rounded-xl p-5 font-mono text-sm leading-relaxed min-h-[250px] whitespace-pre-line" id="relatorioFinal">
-                    Processando análise...
+                    Dados da análise aparecerão aqui...
                 </div>
             </div>
 
@@ -138,8 +182,14 @@
     </div>
 
     <script>
-        // === VARIÁVEIS GLOBAIS ===
+        // ==================================================
+        // 🚀 INICIALIZAÇÃO GERAL
+        // ==================================================
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
         let isRecording = false;
+        let isPaused = false;
         let startTime;
         let interval;
         let audioContext;
@@ -148,19 +198,33 @@
         let bufferLength;
         let bars;
 
-        // === ELEMENTOS ===
+        // ==================================================
+        // 📡 ELEMENTOS DA INTERFACE
+        // ==================================================
         const btnRecord = document.getElementById('btnRecord');
+        const btnPause = document.getElementById('btnPause');
         const btnStop = document.getElementById('btnStop');
-        const btnCancel = document.getElementById('btnCancel');
-        const actionButtons = document.getElementById('actionButtons');
+        const btnClear = document.getElementById('btnClear');
+        const btnSendCRS = document.getElementById('btnSendCRS');
+        const btnDownload = document.getElementById('btnDownload');
         const timerDisplay = document.getElementById('timerDisplay');
         const recIndicator = document.getElementById('recIndicator');
         const visualizer = document.getElementById('visualizer');
+        const logBox = document.getElementById('logTech');
+        const fileSection = document.getElementById('fileSection');
+        const audioPlayer = document.getElementById('audioPlayer');
         const reportZone = document.getElementById('reportZone');
         const relatorioFinal = document.getElementById('relatorioFinal');
-        const textoVivo = document.getElementById('textoVivo');
 
-        // === INICIALIZAÇÃO ===
+        // ==================================================
+        // 🛠️ FUNÇÕES AUXILIARES
+        // ==================================================
+        function log(msg) {
+            const time = new Date().toLocaleTimeString("pt-BR");
+            logBox.textContent += `[${time}] ${msg}\n`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
         function initVisualizer() {
             visualizer.innerHTML = "";
             for(let i=0; i<30; i++) {
@@ -170,106 +234,18 @@
                 visualizer.appendChild(bar);
             }
             bars = document.querySelectorAll('.bar');
-        }
-        initVisualizer();
-
-        // === LÓGICA PRINCIPAL ===
-
-        btnRecord.addEventListener('click', async () => {
-            if (!isRecording) {
-                await iniciarCaptura();
-            }
-        });
-
-        btnStop.addEventListener('click', () => {
-            finalizarCaptura();
-        });
-
-        btnCancel.addEventListener('click', () => {
-            isRecording = false;
-            clearInterval(interval);
-            textoVivo.textContent = "Captura cancelada.";
-            resetUI();
-        });
-
-        async function iniciarCaptura() {
-            try {
-                // Prepara UI
-                textoVivo.textContent = "Ouvindo... fale agora.";
-                btnRecord.innerHTML = '<i class="fas fa-circle"></i>';
-                btnRecord.classList.add('bg-gray-700');
-                btnRecord.classList.remove('bg-red-600');
-                recIndicator.classList.remove('opacity-0');
-                actionButtons.classList.remove('opacity-0', 'pointer-events-none');
-                reportZone.classList.add('hidden');
-                
-                // Inicia Timer
-                startTime = Date.now();
-                interval = setInterval(updateTimer, 1000);
-                isRecording = true;
-
-                // Inicia Audio Visualizer
-                await startAudioAnalysis();
-
-                // 🔥 CHAMA O LOOP INTELIGENTE DO TÚNEL
-                const resultado = await window.ELAYON_TUNNEL.stt.listenForPhrase({
-                    stopPhrases: ["ok ok", "finalizar", "encerrar"],
-                    silenceMs: 5000,
-                    onPartial: (dados) => {
-                        // Atualiza texto na tela em tempo real
-                        textoVivo.textContent = dados.text || "...";
-                    }
-                });
-
-                // Quando chegar aqui é porque acabou
-                textoVivo.textContent = resultado.cleaned_text;
-                await processarDados(resultado.cleaned_text);
-
-            } catch (err) {
-                textoVivo.textContent = "Erro: " + err.message;
-                console.error(err);
-            } finally {
-                resetUI();
-            }
+            log("🎨 Visualizador inicializado");
         }
 
-        function resetUI() {
-            btnRecord.innerHTML = '<i class="fas fa-microphone"></i>';
-            btnRecord.classList.remove('bg-gray-700');
-            btnRecord.classList.add('bg-red-600');
-            recIndicator.classList.add('opacity-0');
-            actionButtons.classList.add('opacity-0', 'pointer-events-none');
-            timerDisplay.textContent = "00:00";
-            if(bars) bars.forEach(bar => bar.style.height = '5px');
-        }
-
-        function finalizarCaptura() {
-            // Força a parada do loop
-            isRecording = false;
-        }
-
-        // === ANÁLISE DE SOM (IGUAL VOCÊ TINHA) ===
-        async function startAudioAnalysis() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
-                });
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                const source = audioContext.createMediaStreamSource(stream);
-                source.connect(analyser);
-                analyser.fftSize = 64;
-                bufferLength = analyser.frequencyBinCount;
-                dataArray = new Uint8Array(bufferLength);
-                
-                drawWaveform();
-            } catch(e) {
-                console.log("Visualizador não pôde iniciar:", e);
-            }
+        function updateTimer() {
+            const diff = Math.floor((Date.now() - startTime) / 1000);
+            const min = Math.floor(diff / 60).toString().padStart(2,'0');
+            const sec = (diff % 60).toString().padStart(2,'0');
+            timerDisplay.textContent = `${min}:${sec}`;
         }
 
         function drawWaveform() {
-            if (!isRecording) return;
+            if (!isRecording || isPaused) return;
             requestAnimationFrame(drawWaveform);
             analyser.getByteFrequencyData(dataArray);
             let startIndex = Math.floor(bufferLength * 0.1);
@@ -283,67 +259,223 @@
             }
         }
 
-        function updateTimer() {
-            const diff = Math.floor((Date.now() - startTime) / 1000);
-            const min = Math.floor(diff / 60).toString().padStart(2,'0');
-            const sec = (diff % 60).toString().padStart(2,'0');
-            timerDisplay.textContent = `${min}:${sec}`;
+        // ==================================================
+        // 🎤 FUNÇÕES PRINCIPAIS DO MICROFONE
+        // ==================================================
+
+        // --- BOTÃO GRAVAR ---
+        btnRecord.addEventListener('click', async () => {
+            if (!isRecording) {
+                await startRecording();
+            }
+        });
+
+        // --- BOTÃO PAUSAR ---
+        btnPause.addEventListener('click', () => {
+            if (!isRecording) return;
+            
+            if (!isPaused) {
+                mediaRecorder.pause();
+                isPaused = true;
+                btnPause.innerHTML = '<i class="fas fa-play text-green-400"></i><span>CONTINUAR</span>';
+                clearInterval(interval);
+                log("⏸️ Gravação Pausada");
+            } else {
+                mediaRecorder.resume();
+                isPaused = false;
+                btnPause.innerHTML = '<i class="fas fa-pause text-yellow-400"></i><span>PAUSAR</span>';
+                startTime = Date.now() - (parseInt(timerDisplay.textContent.split(':')[0])*60 + parseInt(timerDisplay.textContent.split(':')[1])) * 1000;
+                interval = setInterval(updateTimer, 1000);
+                log("▶️ Gravação Retomada");
+            }
+        });
+
+        // --- BOTÃO PARAR ---
+        btnStop.addEventListener('click', () => {
+            stopRecording();
+        });
+
+        // --- BOTÃO APAGAR ---
+        btnClear.addEventListener('click', () => {
+            audioChunks = [];
+            audioBlob = null;
+            fileSection.classList.add('hidden');
+            reportZone.classList.add('hidden');
+            timerDisplay.textContent = "00:00";
+            bars.forEach(bar => bar.style.height = '5px');
+            log("🧹 Dados apagados. Pronto para nova captura.");
+        });
+
+        // --- INICIAR GRAVAÇÃO ---
+        async function startRecording() {
+            try {
+                log("🎤 Solicitando acesso ao microfone...");
+                
+                // 🔴 AQUI É O PONTO PRINCIPAL: ÁUDIO BRUTO
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: false,   // ❌ DESLIGADO
+                        noiseSuppression: false,   // ❌ DESLIGADO
+                        autoGainControl: false    // ❌ DESLIGADO
+                    } 
+                });
+
+                log("✅ Microfone aberto. Modo BRUTO ativado.");
+
+                // Inicia contexto de áudio pro gráfico
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+                analyser.fftSize = 64;
+
+                bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+
+                // Inicia a Gravação
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    // Quando parar, cria o arquivo final
+                    audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    // Coloca no player e no botão de download
+                    audioPlayer.src = audioUrl;
+                    btnDownload.href = audioUrl;
+                    
+                    // Mostra a seção do arquivo
+                    fileSection.classList.remove('hidden');
+                    log(`📦 Arquivo gerado: ${audioBlob.size.toLocaleString()} bytes`);
+                };
+
+                // Começa a rodar
+                mediaRecorder.start();
+                isRecording = true;
+                isPaused = false;
+
+                // Atualiza Interface
+                btnRecord.innerHTML = '<i class="fas fa-stop"></i>';
+                btnRecord.classList.add('bg-gray-700');
+                btnRecord.classList.remove('bg-red-600');
+                recIndicator.classList.remove('opacity-0');
+                
+                startTime = Date.now();
+                interval = setInterval(updateTimer, 1000);
+                drawWaveform();
+
+            } catch (err) {
+                log(`❌ ERRO: ${err.message}`);
+                alert("Erro ao acessar microfone: " + err.message);
+            }
         }
 
-        // === ENVIO PARA O CRS E RELATÓRIO ===
-        async function processarDados(texto) {
-            if(!texto || texto.length === 0) {
-                relatorioFinal.textContent = "Nenhum texto capturado.";
-                reportZone.classList.remove('hidden');
+        // --- PARAR GRAVAÇÃO ---
+        function stopRecording() {
+            if (!isRecording) return;
+            
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(track => track.stop()); // Fecha o microfone
+            
+            isRecording = false;
+            clearInterval(interval);
+            
+            // Volta interface ao normal
+            btnRecord.innerHTML = '<i class="fas fa-microphone"></i>';
+            btnRecord.classList.remove('bg-gray-700');
+            btnRecord.classList.add('bg-red-600');
+            recIndicator.classList.add('opacity-0');
+            btnPause.innerHTML = '<i class="fas fa-pause text-yellow-400"></i><span>PAUSAR</span>';
+
+            log("🛑 Gravação finalizada.");
+        }
+
+        // ==================================================
+        // 📡 INTEGRAÇÃO COM O CRS
+        // ==================================================
+        btnSendCRS.addEventListener('click', async () => {
+            if (!audioBlob) {
+                log("⚠️ Nenhum áudio para enviar!");
                 return;
             }
 
-            relatorioFinal.textContent = "Enviando dados para o Núcleo CRS...\nAguarde o processamento da emanação...";
+            log("🚀 Enviando para o Núcleo CRS...");
             reportZone.classList.remove('hidden');
-            reportZone.scrollIntoView({ behavior: 'smooth' });
+            relatorioFinal.textContent = "Processando emanação...\nAguarde o retorno do núcleo...";
 
             try {
-                // Monta o pacote de dados
-                const payload = window.ELAYON_TUNNEL.crs.buildPayload(texto);
+                // 1. Converte o áudio para Base64 (se precisar) ou manda como formdata
+                // Por enquanto vamos usar o sistema de texto que já temos no túnel
+                // e simular o envio das métricas.
                 
-                // Envia para o Render de verdade
+                // Se quisesse enviar o arquivo puro:
+                // const formData = new FormData();
+                // formData.append('audio', audioBlob, 'captura_bruta.wav');
+                
+                // Vamos usar o Payload builder que já existe no tunnel
+                const payload = window.ELAYON_TUNNEL.crs.buildPayload("Áudio bruto capturado - análise de frequência");
+                
+                log(`📤 Enviando payload: ${payload.word_count} palavras virtuais`);
+                
                 const resposta = await window.ELAYON_TUNNEL.crs.analyze(payload);
 
-                // Monta o relatório bonito
+                log("✅ Resposta recebida do CRS!");
+
+                // Monta o relatório
                 const relatorio = `
 =============================================
             RELATÓRIO DE EMANAÇÃO
                MÓDULO PRESENÇA
 =============================================
 
+STATUS: CONCLUÍDO
+TAMANHO DO ARQUIVO: ${audioBlob.size.toLocaleString()} bytes
 DURAÇÃO: ${timerDisplay.textContent}
-TOTAL DE PALAVRAS: ${payload.word_count}
 
 --- MAPA DE FREQUÊNCIA ---
 
 📡 RESSONÂNCIA: ${resposta.ressonancia || resposta.metricas?.ressonancia || '--'}%
 🎵 FREQUÊNCIA MÉDIA: ${resposta.frequencia || resposta.metricas?.frequencia || '--'} Hz
 ✨ ALINHAMENTO: ${resposta.alinhamento || resposta.metricas?.alinhamento || '--'}%
-📊 DENSIDADE: ${payload.density.toFixed(2)}
-⏸️ PAUSAS ESTRATÉGICAS: ${payload.pause_count}
 
---- INTERPRETAÇÃO ---
-
-${resposta.interpretacao || resposta.leitura || "Análise concluída com sucesso. Seus dados estão alinhados e prontos para uso."}
+--- LOG DO SISTEMA ---
+${JSON.stringify(resposta, null, 2)}
 
 =============================================
             SISTEMAS ELAYON
 =============================================
-            `;
+                `;
 
                 relatorioFinal.textContent = relatorio;
 
             } catch (err) {
-                console.error("ERRO CRS:", err);
-                relatorioFinal.textContent = `⚠️ ERRO NA CONEXÃO COM O NÚCLEO\n\nVerifique sua internet ou tente novamente.\n\nDetalhes: ${err.message}`;
+                log(`❌ FALHA NA TRANSMISSÃO: ${err.message}`);
+                relatorioFinal.textContent = `⚠️ ERRO DE COMUNICAÇÃO\n\n${err.message}`;
             }
-        }
+        });
+
+        // ==================================================
+        // 🧹 LIMPAR LOG
+        // ==================================================
+        document.getElementById('btnClearLog').addEventListener('click', () => {
+            logBox.textContent = "";
+            log("[LOG ZEBRADO]");
+        });
+
+        // ==================================================
+        // 🚀 INICIALIZAÇÃO DO SISTEMA
+        // ==================================================
+        initVisualizer();
+        log("⚡ Sistema carregado. Modo Áudio Bruto ativo.");
 
     </script>
 </body>
 </html>
+
