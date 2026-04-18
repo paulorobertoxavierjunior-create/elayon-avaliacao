@@ -1,5 +1,5 @@
 // ======================================
-// SISTEMAS ELAYON — PRESENÇA
+// SISTEMA ELAYON — PRESENÇA
 // cockpit.js — Versão Hard Mode Realinhada
 // ======================================
 
