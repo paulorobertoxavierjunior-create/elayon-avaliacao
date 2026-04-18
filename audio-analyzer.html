@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon - Painel de Análise de Áudio</title>
+    <title>Elayon - Painel de Análises de Áudio</title>
     <style>
         body { font-family: Arial, sans-serif; background: #0a0a0f; color: #00ffcc; padding: 20px; }
         .container { max-width: 800px; margin: auto; background: #111; padding: 20px; border-radius: 10px; border: 1px solid #222; }
@@ -58,9 +58,8 @@
 
     <script>
         // ==========================================
-        // 🧠 MOTOR DE ANÁLISE DE ÁUDIO LOCAL
+        // 🧠 VARIÁVEIS GLOBAIS
         // ==========================================
-        
         let audioAnalysis = {
             startTime: null,
             endTime: null,
@@ -72,7 +71,11 @@
 
         let dadosFinais = null;
         let recognition = null;
+        let pingTimer = null;
 
+        // ==========================================
+        // 🧠 MOTOR DE ANÁLISE DE ÁUDIO
+        // ==========================================
         function startAudioAnalysis() {
             audioAnalysis = {
                 startTime: Date.now(),
@@ -91,7 +94,7 @@
             const now = Date.now();
             const silenceDuration = now - audioAnalysis.lastSoundTime;
             
-            if (silenceDuration > 1500) { // > 1.5s considera pausa
+            if (silenceDuration > 1500) {
                 audioAnalysis.pauseCount++;
                 audioAnalysis.totalSilenceTime += silenceDuration;
                 console.log(`Pausa: ${(silenceDuration/1000).toFixed(1)}s`);
@@ -125,9 +128,8 @@
         }
 
         // ==========================================
-        // 🔌 INTERFACE COM A TELA
+        // 🔌 FUNÇÕES DA INTERFACE
         // ==========================================
-
         function atualizarPainel(dados) {
             if(!dados) return;
             document.getElementById('duration').textContent = dados.duration_sec + 's';
@@ -142,7 +144,7 @@
         function atualizarTexto(texto) {
             document.getElementById('textoCapturado').textContent = texto;
             if(texto && texto.trim().length > 0) {
-                registerSound(); // Marca atividade
+                registerSound();
             }
         }
 
@@ -159,7 +161,7 @@
             }
             const payloadCompleto = {
                 text: document.getElementById('textoCapturado').textContent,
-                theme: "TESTE - ANÁLISE DE ÁUDIO",
+                theme: "TESTE - ANÁLISES DE ÁUDIO",
                 context: "Debug Ferramenta",
                 metrics: dadosFinais
             };
@@ -172,112 +174,86 @@
         }
 
         // ==========================================
-        // 🎤 CAPTURA DE VOZ
+        // 🎤 CAPTURA COM PING E IMORTALIDADE
         // ==========================================
-
-
-// ==========================================
-// 🎤 CAPTURA DE VOZ COM SISTEMA DE PING
-// ==========================================
-
-let recognition = null;
-let pingTimer = null; // O relógio que vai manter acordado
-
-function iniciarCaptura() {
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        alert("Seu navegador não suporta reconhecimento de voz. Use Chrome.");
-        return;
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-
-    // 🔥 CONFIGURAÇÕES BASE
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'pt-BR';
-
-    recognition.onstart = () => {
-        startAudioAnalysis();
-        setStatus("🎙️ CAPTURA ATIVA... (Modo Imortal ativado)", true);
-        document.getElementById('btnStart').disabled = true;
-        document.getElementById('btnStop').disabled = false;
-        atualizarTexto("");
-
-        // ==========================================
-        // 🛰️ SISTEMA DE PING - O SEGREDO
-        // ==========================================
-        // Dispara a cada 2 segundos para "enganar" o Chrome
-        pingTimer = setInterval(() => {
-            console.log("🔔 PING - Mantendo conexão viva...");
-            // A gente registra um "evento fantasma" só pra atualizar o tempo
-            // mas sem contar como som real, só pra não deixar o timer do Chrome zerar
-            if (audioAnalysis.isRunning) {
-                 // Não precisamos fazer nada, só o fato do intervalo rodar já ajuda
-                 // Mas podemos usar para atualizar o relógio na tela se quiser
+        function iniciarCaptura() {
+            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                alert("Seu navegador não suporta reconhecimento de voz. Use Chrome.");
+                return;
             }
-        }, 2000); // 2000ms = 2 segundos
-    };
 
-    recognition.onresult = (event) => {
-        let transcript = "";
-        for (let i = event.index; i < event.results.length; i++) {
-            transcript += event.results[i][0].transcript;
-        }
-        transcript = transcript.trim();
-        atualizarTexto(transcript);
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
 
-        // ==========================================
-        // 🛑 COMANDO DE PARADA AUTOMÁTICA
-        // ==========================================
-        // Verifica se falou "OK OK" ou "OK" no final
-        const textoLower = transcript.toLowerCase();
-        
-        if (textoLower.endsWith("ok ok") || textoLower.includes(" ok ok ") || 
-            textoLower.endsWith("ok") || textoLower.includes(" ok ")) { 
-            
-            // Opcional: Ajusta a condição se quiser só "ok ok"
-            console.log("🛑 Comando 'OK' detectado! Finalizando...");
-            pararCaptura(); // Chama a função de parar
-        }
-    };
+            // 🔥 CONFIGURAÇÕES
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'pt-BR';
 
-    recognition.onerror = (event) => {
-        console.error("Erro:", event.error);
-        // Ignora erro de no-speech
-    };
+            recognition.onstart = () => {
+                startAudioAnalysis();
+                setStatus("🎙️ CAPTURA ATIVA... (Modo Imortal ativado)", true);
+                document.getElementById('btnStart').disabled = true;
+                document.getElementById('btnStop').disabled = false;
+                atualizarTexto("");
 
-    // 🔄 O Loop da Imortalidade
-    recognition.onend = () => {
-        // Se ainda estamos no modo ativo (botão de parar está liberado)
-        if (document.getElementById('btnStop').disabled === false) {
-            console.log("🔄 Microfone parou, reiniciando imediatamente...");
+                // 🛰️ SISTEMA DE PING
+                pingTimer = setInterval(() => {
+                    console.log("🔔 PING - Mantendo conexão viva...");
+                }, 2000);
+            };
+
+            recognition.onresult = (event) => {
+                let transcript = "";
+                for (let i = event.index; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                transcript = transcript.trim();
+                atualizarTexto(transcript);
+
+                // 🛑 DETECTOR DE OK OK
+                const textoLower = transcript.toLowerCase();
+                if (textoLower.endsWith("ok ok") || textoLower.includes(" ok ok ")) { 
+                    console.log("🛑 Comando 'OK OK' detectado!");
+                    pararCaptura();
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Erro:", event.error);
+            };
+
+            // 🔄 LOOP INFINITO
+            recognition.onend = () => {
+                if (document.getElementById('btnStop').disabled === false) {
+                    console.log("🔄 Reiniciando microfone...");
+                    recognition.start();
+                }
+            };
+
             recognition.start();
         }
-    };
 
-    recognition.start();
-}
+        function pararCaptura() {
+            // Para o Ping
+            if (pingTimer) {
+                clearInterval(pingTimer);
+                pingTimer = null;
+            }
 
-function pararCaptura() {
-    // Para o timer do Ping primeiro
-    if (pingTimer) {
-        clearInterval(pingTimer);
-        pingTimer = null;
-        console.log("🛑 Sistema de Ping desativado.");
-    }
+            // Para o Microfone
+            if (recognition) {
+                recognition.stop();
+            }
+            
+            // Resultado
+            dadosFinais = stopAudioAnalysis();
+            atualizarPainel(dadosFinais);
+            setStatus("✅ CONCLUÍDO! Dados gerados.");
+            document.getElementById('btnStart').disabled = false;
+            document.getElementById('btnStop').disabled = true;
+        }
 
-    // Para o reconhecimento de voz
-    if (recognition) {
-        recognition.stop();
-        recognition = null;
-    } 
-    
-    // Calcula os resultados finais
-    dadosFinais = stopAudioAnalysis();
-    atualizarPainel(dadosFinais);
-    setStatus("✅ CONCLUÍDO! Dados gerados.");
-    document.getElementById('btnStart').disabled = false;
-    document.getElementById('btnStop').disabled = true;
-}
- 
+    </script>
+</body>
+</html>
