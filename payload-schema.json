@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "description": "Modelo de dados para envio ao CRS - Elayon Presença",
+  "fields": {
+    "text": { "type": "string", "description": "Texto transcrito da fala" },
+    "theme": { "type": "string", "description": "Tema principal da sessão" },
+    "context": { "type": "string", "description": "Contexto ou etapa" },
+    "metrics": {
+      "type": "object",
+      "description": "Dados calculados da análise de áudio",
+      "properties": {
+        "duration_sec": { "type": "number" },
+        "speaking_time_sec": { "type": "number" },
+        "silence_pct": { "type": "number" },
+        "pause_count": { "type": "integer" },
+        "mean_pause_ms": { "type": "number" }
+      }
+    }
+  }
+}
