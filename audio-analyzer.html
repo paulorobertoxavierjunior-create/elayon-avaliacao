@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elayon - Painel de Análise de Áudio</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #0a0a0f; color: #00ffcc; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: #111; padding: 20px; border-radius: 10px; border: 1px solid #222; }
+        h1 { text-align: center; margin-bottom: 30px; }
+        .metric { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #222; }
+        .label { color: #aaa; }
+        .value { font-size: 1.2em; font-weight: bold; }
+        #textoCapturado { margin-top: 20px; padding: 15px; background: #0a0a0f; border: 1px solid #333; min-height: 100px; }
+        button { background: #00ffcc; color: #000; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; margin: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔊 PAINEL DE ANÁLISE DE ÁUDIO CRS</h1>
+        
+        <div class="metric">
+            <span class="label">Tempo Total:</span>
+            <span class="value" id="duration">--s</span>
+        </div>
+        <div class="metric">
+            <span class="label">Tempo Falando:</span>
+            <span class="value" id="speaking">--s</span>
+        </div>
+        <div class="metric">
+            <span class="label">Taxa de Silêncio:</span>
+            <span class="value" id="silence">--%</span>
+        </div>
+        <div class="metric">
+            <span class="label">Quantidade de Pausas:</span>
+            <span class="value" id="pauses">--</span>
+        </div>
+        <div class="metric">
+            <span class="label">Média de Pausa:</span>
+            <span class="value" id="meanPause">--ms</span>
+        </div>
+
+        <h3>Texto Transcrito:</h3>
+        <div id="textoCapturado">Aguardando captura...</div>
+
+        <h3>Payload Final (JSON):</h3>
+        <pre id="jsonOutput">{}</pre>
+
+        <button onclick="testarCaptura()">TESTAR CAPTURA</button>
+        <button onclick="baixarJSON()">BAIXAR JSON</button>
+    </div>
+
+    <script>
+        // Aqui a gente vai conectar com o motor que já fizemos
+        let dadosFinais = null;
+
+        function atualizarPainel(dados) {
+            document.getElementById('duration').textContent = dados.duration_sec + 's';
+            document.getElementById('speaking').textContent = dados.speaking_time_sec + 's';
+            document.getElementById('silence').textContent = dados.silence_pct + '%';
+            document.getElementById('pauses').textContent = dados.pause_count;
+            document.getElementById('meanPause').textContent = dados.mean_pause_ms + 'ms';
+            document.getElementById('jsonOutput').textContent = JSON.stringify(dados, null, 2);
+            dadosFinais = dados;
+        }
+
+        function atualizarTexto(texto) {
+            document.getElementById('textoCapturado').textContent = texto;
+        }
+
+        function baixarJSON() {
+            if(!dadosFinais) return alert("Nenhum dado para baixar!");
+            const blob = new Blob([JSON.stringify(dadosFinais, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `analise-audio-${Date.now()}.json`;
+            a.click();
+        }
+
+        // Função que o cockpit vai chamar quando tiver dados
+        window.receberDadosAudio = function(texto, metrics) {
+            atualizarTexto(texto);
+            atualizarPainel(metrics);
+        }
+    </script>
+</body>
+</html>
