@@ -313,3 +313,44 @@ async function iniciar() {
     setText("relatorioFinal", relatorio);
     await falarComTexto(`Missão concluída! Dados armazenados. Relatório pronto.`);
     showTela("final");
+
+  } catch (err) {
+    console.error(err);
+    await resetMotores();
+    alert(`ERRO: ${err.message}`);
+    setText("statusSessao", "Falha detectada.");
+    showTela("intro");
+  } finally {
+    STATE.locked = false;
+  }
+}
+
+// ============================
+// INICIALIZAÇÃO
+// ============================
+
+document.addEventListener("DOMContentLoaded", () => {
+  try {
+    assertStructure();
+    showTela("intro");
+    log("Sistema carregado. MODO BYPASS ATIVADO.");
+    log("Microfone permanecerá aberto até comando 'Ok Ok'.");
+
+    const btn = document.getElementById("btnIniciar");
+    if (btn) {
+      btn.onclick = iniciar;
+      log("Botão principal conectado.");
+    }
+
+    const btnPdf = document.getElementById("btnGerarPdf");
+    if(btnPdf) btnPdf.onclick = gerarPdfRelatorio;
+    
+    const btnNova = document.getElementById("btnNovaSessao");
+    if(btnNova) btnNova.onclick = novaSessao;
+
+  } catch (err) {
+    console.error(err);
+    alert(`Erro na inicialização: ${err.message}`);
+  }
+});
+
