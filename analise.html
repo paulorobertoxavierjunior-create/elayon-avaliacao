@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presença — Análise CRS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        elayon: {
+                            dark: '#050714',
+                            blue: '#1a5cff',
+                            light: '#eef2ff',
+                            glow: '#4f9eff'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-gradient {
+                background-clip: text;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            .glass {
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+            }
+            .record-btn-pulse {
+                box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
+                animation: pulse-record 2s infinite;
+            }
+            @keyframes pulse-record {
+                0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+                70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255, 59, 48, 0); }
+                100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+            }
+            .slide-up-zone {
+                transition: all 0.2s ease;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-elayon-dark dark:text-white min-h-screen transition-colors duration-500">
+
+    <div class="container max-w-lg mx-auto px-5 py-8 flex flex-col h-screen">
+        
+        <!-- HEADER -->
+        <header class="text-center mb-8 relative">
+            <button id="themeToggle" class="absolute right-0 top-0 text-xl p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition">
+                <i class="fas fa-moon dark:hidden"></i>
+                <i class="fas fa-sun hidden dark:inline"></i>
+            </button>
+
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-400 text-gradient">SISTEMAS ELAYON</h1>
+            <h2 class="text-lg font-light opacity-80">MÓDULO PRESENÇA — ANÁLISE CRS</h2>
+            <div class="w-20 h-1 bg-gradient-to-r from-blue-500 to-cyan-400 mx-auto my-3 rounded-full"></div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-grow flex flex-col items-center justify-center gap-8">
+            
+            <!-- INPUT DE TEMA E CONTEXTO -->
+            <div class="w-full space-y-4 opacity-0 animate-fade-in">
+                <div class="relative">
+                    <input type="text" id="inpTema" placeholder="Qual o tema da sua emissão?" 
+                        class="w-full p-4 rounded-2xl bg-white/80 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:border-blue-500 outline-none transition">
+                </div>
+            </div>
+
+            <!-- ZONA DE GRAVAÇÃO -->
+            <div id="recordZone" class="relative w-full flex flex-col items-center justify-center py-10">
+                
+                <!-- Texto Instrução -->
+                <p id="recordHint" class="text-sm opacity-60 mb-5">
+                    <i class="fas fa-hand-pointer"></i> Toque e segure para falar
+                </p>
+
+                <!-- Zona de Slide -->
+                <div id="slideZone" class="absolute bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-3 opacity-0 pointer-events-none transition-all duration-300 text-red-500">
+                    <i class="fas fa-arrow-up"></i>
+                    <span class="text-sm font-medium">Arraste para cancelar</span>
+                </div>
+
+                <!-- BOTÃO DE GRAVAR -->
+                <button id="recordBtn" 
+                    class="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 text-white text-2xl flex items-center justify-center shadow-lg active:scale-95 transition-all duration-150 cursor-pointer">
+                    <i class="fas fa-microphone"></i>
+                </button>
+
+                <!-- Timer / Status -->
+                <div class="mt-4 text-center">
+                    <p id="statusText" class="text-sm font-medium opacity-70">Pronto para capturar</p>
+                    <p id="timer" class="text-2xl font-mono font-bold mt-1 hidden">00:00</p>
+                </div>
+            </div>
+
+            <!-- OU -->
+            <div class="flex items-center gap-4 w-full opacity-60 my-2">
+                <div class="h-px bg-gray-400/30 flex-grow"></div>
+                <span class="text-xs">OU</span>
+                <div class="h-px bg-gray-400/30 flex-grow"></div>
+            </div>
+
+            <!-- BOTÃO DE CARREGAR ARQUIVO -->
+            <label class="w-full p-4 rounded-2xl border-2 border-dashed border-gray-300 dark:border-white/20 flex items-center justify-center gap-3 cursor-pointer hover:border-blue-500 hover:bg-blue-500/5 transition group">
+                <i class="fas fa-upload text-lg group-hover:scale-110 transition"></i>
+                <span class="font-medium">Carregar arquivo de áudio</span>
+                <input type="file" accept="audio/*" class="hidden" id="fileInput">
+            </label>
+
+            <!-- BOTÃO ENVIAR -->
+            <button id="btnAnalisar" class="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed mt-4 hidden">
+                <i class="fas fa-rocket mr-2"></i> ENVIAR PARA ANÁLISE CRS
+            </button>
+
+        </main>
+
+        <!-- RODAPÉ -->
+        <footer class="text-center mt-8 text-xs opacity-50">
+            <p>Humanidade e Tecnologia em Harmonia © 2025</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // === TEMA CLARO / ESCURO ===
+        const themeToggle = document.getElementById('themeToggle');
+        if (localStorage.getItem('theme') === 'dark' || 
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // === LÓGICA DO BOTÃO DE GRRAVAR ===
+        const recordBtn = document.getElementById('recordBtn');
+        const recordHint = document.getElementById('recordHint');
+        const slideZone = document.getElementById('slideZone');
+        const statusText = document.getElementById('statusText');
+        const timerEl = document.getElementById('timer');
+        const btnAnalisar = document.getElementById('btnAnalisar');
+
+        let startTime;
+        let interval;
+        let isRecording = false;
+        let isDragging = false;
+
+        function startRecording() {
+            isRecording = true;
+            recordBtn.classList.add('record-btn-pulse');
+            recordBtn.innerHTML = '<i class="fas fa-stop"></i>';
+            recordHint.classList.add('opacity-0');
+            statusText.textContent = "Gravando...";
+            statusText.classList.add('text-red-500');
+            timerEl.classList.remove('hidden');
+            
+            startTime = Date.now();
+            interval = setInterval(() => {
+                const diff = Math.floor((Date.now() - startTime) / 1000);
+                const min = Math.floor(diff / 60).toString().padStart(2,'0');
+                const sec = (diff % 60).toString().padStart(2,'0');
+                timerEl.textContent = `${min}:${sec}`;
+            }, 500);
+        }
+
+        function stopRecording() {
+            if (!isRecording) return;
+            isRecording = false;
+            clearInterval(interval);
+            
+            recordBtn.classList.remove('record-btn-pulse');
+            recordBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            recordHint.classList.remove('opacity-0');
+            statusText.textContent = "Áudio capturado com sucesso!";
+            statusText.classList.remove('text-red-500');
+            statusText.classList.add('text-green-500');
+            
+            // Mostra botão de enviar
+            btnAnalisar.classList.remove('hidden');
+        }
+
+        // Eventos Touch (Mobile)
+        recordBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDragging = false;
+            startRecording();
+            slideZone.classList.remove('opacity-0');
+            slideZone.classList.add('opacity-100');
+        });
+
+        recordBtn.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            const element = recordBtn.getBoundingClientRect();
+            // Se o dedo subir mais de 50px, considera slide para cancelar
+            if (element.top - touch.clientY > 60) {
+                isDragging = true;
+                statusText.textContent = "Solte para cancelar";
+                recordBtn.classList.add('scale-90');
+                recordBtn.classList.remove('bg-red-500');
+                recordBtn.classList.add('bg-gray-500');
+            } else {
+                isDragging = false;
+                statusText.textContent = "Gravando...";
+                recordBtn.classList.remove('scale-90','bg-gray-500');
+                recordBtn.classList.add('bg-red-500');
+            }
+        });
+
+        recordBtn.addEventListener('touchend', () => {
+            slideZone.classList.add('opacity-0');
+            slideZone.classList.remove('opacity-100');
+            
+            if (isDragging) {
+                // Cancelou
+                recordBtn.classList.remove('record-btn-pulse', 'scale-90', 'bg-gray-500');
+                recordBtn.classList.add('bg-red-500');
+                recordBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                clearInterval(interval);
+                timerEl.classList.add('hidden');
+                statusText.textContent = "Cancelado";
+                statusText.classList.remove('text-red-500','text-green-500');
+                isRecording = false;
+            } else {
+                // Parou normal
+                stopRecording();
+            }
+        });
+
+        // Fallback Mouse (Desktop)
+        recordBtn.addEventListener('mousedown', startRecording);
+        recordBtn.addEventListener('mouseup', stopRecording);
+
+        // Arquivo carregado
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            if(this.files.length > 0) {
+                statusText.textContent = `Arquivo: ${this.files[0].name}`;
+                statusText.classList.add('text-green-500');
+                btnAnalisar.classList.remove('hidden');
+            }
+        });
+
+        // Ação do botão Analisar
+        btnAnalisar.addEventListener('click', () => {
+            btnAnalisar.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> PROCESSANDO NO CRS...';
+            btnAnalisar.disabled = true;
+            
+            // Simulação
+            setTimeout(() => {
+                alert("Análise concluída! Relatório pronto.");
+                btnAnalisar.innerHTML = '<i class="fas fa-check mr-2"></i> CONCLUÍDO';
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
