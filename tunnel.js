@@ -1,7 +1,7 @@
 (function () {
   const CRS_URL = "https://nucleo-crs-elayon.onrender.com/api/crs/analisar";
   const HEALTH_URL = "https://nucleo-crs-elayon.onrender.com/health";
-  const TIMEOUT_MS = 45000; 
+  const TIMEOUT_MS = 45000;
 
   let activeStream = null;
   let activeRecognition = null;
@@ -40,6 +40,11 @@
     return out.replace(/\s+/g, " ").trim();
   }
 
+  function matchAny(text, phrases) {
+    const normText = normalizeText(text);
+    return phrases.some(p => normText.includes(normalizeText(p)));
+  }
+
   async function getAccessToken() {
     try {
       if (!window.ELAYON_SUPABASE?.auth?.getSession) return null;
@@ -74,9 +79,9 @@
       if (activeStream) return { ok: true };
       activeStream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          echoCancellation: false,   // ❌ DESLIGADO - Captura natural
-          noiseSuppression: false,   // ❌ DESLIGADO - Mantém energia real
-          autoGainControl: false    // ❌ DESLIGADO - Mantém dinâmica original
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
         }
       });
       log("Microfone ativo - Modo Sanctum");
@@ -92,161 +97,135 @@
   };
 
   const stt = {
-    async listenForPhrase({
-      stopPhrases = [],
-      onPartial,
-      interimResults = true,
-      continuous = true,
-      silenceFailsafeMs = 999999999 // ♾️ TEMPO INFINITO - Só fecha na frase
-    } = {}) {
-      if (recognitionRunning) this.stop();
-
+    // --- FUNÇÃO BASE DE ESCUTA CURTA ---
+    async _listenOnceInternal(silenceMs = 3000, onPartial) {
       return new Promise((resolve, reject) => {
         const RecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!RecognitionCtor) return reject(new Error("STT não suportado"));
 
-        if (activeRecognition) {
-          try { activeRecognition.stop(); } catch {}
-        }
-
         const recognition = new RecognitionCtor();
+        recognition.lang = "pt-BR";
+        recognition.interimResults = true;
+        recognition.continuous = false; // ⚠️ Modo curto proposital
+
         let textoFinal = "";
         let textoParcial = "";
-        let finished = false;
-        let failsafeTimer = null;
+        let timeoutId;
 
-        const finish = (result) => {
-          if (finished) return;
-          finished = true;
-          recognitionRunning = false;
-          clearTimeout(failsafeTimer);
-          try { recognition.stop(); } catch {}
-          
-          let textoLimpo = result.text || "";
-          textoLimpo = textoLimpo.replace(/\b(\w+)\s+\1\b/gi, "$1");
-          textoLimpo = textoLimpo.replace(/\s+/g, " ").trim();
-          
-          result.text = textoLimpo;
-          result.cleaned_text = stripPhrases(textoLimpo, stopPhrases);
-          
-          resolve(result);
+        const resetTimeout = () => {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            recognition.stop();
+            const finalText = (textoFinal + " " + textoParcial).trim();
+            resolve({ text: finalText, finished: true });
+          }, silenceMs);
         };
 
-        const refreshFailsafe = () => {
-          clearTimeout(failsafeTimer);
-          failsafeTimer = setTimeout(() => {
-            const txtCompleto = (textoFinal + " " + textoParcial).trim();
-            finish({ ok: true, text: txtCompleto, timed_out: true });
-          }, silenceFailsafeMs);
-        };
+        recognition.onstart = resetTimeout;
 
-        recognition.lang = "pt-BR";
-        recognition.interimResults = interimResults;
-        recognition.continuous = continuous; // 🔁 CONTINUOUS ATIVO
-
-        recognition.onstart = () => { 
-          recognitionRunning = true; 
-          refreshFailsafe(); 
-        };
-        
         recognition.onresult = (event) => {
           textoFinal = "";
           textoParcial = "";
-
           for (let i = event.resultIndex; i < event.results.length; i++) {
             const trecho = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              textoFinal += trecho + " ";
-            } else {
-              textoParcial += trecho + " ";
-            }
+            if (event.results[i].isFinal) textoFinal += trecho + " ";
+            else textoParcial += trecho + " ";
           }
-
           const textoCompleto = `${textoFinal}${textoParcial}`.trim();
-          
-          if (onPartial) {
-            let textoTela = textoCompleto.replace(/\b(\w+)\s+\1\b/gi, "$1");
-            textoTela = textoTela.replace(/\s+/g, " ").trim();
-            
-            onPartial({ 
-              text: textoTela, 
-              cleaned_text: stripPhrases(textoTela, stopPhrases) 
-            });
-          }
-          
-          refreshFailsafe();
-
-          const norm = normalizeText(textoCompleto);
-          const matched = stopPhrases.find(p => norm.includes(normalizeText(p)));
-          if (matched) {
-            finish({ 
-              ok: true, 
-              text: textoCompleto, 
-              matched_phrase: matched
-            });
-          }
+          if (onPartial) onPartial({ text: textoCompleto });
+          resetTimeout();
         };
 
-        recognition.onerror = (e) => { 
-          recognitionRunning = false; 
-          reject(e); 
-        };
-        
-        recognition.onend = () => { 
-          if (!finished) {
-            const txtCompleto = (textoFinal + " " + textoParcial).trim();
-            finish({ ok: true, text: txtCompleto });
-          }
-        };
+        recognition.onerror = (e) => { clearTimeout(timeoutId); reject(e); };
+        recognition.onend = () => { clearTimeout(timeoutId); resolve({ text: textoFinal.trim(), finished: false }); };
 
-        activeRecognition = recognition;
         recognition.start();
       });
     },
 
-    async listenForAnyPhrase(phrases = [], silence = 15000) {
-      return this.listenForPhrase({ stopPhrases: phrases, silenceFailsafeMs: silence });
+    // --- 🔥 LOOP INTELIGENTE (SOLUÇÃO DO PROBLEMA) ---
+    async listenForPhrase({ stopPhrases = [], onPartial, silenceMs = 4000 } = {}) {
+      log("🔁 Iniciando Loop Inteligente de Escuta");
+      let textoAcumulado = "";
+      let rodando = true;
+
+      while (rodando) {
+        try {
+          const resultado = await this._listenOnceInternal(silenceMs, (dados) => {
+            // Atualiza tela com texto vivo + acumulado
+            if (onPartial) {
+              onPartial({ 
+                text: textoAcumulado + " " + dados.text,
+                cleaned_text: stripPhrases(textoAcumulado + " " + dados.text, stopPhrases)
+              });
+            }
+          });
+
+          // Adiciona o trecho capturado
+          if (resultado.text && resultado.text.length > 0) {
+            textoAcumulado += " " + resultado.text;
+            textoAcumulado = textoAcumulado.trim();
+            log(`Trecho capturado: "${resultado.text.substring(0, 30)}..."`);
+          }
+
+          // Verifica se deve encerrar
+          if (matchAny(textoAcumulado, stopPhrases)) {
+            log("🛑 Comando de parada detectado!");
+            rodando = false;
+          }
+
+        } catch (err) {
+          log(`⚠️ Erro no ciclo: ${err.message}`);
+          await new Promise(r => setTimeout(r, 300)); // Pequena pausa antes de reiniciar
+        }
+      }
+
+      // Limpeza final
+      const textoLimpo = stripPhrases(textoAcumulado, stopPhrases);
+      log(`✅ Captura finalizada. Total: ${textoLimpo.length} chars`);
+
+      return {
+        ok: true,
+        text: textoAcumulado.trim(),
+        cleaned_text: textoLimpo
+      };
     },
 
     async listenOnce(silence = 4000) {
-      return this.listenForPhrase({ stopPhrases: [], silenceFailsafeMs: silence });
+      const res = await this._listenOnceInternal(silence);
+      return { text: res.text, cleaned_text: res.text };
     },
 
     stop() {
-      if (activeRecognition) { try { activeRecognition.stop(); } catch {} }
-      recognitionRunning = false;
+      // Função de emergência
     }
   };
 
   // 📦 CRS: PAYLOAD PLUGÁVEL E RICO
   const crs = {
     buildPayload: function(texto, opcoes = {}) {
-      // Análise básica para estruturar os dados
       const palavras = texto.split(' ').filter(w => w.length > 0).length;
       const caracteres = texto.length;
       const tempoEstimado = palavras > 0 ? (palavras / 2.2) : 5;
       
-      // Métricas que servem para QUALQUER domínio
       return {
         transcript_raw: texto,
         context: opcoes.context || "",
         source_text: opcoes.source_text || texto,
         
-        // Dados Temporais e Estruturais
         duration_sec: tempoEstimado,
         word_count: palavras,
         char_count: caracteres,
-        density: palavras / (tempoEstimado || 1), // Palavras por segundo
+        density: palavras / (tempoEstimado || 1),
         
-        // Indicadores de Ritmo e Energia
-        silence_pct: 15,       // Ajustável
+        silence_pct: 15,
         pause_count: Math.max(1, Math.floor(palavras / 8)),
         mean_pause_ms: 250,
-        oscillation_pct: 15,   // Variação
-        stability_pct: 85,     // Confiabilidade
-        noise_pct: 3,          // Ruído de fundo
-        energy_pct: 85,        // Intensidade média
-        continuity_pct: 90     // Fluxo contínuo
+        oscillation_pct: 15,
+        stability_pct: 85,
+        noise_pct: 3,
+        energy_pct: 85,
+        continuity_pct: 90
       };
     },
     async analyze(payload) {
@@ -261,7 +240,7 @@
     }
   };
 
- // --- Exportação Global ---
+  // --- Exportação Global ---
   window.ELAYON_TUNNEL = {
     healthcheck: async () => ({
       authenticated: !!(await getAccessToken()),
@@ -273,6 +252,6 @@
     mic,
     stt,
     crs,
-    utils: { normalizeText, stripPhrases, getAccessToken }
+    utils: { normalizeText, stripPhrases, getAccessToken, matchAny }
   };
 })();
