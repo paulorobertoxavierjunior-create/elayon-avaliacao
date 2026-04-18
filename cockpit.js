@@ -147,6 +147,74 @@ async function contagemParaAbrirEscuta() {
 }
 
 /* ======================================
+   🧠 MOTOR DE ANÁLISE DE ÁUDIO LOCAL
+   ====================================== */
+
+let audioAnalysis = {
+  startTime: null,
+  endTime: null,
+  totalSilenceTime: 0,
+  pauseCount: 0,
+  lastSoundTime: 0,
+  isRunning: false
+};
+
+// Variável global para guardar os dados calculados
+let dadosAnalisadosLocalmente = null;
+
+function startAudioAnalysis() {
+  audioAnalysis = {
+    startTime: Date.now(),
+    endTime: null,
+    totalSilenceTime: 0,
+    pauseCount: 0,
+    lastSoundTime: Date.now(),
+    isRunning: true
+  };
+  log("Iniciando análise de áudio local...");
+}
+
+function registerSound() {
+  if (!audioAnalysis.isRunning) return;
+  
+  const now = Date.now();
+  const silenceDuration = now - audioAnalysis.lastSoundTime;
+  
+  // Considera pausa se passou mais de 1.5s sem falar
+  if (silenceDuration > 1500) {
+    audioAnalysis.pauseCount++;
+    audioAnalysis.totalSilenceTime += silenceDuration;
+    log(`Pausa detectada: ${(silenceDuration/1000).toFixed(1)}s`);
+  }
+  
+  audioAnalysis.lastSoundTime = now;
+}
+
+function stopAudioAnalysis() {
+  if (!audioAnalysis.isRunning) return null;
+  
+  audioAnalysis.endTime = Date.now();
+  audioAnalysis.isRunning = false;
+  
+  const totalTimeSec = (audioAnalysis.endTime - audioAnalysis.startTime) / 1000;
+  const speakingTimeSec = totalTimeSec - (audioAnalysis.totalSilenceTime / 1000);
+  const silencePercentage = totalTimeSec > 0 ? ((audioAnalysis.totalSilenceTime / 1000) / totalTimeSec) * 100 : 0;
+  
+  const result = {
+    duration_sec: parseFloat(totalTimeSec.toFixed(2)),
+    speaking_time_sec: parseFloat(speakingTimeSec.toFixed(2)),
+    silence_pct: parseFloat(silencePercentage.toFixed(1)),
+    pause_count: audioAnalysis.pauseCount,
+    mean_pause_ms: audioAnalysis.pauseCount > 0 ? 
+      parseFloat((audioAnalysis.totalSilenceTime / audioAnalysis.pauseCount).toFixed(0)) : 0
+  };
+  
+  log(`Análise concluída: Tempo total ${result.duration_sec}s | Silêncio ${result.silence_pct}%`);
+  return result;
+}
+
+
+/* ======================================
    🔴 GAMBIARRA TECNOLÓGICA - BYPASS TOTAL
    ====================================== */
 
@@ -154,27 +222,41 @@ async function capturaComBypassTotal() {
   setText("statusSessao", "🔴 CAPTURA ATIVA - MODO BYPASS");
   setText("textoVivo", "");
   
+  // 🔌 INICIA A ANÁLISE LOCAL
+  startAudioAnalysis();
+
   try {
     const heard = await window.ELAYON_TUNNEL.stt.listenForPhrase({
       stopPhrases: WORKWORDS.fecharLivre,
       silenceFailsafeMs: FLOW.LISTEN_FREE_MS, // 🔥 IGNORA SILÊNCIO
-      onPartial: d => setText("textoVivo", d.cleaned_text || d.text || "")
+      onPartial: d => {
+        const text = d.cleaned_text || d.text || "";
+        setText("textoVivo", text);
+        // Toda vez que chega texto, marca que teve som
+        if(text.trim().length > 0) {
+          registerSound();
+        }
+      }
     });
+
+    // ⏹️ PARA A ANÁLISE E GUARDA OS NÚMEROS
+    dadosAnalisadosLocalmente = stopAudioAnalysis();
 
     const texto = (heard.cleaned_text || heard.text || "").trim();
     setText("statusSessao", "⏹️ Transmissão encerrada por comando.");
     setText("textoVivo", texto || "Captura concluída.");
+    
     return texto;
 
   } catch (erro) {
     log("Erro na captura: " + erro.message);
+    stopAudioAnalysis(); // Garante que para mesmo se der erro
     return "Sinal recebido com sucesso.";
   } finally {
     try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
     await sleep(FLOW.STEP_DELAY_MS);
   }
 }
-
 
 /* ======================================
    FUNÇÕES DE CAPTURA
@@ -262,15 +344,23 @@ async function rodarEtapa(pergunta, indice) {
 async function enviarCRS(texto, indice) {
   const tema = (el("inpTema")?.value || "").trim();
   const contexto = (el("inpContexto")?.value || "").trim();
-  const payload = window.ELAYON_TUNNEL.crs.buildPayload(texto, { 
-    context: `${contexto} | etapa ${indice + 1}`, 
-    source_text: tema 
-  });
+  
+  // 📦 Monta o pacote COMPLETO com dados calculados
+  const payload = {
+    text: texto,
+    theme: tema,
+    context: `${contexto} | etapa ${indice + 1}`,
+    // Dados da análise local
+    metrics: dadosAnalisadosLocalmente || {}
+  };
   
   log(`Enviando para análise CRS...`);
+  console.log("Payload completo:", payload);
+
+  // Envia pro CRS receber e armazenar
   const resultado = await window.ELAYON_TUNNEL.crs.analyze(payload);
   
-  console.log("Dados CRS:", resultado);
+  console.log("Resposta CRS:", resultado);
   return resultado;
 }
 
