@@ -3,71 +3,82 @@
    ====================================== */
 
 const STATE = { etapa: 1, tema: "", locked: false };
-const FLOW = { TYPE_SPEED: 30, WAIT: 800 }; // Velocidade aumentada
+const FLOW = { TYPE_SPEED: 30, WAIT: 800 }; 
 
-// Helpers rápidos
 const el = id => document.getElementById(id);
 const setText = (id, txt) => { if(el(id)) el(id).textContent = txt; };
 
+let abortController = null;
+
+// MOTOR DE INICIALIZAÇÃO
 async function iniciarIniciacao() {
     if (STATE.locked) return;
     STATE.locked = true;
     
-    // 1. Saudação e Instrução Inicial
-    showTela("sessao"); 
-    await falar("Sistema Elayon Space ativo. Protocolo de calibração iniciado.");
-    await falar("Sou sua interface. Não haverá textos desnecessários. Apenas nossa conexão.");
+    try {
+        setText("statusSessao", "SISTEMA ATIVO");
+        await falar("Sistema Elayon Space ativo. Protocolo de calibração iniciado.");
+        await falar("Sou sua interface. Não haverá textos desnecessários. Apenas nossa conexão.");
 
-    // FASE 1: O TEMA
-    await faseVoz(1, "Qual o tema da sua missão hoje? Fale agora e feche quando terminar.");
-    
-    // FASE 2: DESENVOLVIMENTO
-    await faseVoz(2, `Sobre ${STATE.tema}, desenvolva sua linha de raciocínio agora.`);
+        // FASE 1
+        await faseVoz(1, "Qual o tema da sua missão hoje? Fale agora e encerre no botão vermelho.");
+        
+        // FASE 2
+        await falar(`Sincronizando sobre ${STATE.tema}.`);
+        await faseVoz(2, "Desenvolva sua linha de raciocínio agora.");
 
-    // FASE 3: CONCLUSÃO
-    await faseVoz(3, "Para finalizar a calibração, defina o objetivo real desse tema.");
+        // FASE 3
+        await faseVoz(3, "Para finalizar a calibração, defina o objetivo real desse tema.");
 
-    // FINALIZAÇÃO
-    await finalizarProtocolo();
+        await finalizarProtocolo();
+    } catch (e) {
+        console.error(e);
+        setText("statusSessao", "FALHA NO PROTOCOLO");
+    } finally {
+        STATE.locked = false;
+    }
 }
 
+// MOTOR DE VOZ E CAPTURA
 async function faseVoz(num, comando) {
     setText("statusSessao", `Etapa 0${num} de 03`);
     await falar(comando);
     
-    // Abre Mic e espera fechar manual (ou Ok Ok)
-    const captura = await window.ELAYON_TUNNEL.stt.listenForPhrase({
-        stopPhrases: ["ok ok", "confirmar", "fechar"],
-        onPartial: d => setText("textoVivo", d.text)
-    });
+    const btnStop = el("btnStopManual");
+    if(btnStop) btnStop.classList.remove("hidden");
 
-    const resultado = captura.text || "Conteúdo captado";
-    if (num === 1) STATE.tema = resultado;
+    abortController = new AbortController();
 
-    await falar("Registrado. Continuar ou Alinhar?");
-    const decisao = await esperarDecisao(); // Lógica de botão ou voz curta
-    if (decisao === "alinhar") return await faseVoz(num, "Repetindo etapa. Pode falar.");
+    try {
+        // Abre o microfone via Túnel
+        const captura = await window.ELAYON_TUNNEL.stt.listenForPhrase({
+            stopPhrases: ["ok ok", "fechar"],
+            silenceFailsafeMs: 999999,
+            onPartial: d => { setText("textoVivo", d.text); },
+            signal: abortController.signal 
+        });
+
+        if (num === 1) STATE.tema = captura.text || "Missão Alpha";
+
+    } catch (err) {
+        if (err.name !== 'AbortError') console.error(err);
+    } finally {
+        if(btnStop) btnStop.classList.add("hidden");
+    }
+
+    await falar("Sinal captado. Continuando...");
+    await sleep(1000);
 }
 
+// MOTOR DE SAÍDA (IA)
 async function falar(txt) {
     setText("textoVivo", "");
     const escrita = escrever(txt);
-    const voz = window.ELAYON_TUNNEL.tts.speak(txt, { rate: 1.2 }); // Mais rápido
+    const voz = window.ELAYON_TUNNEL.tts.speak(txt, { rate: 1.2 });
     await Promise.all([escrita, voz]);
     await sleep(FLOW.WAIT);
 }
 
-async function finalizarProtocolo() {
-    await falar("Calibração concluída com sucesso.");
-    await falar("Gratidão pela paciência e integridade. O respeito ao tempo é o que nos une.");
-    await falar("Bem-vindo. Você é agora um Piloto oficial do sistema ELAYON SPACE.");
-    
-    // Libera o botão para o Index Real
-    el("btnIrParaPresenca").classList.remove("hidden");
-    showTela("final");
-}
-
-// Helper de escrita progressiva
 async function escrever(txt) {
     const alvo = el("textoVivo");
     alvo.textContent = "";
@@ -77,79 +88,45 @@ async function escrever(txt) {
     }
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-/* ========== 🎛️ CONTROLE DE FLUXO MANUAL ========== */
-
-let abortController = null;
-
-async function faseVoz(num, comando) {
-    setText("statusSessao", `Etapa 0${num} de 03`);
-    await falar(comando);
+async function finalizarProtocolo() {
+    await falar("Calibração concluída com sucesso.");
+    await falar("Gratidão pela paciência. O respeito ao tempo é o que nos une.");
+    await falar("Bem-vindo. Você é agora um Piloto oficial do sistema ELAYON SPACE.");
     
-    // Mostra o botão de "Encerrar Captura" apenas quando o mic abre
-    const btnStop = el("btnStopManual");
-    if(btnStop) btnStop.classList.remove("hidden");
-
-    // Cria um sinal para interromper a escuta se o botão for clicado
-    abortController = new AbortController();
-
-    try {
-        const captura = await window.ELAYON_TUNNEL.stt.listenForPhrase({
-            stopPhrases: ["ok ok", "fechar"],
-            silenceFailsafeMs: 999999, // Não fecha sozinho, espera o piloto
-            onPartial: d => {
-                setText("textoVivo", d.text);
-                registerSound(); // Sua função de análise local
-            },
-            signal: abortController.signal // Link com o botão manual
-        });
-
-        STATE.tema = (num === 1) ? captura.text : STATE.tema;
-
-    } catch (err) {
-        if (err.name === 'AbortError') log("Captura encerrada manualmente pelo piloto.");
-        else console.error(err);
-    } finally {
-        if(btnStop) btnStop.classList.add("hidden");
-    }
-
-    await falar("Sinal captado. Continuar ou Alinhar?");
-    // ... segue para decisão
+    el("btnIrParaPresenca").classList.remove("hidden");
+    setText("statusSessao", "ACESSO LIBERADO");
 }
 
-// Vincula o clique do botão físico ao abort do microfone
-el("btnStopManual").onclick = () => {
-    if(abortController) abortController.abort();
-    bip(); // Feedback sonoro de que desligou
-};
-
-// Conecta o botão de iniciar do HTML ao motor do JS
+// CONTROLES MANUAIS
 document.addEventListener("DOMContentLoaded", () => {
     const btnAction = el("btnAction");
     if (btnAction) {
         btnAction.onclick = () => {
-            btnAction.classList.add("hidden"); // Esconde o iniciar
+            btnAction.classList.add("hidden");
             iniciarIniciacao();
+        };
+    }
+
+    const btnStop = el("btnStopManual");
+    if(btnStop) {
+        btnStop.onclick = () => {
+            if(abortController) abortController.abort();
+            bip();
         };
     }
 });
 
-// Função de decisão (simples para o deploy)
-async function esperarDecisao() {
-    // Por enquanto, vamos assumir que o piloto sempre quer continuar
-    // mas você pode colocar um confirm() ou escuta curta aqui
-    return "confirma"; 
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function bip() {
+    try {
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        osc.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.1);
+    } catch(e) {}
 }
 
-// Efeito sonoro simples
-function bip() {
-    const context = new AudioContext();
-    const osc = context.createOscillator();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(440, context.currentTime);
-    osc.connect(context.destination);
-    osc.start();
-    osc.stop(context.currentTime + 0.1);
-}
+
 
