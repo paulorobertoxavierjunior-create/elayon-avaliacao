@@ -124,3 +124,32 @@ el("btnStopManual").onclick = () => {
     bip(); // Feedback sonoro de que desligou
 };
 
+// Conecta o botão de iniciar do HTML ao motor do JS
+document.addEventListener("DOMContentLoaded", () => {
+    const btnAction = el("btnAction");
+    if (btnAction) {
+        btnAction.onclick = () => {
+            btnAction.classList.add("hidden"); // Esconde o iniciar
+            iniciarIniciacao();
+        };
+    }
+});
+
+// Função de decisão (simples para o deploy)
+async function esperarDecisao() {
+    // Por enquanto, vamos assumir que o piloto sempre quer continuar
+    // mas você pode colocar um confirm() ou escuta curta aqui
+    return "confirma"; 
+}
+
+// Efeito sonoro simples
+function bip() {
+    const context = new AudioContext();
+    const osc = context.createOscillator();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(440, context.currentTime);
+    osc.connect(context.destination);
+    osc.start();
+    osc.stop(context.currentTime + 0.1);
+}
+
