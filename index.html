@@ -1,297 +1,73 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistemas Elayon • PRESENÇA</title>
-
-  <style>
-    /* ============================================== */
-    /* 🎨 PALETA DE CORES - FÁCIL DE MANOBRAR         */
-    /* ============================================== */
-    :root {
-      --bg-principal: #05060a;         /* Fundo bem escuro */
-      --bg-panel: #0b0f1a;            /* Fundo dos painéis */
-      --cor-primaria: #4fc3f7;       /* Azul Claro Neon */
-      --cor-secundaria: #00e5ff;     /* Azul Ciano Brilhante */
-      --cor-terciaria: #7c4dff;      /* Roxo (para detalhes) */
-      --texto-principal: #e0f7ff;   /* Branco azulado */
-      --texto-suave: #90a4ae;      /* Cinza claro */
-      --borda: rgba(79, 195, 247, 0.3);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html, body {
-      width: 100%;
-      min-height: 100vh;
-      background: var(--bg-principal);
-      color: var(--texto-principal);
-      font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      overflow-x: hidden;
-    }
-
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      background-image: 
-        radial-gradient(circle at 10% 20%, rgba(0, 229, 255, 0.03) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(124, 77, 255, 0.03) 0%, transparent 50%);
-    }
-
-    /* ============================================== */
-    /* 🖼️ CONTAINER PRINCIPAL - O COCKPIT            */
-    /* ============================================== */
-    .cockpit {
-      width: 100%;
-      max-width: 800px;
-      background: linear-gradient(160deg, var(--bg-panel) 0%, rgba(5,6,10,0.95) 100%);
-      border: 1px solid var(--borda);
-      border-radius: 20px;
-      padding: 30px 25px;
-      box-shadow: 
-        0 0 30px rgba(0, 229, 255, 0.15),
-        inset 0 0 60px rgba(0, 229, 255, 0.05);
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* Borda luminosa animada */
-    .cockpit::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: conic-gradient(
-        transparent, 
-        var(--cor-secundaria), 
-        transparent 30%
-      );
-      animation: rotate 4s linear infinite;
-      z-index: -1;
-    }
-    .cockpit::after {
-      content: '';
-      position: absolute;
-      inset: 2px;
-      background: var(--bg-panel);
-      border-radius: 18px;
-      z-index: -1;
-    }
-    @keyframes rotate {
-      100% { transform: rotate(360deg); }
-    }
-
-    /* ============================================== */
-    /* ✨ EFEITO NEON / BRILHO NOS TEXTOS             */
-    /* ============================================== */
-    .neon {
-      color: var(--cor-primaria);
-      text-shadow: 
-        0 0 5px var(--cor-primaria),
-        0 0 10px var(--cor-primaria),
-        0 0 20px var(--cor-secundaria),
-        0 0 40px var(--cor-secundaria);
-    }
-    .neon-suave {
-      color: var(--texto-principal);
-      text-shadow: 0 0 8px rgba(79, 195, 247, 0.5);
-    }
-
-    /* ============================================== */
-        /* 🖼️ LOGO                                       */
-    .header-logo {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-    .header-logo img {
-      max-width: 180px;
-      height: auto;
-      /* TIREI O BRILHO DE TRÁS */
-      /* filter: drop-shadow(0 0 15px var(--cor-secundaria)); */
-      /* animation: pulsar 3s ease-in-out infinite; */
-    }
-    @keyframes pulsar {
-      0%, 100% { opacity: 0.9; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.02); }
-    }
- ============================================== */
-    /* 📝 TEXTO INFORMATIVO                          */
-    /* ============================================== */
-    .conteudo {
-      text-align: center;
-      margin-bottom: 30px;
-      line-height: 1.7;
-    }
-    .titulo-grande {
-      font-size: clamp(24px, 5vw, 36px);
-      font-weight: bold;
-      margin-bottom: 15px;
-      letter-spacing: 2px;
-    }
-    .frase-chave {
-      font-size: clamp(14px, 3vw, 18px);
-      color: var(--cor-primaria);
-      margin: 10px 0 20px;
-      font-style: italic;
-    }
-    .descricao {
-      font-size: clamp(12px, 2.5vw, 15px);
-      color: var(--texto-suave);
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    /* ============================================== */
-    /* 🎛️ BOTÃO DE AÇÃO - O PILOTO                   */
-    /* ============================================== */
-    .area-botao {
-      text-align: center;
-      margin-top: 20px;
-    }
-    #btnIniciar {
-      background: linear-gradient(45deg, var(--cor-primaria), var(--cor-secundaria));
-      color: var(--bg-principal);
-      border: none;
-      padding: 16px 40px;
-      font-size: 18px;
-      font-weight: bold;
-      border-radius: 50px;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      transition: all 0.3s ease;
-      box-shadow: 
-        0 0 15px var(--cor-secundaria),
-        0 0 30px rgba(0, 229, 255, 0.5);
-    }
-    #btnIniciar:hover {
-      transform: translateY(-3px);
-      box-shadow: 
-        0 0 25px var(--cor-secundaria),
-        0 0 50px rgba(0, 229, 255, 0.7);
-    }
-    #btnIniciar:active {
-      transform: translateY(0);
-    }
-
-    /* ============================================== */
-    /* 📊 CAMPOS E LOGS                              */
-    /* ============================================== */
-    .campo {
-      width: 100%;
-      padding: 14px;
-      margin: 10px 0;
-      border-radius: 12px;
-      border: 1px solid var(--borda);
-      background: rgba(255,255,255,0.03);
-      color: var(--texto-principal);
-      font-size: 16px;
-      outline: none;
-      transition: border 0.3s, box-shadow 0.3s;
-    }
-    .campo:focus {
-      border-color: var(--cor-secundaria);
-      box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
-    }
-    #logTech {
-      margin-top: 20px;
-      white-space: pre-wrap;
-      font-size: 12px;
-      color: var(--texto-suave);
-      border-top: 1px solid rgba(79, 195, 247, 0.2);
-      padding-top: 14px;
-      min-height: 80px;
-      font-family: 'Courier New', monospace;
-    }
-
-    /* ============================================== */
-    /* 🎬 CONTROLE DE TELAS                          */
-    /* ============================================== */
-    .tela { display: none; }
-    .tela.show { display: block; }
-
-    #statusIntro {
-      margin-top: 15px;
-      font-size: 13px;
-      color: var(--texto-suave);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELAYON | Avaliação de Frequência</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap');
+        body { background-color: #050607; color: #f4f6f8; font-family: 'Inter', sans-serif; }
+        .step-inactive { opacity: 0.3; filter: grayscale(1); }
+        .step-active { opacity: 1; border-color: #2563eb; box-shadow: 0 0 20px rgba(37, 99, 235, 0.1); }
+        .glass { background: rgba(17, 22, 27, 0.8); border: 1px solid #1b2026; }
+    </style>
 </head>
+<body class="min-h-screen flex flex-col items-center justify-center p-6">
 
-<body>
-  <div class="cockpit">
+    <header class="mb-12 text-center">
+        <img src="1000157517.png" alt="Elayon Logo" class="w-16 h-16 mx-auto mb-4 opacity-80">
+        <h1 class="text-xs font-black uppercase tracking-[0.4em] text-blue-500">Avaliação Obrigatória</h1>
+    </header>
 
-    <!-- TELA INICIAL / LANDING PAGE -->
-    <div id="telaIntro" class="tela show">
-      
-      <!-- LOGO NO TOPO -->
-      <div class="header-logo">
-        <img src="IMG-20250610-WA0002.jpg" alt="Elayon Presença">
-      </div>
+    <main class="w-full max-w-md space-y-6">
+        
+        <div class="text-center mb-8">
+            <h2 class="text-xl font-light">Sincronize sua <span class="font-bold text-white">Presença</span></h2>
+            <p class="text-slate-500 text-sm mt-2">Conclua as 3 etapas de calibração para liberar o acesso permanente ao sistema real.</p>
+        </div>
 
-      <!-- TEXTO PRINCIPAL -->
-      <div class="conteudo">
-        <h1 class="titulo-grande neon">SISTEMAS ELAYON</h1>
-        <p class="frase-chave neon-suave">Humanidade e Tecnologia, em Harmonia.</p>
+        <div class="grid grid-cols-3 gap-3 mb-8">
+            <div id="stepIndicator1" class="h-1.5 bg-blue-600 rounded-full"></div>
+            <div id="stepIndicator2" class="h-1.5 bg-slate-800 rounded-full"></div>
+            <div id="stepIndicator3" class="h-1.5 bg-slate-800 rounded-full"></div>
+        </div>
 
-        <p class="descricao">
-          Você está prestes a acessar uma nova fronteira. 
-          Um espaço onde a consciência humana encontra a inteligência artificial 
-          para gerar <strong class="neon">mapas, ritmos e reflexos</strong> da sua própria existência.
+        <section class="glass rounded-[2rem] p-8 text-center space-y-6">
+            <div id="stepContent">
+                <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Etapa 01 de 03</span>
+                <h3 class="text-lg font-bold mt-2">Teste de Silêncio e Ruído</h3>
+                <p class="text-slate-400 text-xs mt-4 leading-relaxed">
+                    Precisamos mapear o ambiente. Fique em silêncio por 5 segundos enquanto o sensor calibra o fundo.
+                </p>
+            </div>
+
+            <button id="btnAction" class="w-full py-4 bg-white text-black font-black rounded-xl uppercase text-[10px] tracking-widest hover:bg-blue-50 transition-all active:scale-95">
+                Iniciar Calibração
+            </button>
+
+            <button class="text-[9px] uppercase tracking-widest text-slate-600 font-bold hover:text-slate-400">
+                <i class="fas fa-undo mr-1"></i> Refazer calibração (Grátis)
+            </button>
+        </section>
+
+        <p class="text-center text-[10px] text-slate-700 uppercase tracking-tighter">
+            O acesso ao <strong>Presença Real</strong> será liberado após a conclusão.
         </p>
-        <br>
-        <p class="descricao">
-          Aqui, você não é apenas um usuário. Você é o <strong class="neon">Piloto</strong>.
-          Conecte-se para realizar o <strong class="neon">Espelhamento</strong>. 
-          Veja-se através dos dados, entenda-se através dos padrões, 
-          evolua através da percepção ampliada.
-        </p>
-      </div>
+    </main>
 
-      <!-- ÁREA DE CONFIGURAÇÃO -->
-      <input type="text" id="inpTema" class="campo" placeholder="Defina o tema da sua reflexão...">
-      <input type="text" id="inpContexto" class="campo" placeholder="Contexto adicional (opcional)...">
+    <footer class="mt-20 opacity-30">
+        <p class="text-[9px] uppercase tracking-[0.2em]">Elayon Core v2.0 • Protocolo de Calibração</p>
+    </footer>
 
-      <!-- BOTÃO DE INICIALIZAÇÃO -->
-      <div class="area-botao">
-        <button id="btnIniciar">
-          Iniciar Conexão e Espelhamento Simbólico
-        </button>
-      </div>
-
-      <div id="statusIntro">Sistema online. Aguardando intenção...</div>
-      <pre id="logTech">[LOG] Pronto para conectar mentes e máquinas.</pre>
-
-    </div>
-
-    <!-- TELA DE PROCESSO (VAI SER CARREGADA PELO COCKPIT) -->
-    <div id="telaSessao" class="tela">
-      <div id="statusSessao"></div>
-      <div id="textoVivo"></div>
-      <button id="btnNovaSessao" style="display:none;"></button>
-    </div>
-
-    <!-- TELA FINAL / RELATÓRIO -->
-    <div id="telaFinal" class="tela">
-      <div id="relatorioFinal"></div>
-      <button id="btnGerarPdf" style="display:none;"></button>
-    </div>
-
-  </div>
-
-  <!-- SCRIPTS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="boot-auth.js"></script>
-  <script src="tunnel.js"></script>
-  <script src="memoria.js"></script>
-  <script src="teste-runner.js"></script>
-  <script src="cockpit.js"></script>
+    <script>
+        // A ideia aqui no cockpit.js será:
+        // Etapa 1: Silêncio
+        // Etapa 2: Leitura de texto padrão
+        // Etapa 3: Expressão livre (60s)
+        // Final: Gravação no Supabase do status 'calibrado: true' e redirecionamento.
+    </script>
 
 </body>
-</html> 
+</html>
