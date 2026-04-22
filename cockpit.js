@@ -1,452 +1,80 @@
 /* ======================================
-   SISTEMAS ELAYON — PRESENÇA
-   COCKPIT.JS — VERSÃO COMPLETA E MODULARIZADA
+   ELAYON SPACE — PROTOCOLO DE INICIAÇÃO
    ====================================== */
 
-/* ========== 🎛️ CONSTANTES E ESTADO GLOBAL ========== */
+const STATE = { etapa: 1, tema: "", locked: false };
+const FLOW = { TYPE_SPEED: 30, WAIT: 800 }; // Velocidade aumentada
 
-const WORKWORDS = {
-  fecharLivre: ["ok ok", "okok", "ok, ok", "ok,ok", "ok-ok", "ok. ok"],
-  confirma: ["confirma", "confirmar", "confirmo"],
-  alinhar: ["alinhar", "refazer", "ajustar"]
-};
+// Helpers rápidos
+const el = id => document.getElementById(id);
+const setText = (id, txt) => { if(el(id)) el(id).textContent = txt; };
 
-const FLOW = {
-  TYPE_SPEED: 45,
-  STEP_DELAY_MS: 1200,
-  BETWEEN_ACTIONS_MS: 800,
-  LISTEN_DECISION_MS: 15000,
-  LISTEN_FREE_MS: 999999,
-  PRE_MIC_WAIT_MS: 3000
-};
-
-const STATE = {
-  respostas: [],
-  analises: [],
-  sessionId: null,
-  etapaAtual: 0,
-  locked: false
-};
-
-/* =========- 🛠️ FUNÇÕES AUXILIARES (HELPERS) ========== */
-
-function el(id) { 
-  return document.getElementById(id); 
-}
-
-function setText(id, value) { 
-  const node = el(id); 
-  if (node) node.textContent = value ?? ""; 
-}
-
-function showTela(nome) {
-  const telas = { intro: "telaIntro", sessao: "telaSessao", final: "telaFinal" };
-  Object.values(telas).forEach(id => {
-    const node = el(id);
-    if(node) node.classList.remove("show");
-  });
-  const telaId = telas[nome];
-  if(telaId && el(telaId)) el(telaId).classList.add("show");
-}
-
-function normalize(txt) { 
-  return window.ELAYON_TUNNEL.utils.normalizeText(txt || ""); 
-}
-
-function matchAny(text, list) { 
-  const n = normalize(text); 
-  return list.some(item => n.includes(normalize(item))); 
-}
-
-function sleep(ms) { 
-  return new Promise(resolve => setTimeout(resolve, ms)); 
-}
-
-function log(msg) {
-  const box = el("logTech");
-  if (box) box.textContent += `[${new Date().toLocaleTimeString("pt-BR")}] ${msg}\n`;
-  console.log("[PRESENCA]", msg);
-}
-
-function assertStructure() {
-  const ids = [
-    "telaIntro", "telaSessao", "telaFinal", "btnIniciar", 
-    "btnNovaSessao", "btnGerarPdf", "inpTema", "inpContexto", 
-    "statusIntro", "statusSessao", "textoVivo", "relatorioFinal"
-  ];
-  const missing = ids.filter(id => !el(id));
-  if (missing.length) throw new Error(`IDs ausentes: ${missing.join(", ")}`);
-}
-
-async function resetMotores() { 
-  try { await window.ELAYON_TUNNEL.stt.stop(); } catch {} 
-  try { await window.ELAYON_TUNNEL.tts.stop(); } catch {} 
-}
-
-function limparSessaoVisual() { 
-  setText("textoVivo", ""); 
-  setText("statusSessao", "Preparando ambiente..."); 
-}
-
-/* ========== ✍️ TEXTO PROGRESSIVO E FALA (TTS) ========== */
-
-function escreverTextoProgressivo(texto, alvoId, velocidade = FLOW.TYPE_SPEED) {
-  return new Promise((resolve) => {
-    const alvo = el(alvoId); if (!alvo) return resolve();
-    const textoFinal = texto.charAt(0).toUpperCase() + texto.slice(1);
-    alvo.textContent = ""; let i = 0;
-    function tick() { 
-      if (i < textoFinal.length) { 
-        alvo.textContent += textoFinal[i]; i++; 
-        setTimeout(tick, velocidade); 
-      } else resolve(); 
-    }
-    tick();
-  });
-}
-
-async function falarComTexto(texto, alvoId = "textoVivo") {
-  await sleep(FLOW.BETWEEN_ACTIONS_MS);
-  const escrita = escreverTextoProgressivo(texto, alvoId, FLOW.TYPE_SPEED);
-  const fala = window.ELAYON_TUNNEL.tts.speak(texto, { rate: 1.1, pitch: 1, volume: 1 });
-  await Promise.allSettled([escrita, fala]);
-  await sleep(FLOW.STEP_DELAY_MS);
-}
-
-/* =========- 🔊 EFEITOS SONOROS E CONTAGEM ========== */
-
-function bip() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator(); 
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.frequency.value = 432; gain.gain.value = 0.18; osc.start();
-    setTimeout(() => { 
-      try { osc.stop(); } catch {} 
-      try { ctx.close(); } catch {} 
-    }, 140);
-  } catch {}
-}
-
-async function contagemParaAbrirEscuta() {
-  setText("statusSessao", "Prepare-se. Respira."); await sleep(FLOW.PRE_MIC_WAIT_MS);
-  await falarComTexto(`Vou abrir a escuta simbólica.\n\nVocê tem cinco segundos para se preparar.`);
-  await sleep(1000);
-  for (let n = 5; n >= 1; n--) { 
-    setText("statusSessao", `Abrindo em ${n}...`); 
-    setText("textoVivo", String(n)); 
-    await sleep(1000); 
-  }
-  setText("statusSessao", "Bip. Escuta iniciando."); bip(); await sleep(250);
-}
-
-/* ========== 🧠 MOTOR DE ANÁLISE DE ÁUDIO LOCAL ========== */
-
-let audioAnalysis = {
-  startTime: null,
-  endTime: null,
-  totalSilenceTime: 0,
-  pauseCount: 0,
-  lastSoundTime: 0,
-  isRunning: false
-};
-
-let dadosAnalisadosLocalmente = null;
-
-function startAudioAnalysis() {
-  audioAnalysis = {
-    startTime: Date.now(),
-    endTime: null,
-    totalSilenceTime: 0,
-    pauseCount: 0,
-    lastSoundTime: Date.now(),
-    isRunning: true
-  };
-  log("Iniciando análise de áudio local...");
-}
-
-function registerSound() {
-  if (!audioAnalysis.isRunning) return;
-  
-  const now = Date.now();
-  const silenceDuration = now - audioAnalysis.lastSoundTime;
-  
-  if (silenceDuration > 1500) {
-    audioAnalysis.pauseCount++;
-    audioAnalysis.totalSilenceTime += silenceDuration;
-    log(`Pausa detectada: ${(silenceDuration/1000).toFixed(1)}s`);
-  }
-  
-  audioAnalysis.lastSoundTime = now;
-}
-
-function stopAudioAnalysis() {
-  if (!audioAnalysis.isRunning) return null;
-  
-  audioAnalysis.endTime = Date.now();
-  audioAnalysis.isRunning = false;
-  
-  const totalTimeSec = (audioAnalysis.endTime - audioAnalysis.startTime) / 1000;
-  const speakingTimeSec = totalTimeSec - (audioAnalysis.totalSilenceTime / 1000);
-  const silencePercentage = totalTimeSec > 0 ? ((audioAnalysis.totalSilenceTime / 1000) / totalTimeSec) * 100 : 0;
-  
-  const result = {
-    duration_sec: parseFloat(totalTimeSec.toFixed(2)),
-    speaking_time_sec: parseFloat(speakingTimeSec.toFixed(2)),
-    silence_pct: parseFloat(silencePercentage.toFixed(1)),
-    pause_count: audioAnalysis.pauseCount,
-    mean_pause_ms: audioAnalysis.pauseCount > 0 ? 
-      parseFloat((audioAnalysis.totalSilenceTime / audioAnalysis.pauseCount).toFixed(0)) : 0
-  };
-  
-  log(`Análise concluída: Tempo total ${result.duration_sec}s | Silêncio ${result.silence_pct}%`);
-  return result;
-}
-
-/* =========- 🎤 CAPTURA E MICROFONE (COM BYPASS) ========== */
-
-async function capturaComBypassTotal() {
-  setText("statusSessao", "🔴 CAPTURA ATIVA - MODO BYPASS");
-  setText("textoVivo", "");
-  
-  startAudioAnalysis();
-
-  try {
-    const heard = await window.ELAYON_TUNNEL.stt.listenForPhrase({
-      stopPhrases: WORKWORDS.fecharLivre,
-      silenceFailsafeMs: FLOW.LISTEN_FREE_MS,
-      onPartial: d => {
-        const text = d.cleaned_text || d.text || "";
-        setText("textoVivo", text);
-        if(text.trim().length > 0) {
-          registerSound();
-        }
-      }
-    });
-
-    dadosAnalisadosLocalmente = stopAudioAnalysis();
-
-    const texto = (heard.cleaned_text || heard.text || "").trim();
-    setText("statusSessao", "⏹️ Transmissão encerrada por comando.");
-    setText("textoVivo", texto || "Captura concluída.");
-    
-    return texto;
-
-  } catch (erro) {
-    log("Erro na captura: " + erro.message);
-    stopAudioAnalysis();
-    return "Sinal recebido com sucesso.";
-  } finally {
-    try { await window.ELAYON_TUNNEL.stt.stop(); } catch {}
-    await sleep(FLOW.STEP_DELAY_MS);
-  }
-}
-
-async function capturarRespostaLivre() {
-  return await capturaComBypassTotal();
-}
-
-async function capturarDecisaoCurta() {
-  setText("statusSessao", "🎙️ Escuta curta aberta para decisão.");
-  setText("textoVivo", "");
-  
-  try {
-    const heard = await window.ELAYON_TUNNEL.stt.listenForPhrase({
-      stopPhrases: [...WORKWORDS.confirma, ...WORKWORDS.alinhar],
-      silenceFailsafeMs: FLOW.LISTEN_DECISION_MS,
-      onPartial: d => setText("textoVivo", d.cleaned_text || d.text || "")
-    });
-    
-    const txt = heard.text || "";
-    if (matchAny(txt, WORKWORDS.alinhar)) return "alinhar";
-    if (matchAny(txt, WORKWORDS.confirma)) return "confirma";
-    return null;
-
-  } finally { 
-    try { await window.ELAYON_TUNNEL.stt.stop(); } catch {} 
-    await sleep(FLOW.STEP_DELAY_MS); 
-  }
-}
-
-/* =========- 📖 TUTORIAL E APRESENTAÇÃO ========== */
-
-async function rodadaTutorial() {
-  await falarComTexto(`Sistema Elayon.\n\nHumanidade e Tecnologia, em Harmonia.\n\nVocê acessou o módulo PRESENÇA.\n\nUma interface de conexão direta.`);
-  
-  await falarComTexto(`Aqui, a linguagem não é apenas comunicação. É onda. É frequência.\n\nVocê não está apenas falando; você está emitindo.\n\nEste sistema captura sua assinatura, mapeia ritmos e espelha o que você está ressoando de fato. Para ver o melhor de si, deves se expressar no seu melhor.`);
-
-  await falarComTexto(`Funciona como uma ponte:\nDa sua mente para os circuitos.\nDos circuitos para IA e da IA pro seu painel.\n\n**Protocolo:**\nFale livremente, sem filtros. Deixe fluir. Pode pausar para pensar que o micro permanece aberto.\nQuando estiver completo o raciocínio, diga: Ok Ok.\n\nVou liberar o microfone para iniciarmos. Respire e sinta-se`);
-}
-
-/* =========- 📋 PERGUNTAS E FLUXO DAS ETAPAS ========== */
-
-function obterPerguntas() {
-  const tema = (el("inpTema")?.value || "").trim() || "o tema que você escolheu";
-  return [
-    `Primeira etapa - Abertura.\n\nFale sobre ${tema} do seu jeito.\n\nQuando acabar, diga "ok ok".`,
-    `Segunda etapa - Visualização.\n\nDesenvolva suas ideias.\n\nQuando acabar, diga "ok ok".`,
-    `Terceira etapa - Conexão.\n\nConclua sua reflexão.\n\nAgradeça no final se fizer sentido e em seguida diga, "ok ok".`
-  ];
-}
-
-async function rodarEtapa(pergunta, indice) {
-  setText("statusSessao", `Etapa ${indice + 1} de 3`);
-  await falarComTexto(pergunta);
-  await contagemParaAbrirEscuta();
-  
-  const resposta = await capturarRespostaLivre();
-  if (!resposta) { 
-    await falarComTexto(`Nenhum conteúdo captado. Vamos alinhar.`); 
-    return rodarEtapa(pergunta, indice); 
-  }
-  
-  await falarComTexto(`Registrado.\n\nDiga "confirma" para seguir ou "alinhar" para refazer.`);
-  const decisao = await capturarDecisaoCurta();
-  
-  if (decisao !== "confirma") { 
-    await falarComTexto(`Alinhando...`); 
-    return rodarEtapa(pergunta, indice); 
-  }
-  
-  return resposta;
-}
-
-/* =========- 📡 ENVIO E ANÁLISE CRS ========== */
-
-async function enviarCRS(texto, indice) {
-  const tema = (el("inpTema")?.value || "").trim();
-  const contexto = (el("inpContexto")?.value || "").trim();
-  
-  const payload = {
-    text: texto,
-    theme: tema,
-    context: `${contexto} | etapa ${indice + 1}`,
-    metrics: dadosAnalisadosLocalmente || {}
-  };
-  
-  log(`Enviando para análise CRS...`);
-  console.log("Payload completo:", payload);
-
-  const resultado = await window.ELAYON_TUNNEL.crs.analyze(payload);
-  
-  console.log("Resposta CRS:", resultado);
-  return resultado;
-}
-
-/* =========- 📄 RELATÓRIO E PDF (CONTINUAÇÃO) ========== */
-
-function gerarPdfRelatorio() {
-  const texto = el("relatorioFinal")?.textContent;
-  if (!texto || !window.jspdf?.jsPDF) { 
-    alert("Dados ou biblioteca PDF indisponíveis."); 
-    return; 
-  }
-  const doc = new window.jspdf.jsPDF();
-  doc.setFontSize(11);
-  const lines = doc.splitTextToSize(texto, 180);
-  let y = 20;
-  lines.forEach(line => { 
-    if (y > 280) { doc.addPage(); y = 20; } 
-    doc.text(line, 15, y); y += 6; 
-  });
-  doc.save(`relatorio-${STATE.sessionId || "elayon"}.pdf`);
-}
-
-function novaSessao() {
-  STATE.respostas = []; 
-  STATE.analises = []; 
-  STATE.sessionId = null; 
-  STATE.etapaAtual = 0; 
-  STATE.locked = false;
-  setText("statusIntro", "Aguardando início."); 
-  limparSessaoVisual(); 
-  setText("relatorioFinal", "Nenhum relatório."); 
-  showTela("intro");
-}
-
-/* ========== 🚀 FUNÇÃO PRINCIPAL (INICIAR SISTEMA) ========== */
-
-async function iniciar() {
-  alert("🔵 MOTOR LIGADO! INICIANDO...");
-  if (STATE.locked) return;
-  try {
+async function iniciarIniciacao() {
+    if (STATE.locked) return;
     STATE.locked = true;
-    assertStructure();
-    if (!window.ELAYON_TUNNEL) throw new Error("ELAYON_TUNNEL não carregado!");
     
-    const tema = (el("inpTema")?.value || "").trim();
-    if (!tema) { alert("Digite um tema primeiro!"); return; }
+    // 1. Saudação e Instrução Inicial
+    showTela("sessao"); 
+    await falar("Sistema Elayon Space ativo. Protocolo de calibração iniciado.");
+    await falar("Sou sua interface. Não haverá textos desnecessários. Apenas nossa conexão.");
 
-    const health = await window.ELAYON_TUNNEL.healthcheck();
-    log(`Health check OK`);
+    // FASE 1: O TEMA
+    await faseVoz(1, "Qual o tema da sua missão hoje? Fale agora e feche quando terminar.");
+    
+    // FASE 2: DESENVOLVIMENTO
+    await faseVoz(2, `Sobre ${STATE.tema}, desenvolva sua linha de raciocínio agora.`);
 
-    // MODO HARD - IGNORAR VERIFICAÇÕES
-    health.authenticated = true;
-    health.stt = true;
-    health.tts = true;
-    health.crs = true;
+    // FASE 3: CONCLUSÃO
+    await faseVoz(3, "Para finalizar a calibração, defina o objetivo real desse tema.");
 
-    STATE.sessionId = "sessao-" + Date.now();
-    setText("statusIntro", "Iniciando...");
-    limparSessaoVisual();
-    showTela("sessao");
-
-    await rodadaTutorial();
-    const etapas = obterPerguntas();
-
-    for (let i = 0; i < etapas.length; i++) {
-      STATE.etapaAtual = i + 1;
-      const resposta = await rodarEtapa(etapas[i], i);
-      STATE.respostas.push(resposta);
-      setText("statusSessao", "Processando sinais...");
-      const analise = await enviarCRS(resposta, i);
-      STATE.analises.push(analise);
-      await sleep(FLOW.STEP_DELAY_MS);
-    }
-
-    const relatorio = gerarRelatorio(STATE.respostas, STATE.analises);
-    setText("relatorioFinal", relatorio);
-    await falarComTexto(`Missão concluída! Dados armazenados. Relatório pronto.`);
-    showTela("final");
-
-  } catch (err) {
-    console.error(err);
-    await resetMotores();
-    alert(`ERRO: ${err.message}`);
-    setText("statusSessao", "Falha detectada.");
-    showTela("intro");
-  } finally {
-    STATE.locked = false;
-  }
+    // FINALIZAÇÃO
+    await finalizarProtocolo();
 }
 
-/* ========== 🔌 INICIALIZAÇÃO DOS BOTÕES ========== */
-
-document.addEventListener("DOMContentLoaded", () => {
-  try {
-    assertStructure();
-    showTela("intro");
-    log("Sistema carregado. MODO BYPASS ATIVADO.");
-    log("Microfone permanecerá aberto até comando 'Ok Ok'.");
-
-    // ✅ CONEXÃO FORÇADA DO BOTÃO PRINCIPAL
-    const btn = document.getElementById("btnIniciar");
-    if (btn) {
-      btn.onclick = iniciar;
-      log("✅ Botão principal conectado com sucesso!");
-    } else {
-      alert("🔴 ERRO: Botão #btnIniciar não encontrado na tela!");
-    }
-
-    const btnPdf = document.getElementById("btnGerarPdf");
-    if(btnPdf) btnPdf.onclick = gerarPdfRelatorio;
+async function faseVoz(num, comando) {
+    setText("statusSessao", `Etapa 0${num} de 03`);
+    await falar(comando);
     
-    const btnNova = document.getElementById("btnNovaSessao");
-    if(btnNova) btnNova.onclick = novaSessao;
+    // Abre Mic e espera fechar manual (ou Ok Ok)
+    const captura = await window.ELAYON_TUNNEL.stt.listenForPhrase({
+        stopPhrases: ["ok ok", "confirmar", "fechar"],
+        onPartial: d => setText("textoVivo", d.text)
+    });
 
-  } catch (err) {
-    console.error(err);
-    alert(`Erro na inicialização: ${err.message}`);
-  }
-});
+    const resultado = captura.text || "Conteúdo captado";
+    if (num === 1) STATE.tema = resultado;
+
+    await falar("Registrado. Continuar ou Alinhar?");
+    const decisao = await esperarDecisao(); // Lógica de botão ou voz curta
+    if (decisao === "alinhar") return await faseVoz(num, "Repetindo etapa. Pode falar.");
+}
+
+async function falar(txt) {
+    setText("textoVivo", "");
+    const escrita = escrever(txt);
+    const voz = window.ELAYON_TUNNEL.tts.speak(txt, { rate: 1.2 }); // Mais rápido
+    await Promise.all([escrita, voz]);
+    await sleep(FLOW.WAIT);
+}
+
+async function finalizarProtocolo() {
+    await falar("Calibração concluída com sucesso.");
+    await falar("Gratidão pela paciência e integridade. O respeito ao tempo é o que nos une.");
+    await falar("Bem-vindo. Você é agora um Piloto oficial do sistema ELAYON SPACE.");
+    
+    // Libera o botão para o Index Real
+    el("btnIrParaPresenca").classList.remove("hidden");
+    showTela("final");
+}
+
+// Helper de escrita progressiva
+async function escrever(txt) {
+    const alvo = el("textoVivo");
+    alvo.textContent = "";
+    for (let i = 0; i < txt.length; i++) {
+        alvo.textContent += txt[i];
+        await sleep(FLOW.TYPE_SPEED);
+    }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
