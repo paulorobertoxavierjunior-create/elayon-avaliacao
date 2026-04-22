@@ -78,3 +78,49 @@ async function escrever(txt) {
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ========== 🎛️ CONTROLE DE FLUXO MANUAL ========== */
+
+let abortController = null;
+
+async function faseVoz(num, comando) {
+    setText("statusSessao", `Etapa 0${num} de 03`);
+    await falar(comando);
+    
+    // Mostra o botão de "Encerrar Captura" apenas quando o mic abre
+    const btnStop = el("btnStopManual");
+    if(btnStop) btnStop.classList.remove("hidden");
+
+    // Cria um sinal para interromper a escuta se o botão for clicado
+    abortController = new AbortController();
+
+    try {
+        const captura = await window.ELAYON_TUNNEL.stt.listenForPhrase({
+            stopPhrases: ["ok ok", "fechar"],
+            silenceFailsafeMs: 999999, // Não fecha sozinho, espera o piloto
+            onPartial: d => {
+                setText("textoVivo", d.text);
+                registerSound(); // Sua função de análise local
+            },
+            signal: abortController.signal // Link com o botão manual
+        });
+
+        STATE.tema = (num === 1) ? captura.text : STATE.tema;
+
+    } catch (err) {
+        if (err.name === 'AbortError') log("Captura encerrada manualmente pelo piloto.");
+        else console.error(err);
+    } finally {
+        if(btnStop) btnStop.classList.add("hidden");
+    }
+
+    await falar("Sinal captado. Continuar ou Alinhar?");
+    // ... segue para decisão
+}
+
+// Vincula o clique do botão físico ao abort do microfone
+el("btnStopManual").onclick = () => {
+    if(abortController) abortController.abort();
+    bip(); // Feedback sonoro de que desligou
+};
+
