@@ -34,23 +34,27 @@
             <div id="stepIndicator3" class="h-1.5 bg-slate-800 rounded-full"></div>
         </div>
 
-        <section class="glass rounded-[2rem] p-8 text-center space-y-6">
-            <div id="stepContent">
-                <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Etapa 01 de 03</span>
-                <h3 class="text-lg font-bold mt-2">Teste de Silêncio e Ruído</h3>
-                <p class="text-slate-400 text-xs mt-4 leading-relaxed">
-                    Precisamos mapear o ambiente. Fique em silêncio por 5 segundos enquanto o sensor calibra o fundo.
-                </p>
-            </div>
+   <section class="glass rounded-[2rem] p-8 text-center space-y-6">
+    <div id="telaSessao">
+        <span id="statusSessao" class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Aguardando Início</span>
+        <div class="min-h-[100px] flex items-center justify-center">
+            <p id="textoVivo" class="text-sm text-white italic leading-relaxed font-light"></p>
+        </div>
+    </div>
 
-            <button id="btnAction" class="w-full py-4 bg-white text-black font-black rounded-xl uppercase text-[10px] tracking-widest hover:bg-blue-50 transition-all active:scale-95">
-                Iniciar Calibração
-            </button>
+    <button id="btnAction" class="w-full py-4 bg-white text-black font-black rounded-xl uppercase text-[10px] tracking-widest hover:bg-blue-50 transition-all active:scale-95">
+        Iniciar Missão
+    </button>
 
-            <button class="text-[9px] uppercase tracking-widest text-slate-600 font-bold hover:text-slate-400">
-                <i class="fas fa-undo mr-1"></i> Refazer calibração (Grátis)
-            </button>
-        </section>
+    <button id="btnStopManual" class="hidden w-full py-4 bg-red-600 text-white font-black rounded-xl uppercase text-[10px] tracking-widest animate-pulse">
+        Encerrar Captura (Fechar Manual)
+    </button>
+
+    <a id="btnIrParaPresenca" href="https://paulorobertoxavierjunior-create.github.io/presenca/" class="hidden w-full py-4 bg-blue-600 text-white font-black rounded-xl uppercase text-[10px] tracking-widest text-center block">
+        Acessar Presença Real
+    </a>
+</section>
+
 
         <p class="text-center text-[10px] text-slate-700 uppercase tracking-tighter">
             O acesso ao <strong>Presença Real</strong> será liberado após a conclusão.
