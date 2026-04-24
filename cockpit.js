@@ -91,7 +91,7 @@ async function escrever(txt) {
 async function finalizarProtocolo() {
     await falar("Calibração concluída com sucesso.");
     await falar("Gratidão pela paciência. O respeito ao tempo é o que nos une.");
-    await falar("Bem-vindo. Você é agora um Piloto oficial do sistema ELAYON SPACE.");
+    await falar("Bem-vindo. Você é agora um Piloto oficial dos Sistemas Elayon Space.");
     
     el("btnIrParaPresenca").classList.remove("hidden");
     setText("statusSessao", "ACESSO LIBERADO");
