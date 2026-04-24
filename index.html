@@ -1,68 +1,306 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elayon | Avaliação de Frequência</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap');
-        body { background-color: #050607; color: #f4f6f8; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(17, 22, 27, 0.8); border: 1px solid #1b2026; }
-        .hidden { display: none; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elayon | Avaliação de Frequência</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@300;400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #060809;
+      --surface: rgba(12, 18, 22, 0.9);
+      --border:  rgba(255,255,255,0.06);
+      --blue:    #3b82f6;
+      --blue-dim:#1e3a5f;
+      --red:     #ef4444;
+      --text:    #e8edf2;
+      --muted:   #4a5568;
+      --mono:    'Share Tech Mono', monospace;
+      --sans:    'Syne', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+      overflow-x: hidden;
+    }
+
+    /* subtle radial atmosphere */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(59,130,246,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ── HEADER ── */
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .logo-ring {
+      width: 52px; height: 52px;
+      border: 1px solid rgba(59,130,246,0.4);
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .logo-ring::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 50%;
+    }
+    .logo-dot {
+      width: 8px; height: 8px;
+      background: var(--blue);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--blue);
+      animation: breathe 3s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: .5; transform: scale(.7); }
+    }
+    header h1 {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--blue);
+    }
+
+    /* ── HERO TEXT ── */
+    .hero {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .hero h2 {
+      font-size: clamp(20px, 5vw, 26px);
+      font-weight: 300;
+      line-height: 1.4;
+    }
+    .hero h2 strong { font-weight: 800; }
+    .hero p {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-top: 10px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 28px;
+      backdrop-filter: blur(12px);
+      position: relative;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 20%; right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--blue), transparent);
+      opacity: .5;
+      border-radius: 1px;
+    }
+
+    /* status label */
+    #statusSessao {
+      display: block;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--blue);
+      text-align: center;
+      margin-bottom: 20px;
+      min-height: 14px;
+    }
+
+    /* live text */
+    .live-area {
+      min-height: 88px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+    }
+    #textoVivo {
+      font-size: 14px;
+      font-weight: 300;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.7;
+      font-style: italic;
+    }
+
+    /* phase bar */
+    .phase-bar {
+      display: flex;
+      gap: 6px;
+      margin: 20px 0;
+    }
+    .phase-pip {
+      flex: 1;
+      height: 2px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      transition: background .5s;
+    }
+    .phase-pip.active { background: var(--blue); box-shadow: 0 0 6px var(--blue); }
+    .phase-pip.done   { background: rgba(59,130,246,0.3); }
+
+    /* ── BUTTONS ── */
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .2s;
+      margin-top: 10px;
+    }
+    .btn:active { transform: scale(.97); }
+
+    #btnAction {
+      background: var(--blue);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(59,130,246,0.3);
+    }
+    #btnAction:hover { background: #2563eb; box-shadow: 0 4px 28px rgba(59,130,246,0.5); }
+
+    #btnStopManual {
+      background: var(--red);
+      color: #fff;
+      animation: pulse-red 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse-red {
+      0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+      50%      { box-shadow: 0 0 0 8px rgba(239,68,68,0.15); }
+    }
+
+    #btnIrParaPresenca {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(37,99,235,0.4);
+    }
+    #btnIrParaPresenca:hover { filter: brightness(1.1); }
+
+    /* ── NAV ROW ── */
+    .nav-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      max-width: 420px;
+      width: 100%;
+      margin-top: 16px;
+    }
+    .btn-nav {
+      padding: 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-nav:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+    /* hidden utility */
+    .hidden { display: none !important; }
+
+    /* ── FOOTER ── */
+    footer {
+      margin-top: 40px;
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.12);
+      text-align: center;
+    }
+  </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-6">
+<body>
 
-    <header class="mb-12 text-center">
-        <img src="IMG-20250610-WA0002.jpg" alt="Elayon Logo" class="w-16 h-16 mx-auto mb-4 opacity-80" onerror="this.style.display='none'">
-        <h1 class="text-xs font-black uppercase tracking-[0.4em] text-blue-500">Avaliação de Frequência</h1>
-    </header>
+  <header>
+    <div class="logo-ring"><div class="logo-dot"></div></div>
+    <h1>Avaliação de Frequência</h1>
+  </header>
 
-    <main class="w-full max-w-md space-y-6">
-        
-        <div class="text-center mb-8">
-            <h2 class="text-xl font-light">Sincronize sua <span class="font-bold text-white">Presença</span></h2>
-            <p class="text-slate-500 text-sm mt-2">A calibração é sugerida, mas o acesso é voluntário.</p>
-        </div>
+  <div class="hero">
+    <h2>Sincronize sua <strong>Presença</strong></h2>
+    <p>A calibração é sugerida · O acesso é voluntário</p>
+  </div>
 
-        <div id="navVoluntaria" class="grid grid-cols-2 gap-3 mb-6">
-            <button onclick="voltarPainel()" class="py-3 bg-slate-900 text-slate-400 text-[9px] uppercase font-bold rounded-lg border border-slate-800 hover:text-white transition-all">
-                <i class="fa-solid fa-arrow-left mr-2"></i> Painel
-            </button>
-            <button onclick="pularCalibracao()" class="py-3 bg-blue-900/20 text-blue-400 text-[9px] uppercase font-bold rounded-lg border border-blue-800/30 hover:bg-blue-900/40 transition-all">
-                Pular Missão <i class="fa-solid fa-bolt ml-2"></i>
-            </button>
-        </div>
+  <div class="card">
+    <span id="statusSessao">Aguardando Início</span>
 
-        <section class="glass rounded-[2rem] p-8 text-center space-y-6">
-            <div id="telaSessao">
-                <span id="statusSessao" class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Aguardando Início</span>
-                <div class="min-h-[100px] flex items-center justify-center">
-                    <p id="textoVivo" class="text-sm text-white italic leading-relaxed font-light"></p>
-                </div>
-            </div>
+    <!-- Phase progress -->
+    <div class="phase-bar">
+      <div class="phase-pip" id="pip1"></div>
+      <div class="phase-pip" id="pip2"></div>
+      <div class="phase-pip" id="pip3"></div>
+    </div>
 
-            <button id="btnAction" class="w-full py-4 bg-white text-black font-black rounded-xl uppercase text-[10px] tracking-widest hover:bg-blue-50 transition-all active:scale-95">
-                Iniciar Missão
-            </button>
+    <div class="live-area">
+      <p id="textoVivo"></p>
+    </div>
 
-            <button id="btnStopManual" class="hidden w-full py-4 bg-red-600 text-white font-black rounded-xl uppercase text-[10px] tracking-widest animate-pulse">
-                Encerrar Captura
-            </button>
+    <button id="btnAction"       class="btn">Iniciar Missão</button>
+    <button id="btnStopManual"   class="btn hidden">⏹ Encerrar Captura</button>
+    <button id="btnIrParaPresenca" class="btn hidden">Acessar Presença Real →</button>
+  </div>
 
-            <button id="btnIrParaPresenca" onclick="pularCalibracao()" class="hidden w-full py-4 bg-blue-600 text-white font-black rounded-xl uppercase text-[10px] tracking-widest">
-                Acessar Presença Real
-            </button>
-        </section>
-    </main>
+  <div class="nav-row">
+    <button class="btn-nav" onclick="voltarPainel()">← Painel</button>
+    <button class="btn-nav" onclick="pularCalibracao()">Pular ⚡</button>
+  </div>
 
-    <footer class="mt-20 opacity-30">
-        <p class="text-[9px] uppercase tracking-[0.2em]">Elayon Core v2.0 • Protocolo de Calibração</p>
-    </footer>
+  <footer>Elayon Core v2.0 · Protocolo de Calibração</footer>
 
-    <script src="tunnel.js"></script>
-    <script src="cockpit.js"></script>
+  <script src="tunnel.js"></script>
+  <script src="cockpit.js"></script>
+
+  <script>
+    // Atualiza as phase pips conforme o cockpit avança
+    // cockpit.js chama window.setPip(n) — definido aqui
+    window.setPip = function(active) {
+      [1,2,3].forEach(i => {
+        const pip = document.getElementById('pip' + i);
+        if (!pip) return;
+        pip.classList.remove('active','done');
+        if (i < active)  pip.classList.add('done');
+        if (i === active) pip.classList.add('active');
+      });
+    };
+  </script>
 </body>
 </html>
