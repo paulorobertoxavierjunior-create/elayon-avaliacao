@@ -12,12 +12,12 @@ let abortController = null;
 
 // Atalho para entrar direto
 function pularCalibracao() {
-    window.location.href = "index.html"; // Vai para o Presença
+    window.location.href = "https://paulorobertoxavierjunior-create.github.io/elayon-presenca/Index.html"; // Vai para o Presença
 }
 
 // Botão Voltar
 function voltarPainel() {
-    window.location.href = "https://paulorobertoxavierjunior-create.github.io/elayon-cadastro/painel.html";
+    window.location.href = "https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/index.html";
 }
 
 async function iniciarIniciacao() {
