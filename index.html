@@ -3,70 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELAYON | Avaliação de Frequência</title>
+    <title>Elayon | Avaliação de Frequência</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap');
         body { background-color: #050607; color: #f4f6f8; font-family: 'Inter', sans-serif; }
-        .step-inactive { opacity: 0.3; filter: grayscale(1); }
-        .step-active { opacity: 1; border-color: #2563eb; box-shadow: 0 0 20px rgba(37, 99, 235, 0.1); }
         .glass { background: rgba(17, 22, 27, 0.8); border: 1px solid #1b2026; }
+        .hidden { display: none; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-6">
 
     <header class="mb-12 text-center">
-        <img src="IMG-20250610-WA0002.jpg" alt="Elayon Logo" class="w-16 h-16 mx-auto mb-4 opacity-80">
-        <h1 class="text-xs font-black uppercase tracking-[0.4em] text-blue-500">Avaliação Obrigatória</h1>
+        <img src="IMG-20250610-WA0002.jpg" alt="Elayon Logo" class="w-16 h-16 mx-auto mb-4 opacity-80" onerror="this.style.display='none'">
+        <h1 class="text-xs font-black uppercase tracking-[0.4em] text-blue-500">Avaliação de Frequência</h1>
     </header>
 
     <main class="w-full max-w-md space-y-6">
         
         <div class="text-center mb-8">
             <h2 class="text-xl font-light">Sincronize sua <span class="font-bold text-white">Presença</span></h2>
-            <p class="text-slate-500 text-sm mt-2">Conclua as 3 etapas de calibração para liberar o acesso permanente ao sistema real.</p>
+            <p class="text-slate-500 text-sm mt-2">A calibração é sugerida, mas o acesso é voluntário.</p>
         </div>
 
-        <div class="grid grid-cols-3 gap-3 mb-8">
-            <div id="stepIndicator1" class="h-1.5 bg-blue-600 rounded-full"></div>
-            <div id="stepIndicator2" class="h-1.5 bg-slate-800 rounded-full"></div>
-            <div id="stepIndicator3" class="h-1.5 bg-slate-800 rounded-full"></div>
+        <div id="navVoluntaria" class="grid grid-cols-2 gap-3 mb-6">
+            <button onclick="voltarPainel()" class="py-3 bg-slate-900 text-slate-400 text-[9px] uppercase font-bold rounded-lg border border-slate-800 hover:text-white transition-all">
+                <i class="fa-solid fa-arrow-left mr-2"></i> Painel
+            </button>
+            <button onclick="pularCalibracao()" class="py-3 bg-blue-900/20 text-blue-400 text-[9px] uppercase font-bold rounded-lg border border-blue-800/30 hover:bg-blue-900/40 transition-all">
+                Pular Missão <i class="fa-solid fa-bolt ml-2"></i>
+            </button>
         </div>
 
-   <section class="glass rounded-[2rem] p-8 text-center space-y-6">
-    <div id="telaSessao">
-        <span id="statusSessao" class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Aguardando Início</span>
-        <div class="min-h-[100px] flex items-center justify-center">
-            <p id="textoVivo" class="text-sm text-white italic leading-relaxed font-light"></p>
-        </div>
-    </div>
+        <section class="glass rounded-[2rem] p-8 text-center space-y-6">
+            <div id="telaSessao">
+                <span id="statusSessao" class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Aguardando Início</span>
+                <div class="min-h-[100px] flex items-center justify-center">
+                    <p id="textoVivo" class="text-sm text-white italic leading-relaxed font-light"></p>
+                </div>
+            </div>
 
-    <button id="btnAction" class="w-full py-4 bg-white text-black font-black rounded-xl uppercase text-[10px] tracking-widest hover:bg-blue-50 transition-all active:scale-95">
-        Iniciar Missão
-    </button>
+            <button id="btnAction" class="w-full py-4 bg-white text-black font-black rounded-xl uppercase text-[10px] tracking-widest hover:bg-blue-50 transition-all active:scale-95">
+                Iniciar Missão
+            </button>
 
-    <button id="btnStopManual" class="hidden w-full py-4 bg-red-600 text-white font-black rounded-xl uppercase text-[10px] tracking-widest animate-pulse">
-        Encerrar Captura (Fechar Manual)
-    </button>
+            <button id="btnStopManual" class="hidden w-full py-4 bg-red-600 text-white font-black rounded-xl uppercase text-[10px] tracking-widest animate-pulse">
+                Encerrar Captura
+            </button>
 
-    <a id="btnIrParaPresenca" href="https://paulorobertoxavierjunior-create.github.io/presenca/" class="hidden w-full py-4 bg-blue-600 text-white font-black rounded-xl uppercase text-[10px] tracking-widest text-center block">
-        Acessar Presença Real
-    </a>
-</section>
-
-
-        <p class="text-center text-[10px] text-slate-700 uppercase tracking-tighter">
-            O acesso ao <strong>Presença Real</strong> será liberado após a conclusão.
-        </p>
+            <button id="btnIrParaPresenca" onclick="pularCalibracao()" class="hidden w-full py-4 bg-blue-600 text-white font-black rounded-xl uppercase text-[10px] tracking-widest">
+                Acessar Presença Real
+            </button>
+        </section>
     </main>
 
-    <    <footer class="mt-20 opacity-30">
+    <footer class="mt-20 opacity-30">
         <p class="text-[9px] uppercase tracking-[0.2em]">Elayon Core v2.0 • Protocolo de Calibração</p>
     </footer>
 
     <script src="tunnel.js"></script>
     <script src="cockpit.js"></script>
-
 </body>
 </html>
