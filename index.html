@@ -1,26 +1,30 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Elayon | Avaliação de Frequência</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@300;400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Melhore sua Presença · ELAYON</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@300;400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
   <style>
     :root {
-      --bg:      #060809;
-      --surface: rgba(12, 18, 22, 0.9);
-      --border:  rgba(255,255,255,0.06);
-      --blue:    #3b82f6;
-      --blue-dim:#1e3a5f;
-      --red:     #ef4444;
-      --text:    #e8edf2;
-      --muted:   #4a5568;
-      --mono:    'Share Tech Mono', monospace;
-      --sans:    'Syne', sans-serif;
+      --bg:        #050708;
+      --surface:   rgba(10,16,20,0.92);
+      --border:    rgba(255,255,255,0.06);
+      --cyan:      #3ecfcf;
+      --cyan-glow: rgba(62,207,207,0.22);
+      --teal:      #2a9d8f;
+      --red:       #ef4444;
+      --text:      #dff0f0;
+      --muted:     #3a5a60;
+      --mono:      'Share Tech Mono', monospace;
+      --sans:      'Syne', sans-serif;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
 
     body {
       background: var(--bg);
@@ -30,277 +34,571 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 24px 20px;
+      padding: 0 20px 60px;
       overflow-x: hidden;
     }
 
-    /* subtle radial atmosphere */
     body::before {
       content: '';
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(59,130,246,0.07) 0%, transparent 70%);
-      pointer-events: none;
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 50% 0%, rgba(62,207,207,0.06) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 30% at 80% 80%, rgba(42,157,143,0.04) 0%, transparent 60%);
+      pointer-events: none; z-index: 0;
     }
 
-    /* ── HEADER ── */
-    header {
-      text-align: center;
-      margin-bottom: 48px;
+    .page { position: relative; z-index: 1; width: 100%; max-width: 440px; display: flex; flex-direction: column; align-items: center; }
+
+    /* HEADER */
+    .site-header {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 0 10px; border-bottom: 1px solid var(--border); margin-bottom: 0;
     }
+    .back-btn {
+      font-family: var(--mono); font-size: 9px; letter-spacing: 3px; color: var(--muted);
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 10px; cursor: pointer; text-decoration: none; transition: color .2s, border-color .2s;
+    }
+    .back-btn:hover { color: var(--cyan); border-color: var(--cyan-glow); }
+    .api-badge {
+      font-family: var(--mono); font-size: 8px; letter-spacing: 2px; color: var(--teal);
+      border: 1px solid rgba(42,157,143,0.3); border-radius: 20px; padding: 4px 10px;
+    }
+
+    /* HERO */
+    .hero { width: 100%; display: flex; flex-direction: column; align-items: center; padding: 40px 0 28px; text-align: center; }
+
+    .logo-wrap { position: relative; width: 88px; height: 88px; margin-bottom: 24px; }
     .logo-ring {
-      width: 52px; height: 52px;
-      border: 1px solid rgba(59,130,246,0.4);
-      border-radius: 50%;
-      margin: 0 auto 16px;
-      display: flex; align-items: center; justify-content: center;
-      position: relative;
+      position: absolute; inset: -8px; border-radius: 50%;
+      border: 1px solid rgba(62,207,207,0.2);
+      animation: ring-breathe 4s ease-in-out infinite;
     }
-    .logo-ring::before {
-      content: '';
-      position: absolute;
-      inset: 4px;
-      border: 1px solid rgba(59,130,246,0.2);
-      border-radius: 50%;
+    .logo-ring-2 {
+      position: absolute; inset: -18px; border-radius: 50%;
+      border: 1px solid rgba(62,207,207,0.08);
+      animation: ring-breathe 4s ease-in-out infinite .8s;
     }
-    .logo-dot {
-      width: 8px; height: 8px;
-      background: var(--blue);
-      border-radius: 50%;
-      box-shadow: 0 0 10px var(--blue);
-      animation: breathe 3s ease-in-out infinite;
+    @keyframes ring-breathe {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:.3; transform:scale(1.04); }
     }
-    @keyframes breathe {
-      0%,100% { opacity: 1; transform: scale(1); }
-      50%      { opacity: .5; transform: scale(.7); }
-    }
-    header h1 {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 5px;
-      text-transform: uppercase;
-      color: var(--blue);
+    .logo-img {
+      width: 88px; height: 88px; border-radius: 50%; object-fit: cover;
+      display: block; position: relative; z-index: 1;
+      filter: drop-shadow(0 0 18px var(--cyan-glow));
     }
 
-    /* ── HERO TEXT ── */
-    .hero {
-      text-align: center;
-      margin-bottom: 32px;
+    .hero-label { font-family: var(--mono); font-size: 8px; letter-spacing: 5px; text-transform: uppercase; color: var(--cyan); margin-bottom: 12px; opacity: .7; }
+    .hero-title { font-weight: 300; font-size: clamp(22px,6vw,28px); line-height: 1.25; letter-spacing: -.5px; }
+    .hero-title strong {
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--cyan), var(--teal));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 12px var(--cyan-glow));
     }
-    .hero h2 {
-      font-size: clamp(20px, 5vw, 26px);
-      font-weight: 300;
-      line-height: 1.4;
-    }
-    .hero h2 strong { font-weight: 800; }
-    .hero p {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--muted);
-      letter-spacing: 1px;
-      margin-top: 10px;
-    }
+    .hero-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 1.5px; margin-top: 10px; line-height: 1.6; }
 
-    /* ── CARD ── */
+    /* CARD */
     .card {
-      width: 100%;
-      max-width: 420px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 32px 28px;
-      backdrop-filter: blur(12px);
-      position: relative;
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 28px 24px; backdrop-filter: blur(16px);
+      position: relative; margin-top: 16px;
     }
     .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 20%; right: 20%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--blue), transparent);
-      opacity: .5;
-      border-radius: 1px;
+      content: ''; position: absolute; top: 0; left: 15%; right: 15%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      opacity: .3; border-radius: 1px;
+    }
+    .card-status {
+      display: block; font-family: var(--mono); font-size: 8px; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--cyan); text-align: center;
+      margin-bottom: 20px; min-height: 12px;
     }
 
-    /* status label */
-    #statusSessao {
-      display: block;
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      color: var(--blue);
-      text-align: center;
-      margin-bottom: 20px;
-      min-height: 14px;
-    }
+    /* PHASE BAR */
+    .phase-bar { display: flex; gap: 6px; margin-bottom: 22px; }
+    .pip { flex: 1; height: 2px; background: rgba(255,255,255,0.06); border-radius: 2px; transition: background .4s, box-shadow .4s; }
+    .pip.active { background: var(--cyan); box-shadow: 0 0 8px var(--cyan-glow); }
+    .pip.done   { background: rgba(62,207,207,0.25); }
 
-    /* live text */
-    .live-area {
-      min-height: 88px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 8px;
-    }
-    #textoVivo {
-      font-size: 14px;
-      font-weight: 300;
-      color: var(--text);
-      text-align: center;
-      line-height: 1.7;
-      font-style: italic;
-    }
+    /* LIVE TEXT */
+    .live-zone { min-height: 72px; display: flex; align-items: center; justify-content: center; padding: 0 4px; margin-bottom: 20px; }
+    #textoVivo { font-size: 13px; font-weight: 300; color: var(--text); text-align: center; line-height: 1.7; font-style: italic; opacity: .85; white-space: pre-line; }
 
-    /* phase bar */
-    .phase-bar {
-      display: flex;
-      gap: 6px;
-      margin: 20px 0;
-    }
-    .phase-pip {
-      flex: 1;
-      height: 2px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 2px;
-      transition: background .5s;
-    }
-    .phase-pip.active { background: var(--blue); box-shadow: 0 0 6px var(--blue); }
-    .phase-pip.done   { background: rgba(59,130,246,0.3); }
-
-    /* ── BUTTONS ── */
+    /* BOTÕES */
     .btn {
-      width: 100%;
-      padding: 15px;
-      border: none;
-      border-radius: 12px;
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all .2s;
-      margin-top: 10px;
+      width: 100%; padding: 15px; border: none; border-radius: 12px;
+      font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
+      text-transform: uppercase; cursor: pointer; transition: all .2s; margin-top: 8px; display: block;
     }
     .btn:active { transform: scale(.97); }
 
-    #btnAction {
-      background: var(--blue);
-      color: #fff;
-      box-shadow: 0 4px 20px rgba(59,130,246,0.3);
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan), var(--teal));
+      color: #050708; font-weight: 700; box-shadow: 0 4px 24px var(--cyan-glow);
     }
-    #btnAction:hover { background: #2563eb; box-shadow: 0 4px 28px rgba(59,130,246,0.5); }
+    .btn-primary:hover { filter: brightness(1.08); box-shadow: 0 4px 36px rgba(62,207,207,0.4); }
 
-    #btnStopManual {
-      background: var(--red);
-      color: #fff;
-      animation: pulse-red 1.2s ease-in-out infinite;
-    }
+    .btn-stop { background: var(--red); color: #fff; animation: pulse-red 1.4s ease-in-out infinite; }
     @keyframes pulse-red {
       0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
-      50%      { box-shadow: 0 0 0 8px rgba(239,68,68,0.15); }
+      50%      { box-shadow: 0 0 0 10px rgba(239,68,68,0.12); }
     }
 
-    #btnIrParaPresenca {
-      background: linear-gradient(135deg, #1d4ed8, #2563eb);
-      color: #fff;
-      box-shadow: 0 4px 20px rgba(37,99,235,0.4);
-    }
-    #btnIrParaPresenca:hover { filter: brightness(1.1); }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.15); color: var(--text); }
 
-    /* ── NAV ROW ── */
-    .nav-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      max-width: 420px;
-      width: 100%;
-      margin-top: 16px;
+    .btn-api {
+      background: rgba(42,157,143,0.10); color: var(--teal);
+      border: 1px solid rgba(42,157,143,0.25);
     }
-    .btn-nav {
-      padding: 12px;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all .2s;
-    }
-    .btn-nav:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+    .btn-api:hover { background: rgba(42,157,143,0.2); }
 
-    /* hidden utility */
     .hidden { display: none !important; }
 
-    /* ── FOOTER ── */
-    footer {
-      margin-top: 40px;
-      font-family: var(--mono);
-      font-size: 8px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.12);
-      text-align: center;
+    /* API CARD */
+    .api-card {
+      width: 100%; background: rgba(42,157,143,0.04);
+      border: 1px solid rgba(42,157,143,0.14); border-radius: 16px;
+      padding: 20px; margin-top: 12px; text-align: center;
     }
+    .api-card-label { font-family: var(--mono); font-size: 8px; letter-spacing: 4px; color: var(--teal); margin-bottom: 8px; }
+    .api-card-desc  { font-family: var(--mono); font-size: 10px; color: var(--muted); line-height: 1.6; margin-bottom: 14px; }
+
+    /* RESULTADO */
+    #textoResultado { font-family: var(--mono); font-size: 11px; line-height: 1.9; color: var(--text); white-space: pre-wrap; }
+
+    /* LOG */
+    .log-card {
+      width: 100%; background: #020304; border: 1px solid rgba(62,207,207,0.1);
+      border-radius: 16px; padding: 16px; margin-top: 12px;
+    }
+    .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .log-title  { font-family: var(--mono); font-size: 9px; letter-spacing: 3px; color: var(--cyan); text-transform: uppercase; }
+    .log-clear  { font-family: var(--mono); font-size: 8px; color: var(--muted); background: none; border: none; cursor: pointer; letter-spacing: 1px; }
+    .log-clear:hover { color: var(--text); }
+
+    #logBox { font-family: var(--mono); font-size: 11px; line-height: 1.8; max-height: 260px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--muted) transparent; }
+    .ll     { display: block; }
+    .ll.ok  { color: #3ecfcf; }
+    .ll.w   { color: #f59e0b; }
+    .ll.er  { color: #ef4444; }
+    .ll.i   { color: #3a5a60; }
+    .ll.s   { color: rgba(62,207,207,0.45); }
+
+    footer { margin-top: 32px; font-family: var(--mono); font-size: 8px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.08); text-align: center; }
   </style>
 </head>
 <body>
+<div class="page">
 
-  <header>
-    <div class="logo-ring"><div class="logo-dot"></div></div>
-    <h1>Avaliação de Frequência</h1>
+  <!-- HEADER -->
+  <header class="site-header">
+    <a class="back-btn"
+       href="https://paulorobertoxavierjunior-create.github.io/elayon-presenca/index.html"
+       onclick="L.c('btn-painel')">← Painel</a>
+    <span class="api-badge">CRS · NÚCLEO ATIVO</span>
   </header>
 
-  <div class="hero">
-    <h2>Sincronize sua <strong>Presença</strong></h2>
-    <p>A calibração é sugerida · O acesso é voluntário</p>
-  </div>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="logo-wrap">
+      <div class="logo-ring"></div>
+      <div class="logo-ring-2"></div>
+      <img class="logo-img"
+           src="IMG-20250610-WA0002.jpg"
+           alt="ELAYON"
+           onerror="this.style.display='none'; L.w('logo: IMG-20250610-WA0002.jpg não encontrada no repo');" />
+    </div>
+    <p class="hero-label">Auto-alinhamento de Presença · ELAYON</p>
+    <h1 class="hero-title">Melhore sua<br><strong>Presença</strong></h1>
+    <p class="hero-sub">O sistema escuta seu ritmo — não suas palavras.<br>O conteúdo é seu e some.</p>
+  </section>
 
+  <!-- CARD AVALIAÇÃO -->
   <div class="card">
-    <span id="statusSessao">Aguardando Início</span>
+    <span class="card-status" id="statusSessao">Aguardando Início</span>
 
-    <!-- Phase progress -->
     <div class="phase-bar">
-      <div class="phase-pip" id="pip1"></div>
-      <div class="phase-pip" id="pip2"></div>
-      <div class="phase-pip" id="pip3"></div>
+      <div class="pip" id="pip1"></div>
+      <div class="pip" id="pip2"></div>
+      <div class="pip" id="pip3"></div>
     </div>
 
-    <div class="live-area">
-      <p id="textoVivo"></p>
+    <div class="live-zone">
+      <p id="textoVivo">Três etapas. Sem julgamento.<br>Você fala — o sistema observa o padrão.</p>
     </div>
 
-    <button id="btnAction"       class="btn">Iniciar Missão</button>
-    <button id="btnStopManual"   class="btn hidden">⏹ Encerrar Captura</button>
-    <button id="btnIrParaPresenca" class="btn hidden">Acessar Presença Real →</button>
+    <button class="btn btn-primary" id="btnIniciar"
+            onclick="L.c('btn-iniciar'); AV.iniciar();">
+      Iniciar Avaliação
+    </button>
+
+    <button class="btn btn-stop hidden" id="btnEncerrar"
+            onclick="L.c('btn-encerrar'); AV.encerrarFase();">
+      ⏹ Encerrar Captura
+    </button>
+
+    <button class="btn btn-primary hidden" id="btnRelatorio"
+            onclick="L.c('btn-relatorio'); AV.gerarRelatorio();">
+      Gerar Relatório →
+    </button>
   </div>
 
-  <div class="nav-row">
-    <button class="btn-nav" onclick="voltarPainel()">← Painel</button>
-    <button class="btn-nav" onclick="pularCalibracao()">Pular ⚡</button>
+  <!-- CARD RESULTADO -->
+  <div class="card hidden" id="cardResultado">
+    <span class="card-status">Relatório CRS</span>
+    <div id="textoResultado"></div>
   </div>
 
-  <footer>Elayon Core v2.0 · Protocolo de Calibração</footer>
+  <!-- API DIRETA -->
+  <div class="api-card">
+    <p class="api-card-label">Conexão Direta · API</p>
+    <p class="api-card-desc">
+      Integre sua IA ao núcleo CRS.<br>
+      Envie áudio. Receba o padrão em tempo real.<br>
+      Sem interface. Sem intermediários.
+    </p>
+    <button class="btn btn-api"
+            onclick="L.c('btn-api-direta'); L.w('módulo API direta: não configurado nesta sessão — traga suas credenciais de integração');">
+      Conectar via API Direta
+    </button>
+  </div>
 
-  <script src="tunnel.js"></script>
-  <script src="cockpit.js"></script>
+  <!-- LOG -->
+  <div class="log-card">
+    <div class="log-header">
+      <span class="log-title">◈ Log do Sistema</span>
+      <button class="log-clear" onclick="L.limpar()">limpar</button>
+    </div>
+    <div id="logBox"></div>
+  </div>
 
-  <script>
-    // Atualiza as phase pips conforme o cockpit avança
-    // cockpit.js chama window.setPip(n) — definido aqui
-    window.setPip = function(active) {
-      [1,2,3].forEach(i => {
-        const pip = document.getElementById('pip' + i);
-        if (!pip) return;
-        pip.classList.remove('active','done');
-        if (i < active)  pip.classList.add('done');
-        if (i === active) pip.classList.add('active');
-      });
+  <footer>Elayon Core · Auto-alinhamento de Presença</footer>
+
+</div>
+
+<script>
+/* ════════════════════════════════════════
+   L — Logger de diagnóstico
+════════════════════════════════════════ */
+const L = (() => {
+  const box = () => document.getElementById('logBox');
+  const ts  = () => new Date().toLocaleTimeString('pt-BR');
+
+  function w(msg, cls) {
+    const b = box(); if (!b) return;
+    const s = document.createElement('span');
+    s.className = 'll ' + cls;
+    s.textContent = '[' + ts() + '] ' + msg;
+    b.appendChild(s);
+    b.appendChild(document.createElement('br'));
+    b.scrollTop = b.scrollHeight;
+  }
+
+  return {
+    ok:    m => w('✓ ' + m, 'ok'),
+    w:     m => w('⚠ ' + m, 'w'),
+    er:    m => w('✕ ' + m, 'er'),
+    i:     m => w('· ' + m, 'i'),
+    s:     m => w('⬡ ' + m, 's'),
+    c:     id => w('click → [' + id + ']', 'i'),
+    limpar: () => { const b = box(); if (b) b.innerHTML = ''; w('log limpo', 's'); }
+  };
+})();
+
+/* ════════════════════════════════════════
+   DIAGNÓSTICO DE AMBIENTE — roda no boot
+════════════════════════════════════════ */
+(function boot() {
+  L.s('ELAYON · boot · ' + new Date().toLocaleString('pt-BR'));
+
+  // Supabase SDK
+  window.supabase
+    ? L.ok('supabase SDK: carregado')
+    : L.w('supabase SDK: ausente — nenhum script CDN carregado ainda');
+
+  // ELAYON_BOOT
+  if (window.ELAYON_BOOT) {
+    L.ok('ELAYON_BOOT: presente');
+    L.i('authenticated: ' + window.ELAYON_BOOT.authenticated);
+    window.ELAYON_BOOT.user
+      ? L.ok('user: ' + (window.ELAYON_BOOT.user.email || 'sem email'))
+      : L.w('ELAYON_BOOT.user: null — sessão não autenticada');
+    window.ELAYON_BOOT.session?.access_token
+      ? L.ok('access_token: presente')
+      : L.w('access_token: ausente — Render retornará 401');
+  } else {
+    L.w('ELAYON_BOOT: não encontrado');
+    L.i('esperado em: boot-auth.js ou js/boot-auth.js');
+    L.i('sem token, o relatório usará fallback local');
+  }
+
+  // ELAYON_TUNNEL
+  window.ELAYON_TUNNEL
+    ? L.ok('ELAYON_TUNNEL: presente')
+    : L.i('ELAYON_TUNNEL: ausente — usando SpeechRecognition nativo (ok)');
+
+  // SpeechRecognition
+  (window.SpeechRecognition || window.webkitSpeechRecognition)
+    ? L.ok('SpeechRecognition: disponível')
+    : L.er('SpeechRecognition: NÃO disponível — use Chrome ou Edge');
+
+  // AudioContext
+  (window.AudioContext || window.webkitAudioContext)
+    ? L.ok('AudioContext: disponível')
+    : L.er('AudioContext: indisponível — análise espectral não funcionará');
+
+  // getUserMedia
+  navigator.mediaDevices?.getUserMedia
+    ? L.ok('getUserMedia: disponível')
+    : L.er('getUserMedia: indisponível — microfone bloqueado');
+
+  // localStorage
+  try { localStorage.setItem('_t','1'); localStorage.removeItem('_t'); L.ok('localStorage: ok'); }
+  catch(e) { L.w('localStorage: bloqueado — ' + e.message); }
+
+  // sessionStorage
+  try { sessionStorage.setItem('_t','1'); sessionStorage.removeItem('_t'); L.ok('sessionStorage: ok'); }
+  catch(e) { L.w('sessionStorage: bloqueado — ' + e.message); }
+
+  L.i('endpoint: https://nucleo-crs-elayon.onrender.com/api/crs/analisar');
+  L.s('diagnóstico concluído — aguardando interação');
+})();
+
+/* ════════════════════════════════════════
+   AV — Orquestrador das 3 fases
+════════════════════════════════════════ */
+const AV = (() => {
+  const ENDPOINT    = 'https://nucleo-crs-elayon.onrender.com/api/crs/analisar';
+  const SILENCIO_MS = 10000;
+
+  const FASES = [
+    { label:'FASE 01 DE 03', texto:'Qual é o tema central da sua mente agora?\nFale sem filtro. Encerre quando quiser.' },
+    { label:'FASE 02 DE 03', texto:'Desenvolva. Sem pressa.\nO sistema escuta seu ritmo, não suas palavras.' },
+    { label:'FASE 03 DE 03', texto:'Uma frase.\nO que você quer de verdade com isso?' },
+  ];
+
+  let faseAtual = 0;
+  let rec       = null;
+  let silTimer  = null;
+  let cap       = { f1:'', f2:'', f3:'' };
+  let met       = { pausas:0, duracao:0, ultimoSom:0, inicio:0 };
+
+  const $  = id => document.getElementById(id);
+  const st = txt => { const e = $('statusSessao'); if(e) e.textContent = txt; };
+  const tv = txt => { const e = $('textoVivo');    if(e) e.textContent = txt; };
+  const sh = id  => { const e = $(id); if(e) e.classList.remove('hidden'); };
+  const hi = id  => { const e = $(id); if(e) e.classList.add('hidden'); };
+
+  function setPip(ativo) {
+    [1,2,3].forEach(i => {
+      const p = $('pip'+i); if(!p) return;
+      p.className = 'pip' + (i < ativo ? ' done' : i===ativo ? ' active' : '');
+    });
+  }
+
+  function iniciar() {
+    if (faseAtual > 0) { L.w('avaliação já em andamento — fase ' + faseAtual); return; }
+    L.s('avaliação iniciada');
+    hi('btnIniciar');
+    abrirFase(1);
+  }
+
+  function abrirFase(n) {
+    faseAtual = n;
+    const f = FASES[n-1];
+    L.s('abrindo ' + f.label);
+    st(f.label); tv(f.texto); setPip(n);
+    sh('btnEncerrar');
+    iniciarMic(n);
+  }
+
+  function encerrarFase() {
+    L.i('usuário encerrou fase ' + faseAtual);
+    pararMic();
+    if (faseAtual < 3) {
+      setTimeout(() => abrirFase(faseAtual + 1), 500);
+    } else {
+      hi('btnEncerrar');
+      st('CAPTURA CONCLUÍDA');
+      tv('Pronto. Gerando seu padrão de presença...');
+      sh('btnRelatorio');
+      L.s('3 fases concluídas — aguardando geração do relatório');
+    }
+  }
+
+  function iniciarMic(n) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { L.er('SpeechRecognition indisponível — fase ' + n + ' sem captura'); return; }
+
+    try {
+      rec = new SR();
+      rec.lang = 'pt-BR';
+      rec.continuous = true;
+      rec.interimResults = true;
+
+      met.inicio    = Date.now();
+      met.ultimoSom = Date.now();
+      met.pausas    = 0;
+
+      rec.onstart = () => {
+        L.ok('microfone aberto — fase ' + n);
+        resetSilTimer();
+      };
+
+      rec.onresult = ev => {
+        const agora = Date.now();
+        if (agora - met.ultimoSom > 1200) met.pausas++;
+        met.ultimoSom = agora;
+
+        let parcial = '';
+        for (let i = ev.resultIndex; i < ev.results.length; i++)
+          parcial += ev.results[i][0].transcript;
+
+        tv(parcial);
+        resetSilTimer();
+
+        if (parcial.toLowerCase().includes('ok ok')) {
+          L.i('"ok ok" detectado — encerrando fase ' + n);
+          encerrarFase();
+        }
+      };
+
+      rec.onerror = e => {
+        e.error === 'no-speech'
+          ? L.i('no-speech (silêncio) — fase ' + n)
+          : L.er('mic erro: ' + e.error + ' — fase ' + n);
+      };
+
+      rec.onend = () => L.i('recognition.onend — fase ' + n + ' (não reinicia)');
+
+      rec.start();
+
+    } catch(e) { L.er('falha ao abrir mic: ' + e.message); }
+  }
+
+  function pararMic() {
+    clearTimeout(silTimer);
+    met.duracao = Math.round((Date.now() - met.inicio) / 1000);
+    if (rec) {
+      try { rec.stop(); } catch(e) {}
+      rec = null;
+      L.ok('mic fechado — duração: ' + met.duracao + 's · pausas: ' + met.pausas);
+    }
+    const chave = 'f' + faseAtual;
+    const txt = $('textoVivo')?.textContent || '';
+    cap[chave] = txt;
+    L.i('fase ' + faseAtual + ' texto: "' + txt.slice(0,50) + (txt.length>50?'…':'') + '"');
+  }
+
+  function resetSilTimer() {
+    clearTimeout(silTimer);
+    silTimer = setTimeout(() => {
+      L.w('10s de silêncio — encerrando fase ' + faseAtual);
+      encerrarFase();
+    }, SILENCIO_MS);
+  }
+
+  async function gerarRelatorio() {
+    hi('btnRelatorio');
+    st('ENVIANDO AO NÚCLEO...');
+    L.s('preparando payload');
+
+    const token = window.ELAYON_BOOT?.session?.access_token || null;
+    token ? L.ok('access_token: presente') : L.w('access_token: ausente — Render retornará 401');
+
+    const payload = {
+      duration_sec:    met.duracao,
+      silence_pct:     0,
+      pause_count:     met.pausas,
+      mean_pause_ms:   met.pausas > 0 ? Math.round((met.duracao * 1000) / met.pausas) : 0,
+      transcript_raw:  [cap.f1, cap.f2, cap.f3].join(' | ').slice(0, 400),
+      context:         'avaliacao-3-fases',
+      spectrum_snapshot: { graves:0, medios:0, agudos:0, ruido:0, estabilidade:0 },
+      oscillation_pct: 0, continuity_pct: 0, energy_pct: 0
     };
-  </script>
+
+    L.i('payload: dur=' + payload.duration_sec + 's · pausas=' + payload.pause_count);
+    L.i('fetch → ' + ENDPOINT);
+
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+        },
+        body: JSON.stringify(payload)
+      });
+
+      L.i('HTTP status: ' + res.status);
+
+      if (!res.ok) {
+        const txt = await res.text();
+        L.er('Render ' + res.status + ': ' + txt.slice(0,100));
+        mostrarLocal(payload); return;
+      }
+
+      const data = await res.json();
+      L.ok('resposta do Render: ' + data.analise_sugestiva);
+      mostrar(data, payload);
+
+    } catch(e) {
+      L.er('fetch falhou: ' + e.message);
+      L.w('fallback local ativado');
+      mostrarLocal(payload);
+    }
+  }
+
+  function mostrar(data, p) {
+    st('RELATÓRIO GERADO');
+    const el = $('textoResultado'); if(!el) return;
+    el.textContent =
+`PADRÃO IDENTIFICADO
+${data.analise_sugestiva || '—'}
+
+ORIENTAÇÃO
+${data.sugestao_ia || '—'}
+
+─────────────────────
+Duração ......... ${p.duration_sec}s
+Pausas .......... ${p.pause_count}
+Pausa média ..... ${p.mean_pause_ms}ms
+
+ELAYON · ${new Date().toLocaleString('pt-BR')}`;
+    sh('cardResultado');
+    $('cardResultado').scrollIntoView({ behavior:'smooth' });
+    L.ok('relatório exibido');
+  }
+
+  function mostrarLocal(p) {
+    st('ANÁLISE LOCAL');
+    const el = $('textoResultado'); if(!el) return;
+    el.textContent =
+`ANÁLISE LOCAL (núcleo indisponível)
+
+Duração ......... ${p.duration_sec}s
+Pausas .......... ${p.pause_count}
+
+Verifique no log:
+— access_token presente?
+— Render respondendo?
+— SpeechRecognition ativo?
+
+ELAYON · ${new Date().toLocaleString('pt-BR')}`;
+    sh('cardResultado');
+    $('cardResultado').scrollIntoView({ behavior:'smooth' });
+  }
+
+  return { iniciar, encerrarFase, gerarRelatorio };
+})();
+</script>
+
+<!-- Descomente a linha correta quando souber o path do boot-auth.js neste repo: -->
+<!-- <script src="boot-auth.js"></script> -->
+<!-- <script src="js/boot-auth.js"></script> -->
+
 </body>
 </html>
