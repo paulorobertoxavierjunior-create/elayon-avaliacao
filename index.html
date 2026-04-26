@@ -1,315 +1,219 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Elayon | Avaliação de Presença</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@300;400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg:        #050708;
-      --surface:   rgba(10,16,20,0.92);
-      --border:    rgba(255,255,255,0.06);
-      --cyan:      #3ecfcf;
-      --cyan-glow: rgba(62,207,207,0.22);
-      --teal:      #2a9d8f;
-      --red:       #ef4444;
-      --text:      #dff0f0;
-      --muted:     #3a5a60;
-      --mono:      'Share Tech Mono', monospace;
-      --sans:      'Syne', sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bancada de ferramentas • Elayon</title>
+    <style>
+        body { display: none; margin: 0; background: #f0f7f8; font-family: 'Courier New', Courier, monospace; color: #0a2a2f; }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg); color: var(--text); font-family: var(--sans);
-      min-height: 100vh; display: flex; flex-direction: column; align-items: center;
-      padding: 0 20px 60px; overflow-x: hidden;
-    }
+        .hud-header {
+            background: #0a2a2f;
+            color: #66c7c0;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #66c7c0;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
 
-    body::before {
-      content: ''; position: fixed; inset: 0;
-      background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(62,207,207,0.06) 0%, transparent 65%);
-      pointer-events: none; z-index: 0;
-    }
+        .main-container { max-width: 600px; margin: 20px auto; padding: 0 20px; }
 
-    .page { position: relative; z-index: 1; width: 100%; max-width: 440px; }
+        .profile-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #cfe4e7;
+            margin-bottom: 20px;
+            box-shadow: 4px 4px 0px #66c7c0;
+        }
 
-    /* HEADER */
-    .site-header {
-      width: 100%; display: flex; justify-content: space-between; align-items: center;
-      padding: 20px 0; border-bottom: 1px solid var(--border); margin-bottom: 20px;
-    }
-    .back-btn {
-      font-family: var(--mono); font-size: 9px; letter-spacing: 3px; color: var(--muted);
-      background: none; border: 1px solid var(--border); border-radius: 6px;
-      padding: 6px 12px; cursor: pointer; text-decoration: none;
-    }
+        .profile-card h2 { margin: 0; font-size: 18px; color: #0a2a2f; }
+        .profile-card p { margin: 5px 0 0; font-size: 12px; color: #4a6b70; }
 
-    /* HERO */
-    .hero { text-align: center; padding: 20px 0; }
-    .hero-title { font-weight: 300; font-size: 24px; margin-top: 10px; }
-    .hero-title strong { font-weight: 800; color: var(--cyan); }
+        .saldo-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #eaf3f4;
+        }
 
-    /* CARD */
-    .card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 24px; padding: 32px 24px; backdrop-filter: blur(16px);
-      margin-top: 10px; text-align: center;
-    }
-    .card-status { font-family: var(--mono); font-size: 9px; color: var(--cyan); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 20px; display: block; }
+        .saldo-texto {
+            font-size: 13px;
+            color: #0a2a2f;
+        }
 
-    /* PIPS */
-    .phase-bar { display: flex; gap: 8px; margin-bottom: 24px; }
-    .pip { flex: 1; height: 3px; background: rgba(255,255,255,0.05); border-radius: 4px; transition: 0.3s; }
-    .pip.active { background: var(--cyan); box-shadow: 0 0 10px var(--cyan-glow); }
-    .pip.done { background: var(--teal); opacity: 0.5; }
+        .saldo-texto strong {
+            color: #66c7c0;
+            font-size: 16px;
+        }
 
-    /* LIVE TEXT */
-    #textoVivo { min-height: 80px; font-size: 14px; font-weight: 300; line-height: 1.6; font-style: italic; opacity: 0.8; margin-bottom: 24px; }
+        .btn-add-token {
+            background: #0a2a2f;
+            color: #66c7c0;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
 
-    /* BUTTONS */
-    .btn {
-      width: 100%; padding: 16px; border: none; border-radius: 14px;
-      font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
-      text-transform: uppercase; cursor: pointer; transition: 0.2s; margin-top: 8px;
-    }
-    .btn-primary { background: var(--cyan); color: #050708; font-weight: 700; box-shadow: 0 4px 20px var(--cyan-glow); }
-    .btn-stop { background: var(--red); color: white; animation: pulse 1.5s infinite; }
-    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-    .hidden { display: none !important; }
+        .btn-add-token:hover { background: #112f36; }
 
-    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 70% { box-shadow: 0 0 0 10px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
+        .token-form {
+            display: none;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #eaf3f4;
+        }
 
-    /* LOG */
-    .log-card { width: 100%; background: #020304; border-radius: 16px; padding: 16px; margin-top: 20px; border: 1px solid var(--border); }
-    #logBox { font-family: var(--mono); font-size: 10px; color: var(--muted); max-height: 150px; overflow-y: auto; text-align: left; line-height: 1.5; }
-    .ll.ok { color: var(--cyan); }
-    .ll.er { color: var(--red); }
-  </style>
+        .token-form input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cfe4e7;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            box-sizing: border-box;
+            margin-bottom: 8px;
+        }
+
+        .token-form button {
+            width: 100%;
+            padding: 10px;
+            background: #0a2a2f;
+            color: #66c7c0;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .token-form button:hover { background: #112f36; }
+
+        #msgCodigo {
+            margin: 8px 0 0;
+            font-size: 11px;
+            min-height: 14px;
+        }
+
+        .section-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #66c7c0;
+            margin: 25px 0 10px;
+            display: flex;
+            align-items: center;
+        }
+        .section-label::after { content: ""; flex: 1; height: 1px; background: #cfe4e7; margin-left: 10px; }
+
+        .tool-grid { display: flex; flex-direction: column; gap: 10px; }
+
+        .tool-btn {
+            background: white;
+            border: 1px solid #cfe4e7;
+            padding: 18px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #0a2a2f;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.2s;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .tool-btn.active {
+            opacity: 1;
+            pointer-events: auto;
+            border-left: 6px solid #7bd490;
+        }
+        .tool-btn.active:hover { background: #f9fdfd; transform: translateX(5px); }
+
+        .btn-perfil {
+            background: #66c7c0;
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logout-area { margin-top: 30px; text-align: center; }
+        .btn-logout { background: none; border: none; color: #ff7a7a; font-weight: bold; cursor: pointer; font-family: inherit; }
+    </style>
 </head>
-<body>
+<body data-page="presenca">
 
-<div class="page">
-  <header class="site-header">
-    <a href="https://paulorobertoxavierjunior-create.github.io/elayon-presenca/index.html" class="back-btn">← PAINEL</a>
-    <span style="font-family: var(--mono); font-size: 8px; color: var(--teal);">NÚCLEO CRS ATIVO</span>
-  </header>
+    <header class="hud-header">
+        <div>SISTEMA: ONLINE | ID: <span id="hud-id">---</span> | TOKENS: <span id="hud-tokens">0</span></div>
+        <button class="btn-perfil" id="btnGoToCore" title="Painel Central">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </button>
+    </header>
 
-  <section class="hero">
-    <p style="font-family: var(--mono); font-size: 8px; color: var(--cyan); letter-spacing: 4px;">CALIBRAÇÃO</p>
-    <h1 class="hero-title">Ajuste de <strong>Presença</strong></h1>
-  </section>
+    <main class="main-container">
+        <div class="profile-card">
+            <h2 id="userDisplayName">Carregando...</h2>
+            <p id="userDisplayEmail">Validando credenciais de acesso...</p>
 
-  <div class="card">
-    <span class="card-status" id="statusSessao">Aguardando Piloto</span>
-    <div class="phase-bar">
-      <div class="pip" id="pip1"></div>
-      <div class="pip" id="pip2"></div>
-      <div class="pip" id="pip3"></div>
-    </div>
+            <div class="saldo-row">
+                <span class="saldo-texto">Saldo: <strong id="card-tokens">0</strong> tokens</span>
+                <button class="btn-add-token" onclick="toggleTokenForm()">+ ADICIONAR</button>
+            </div>
 
-    <div id="textoVivo">Inicie a calibração para alinhar sua frequência.</div>
+            <div class="token-form" id="tokenForm">
+                <input id="inputCodigo" type="text" placeholder="Ex: ELA10PRESENCA" autocomplete="off" />
+                <button onclick="resgatarCodigo()">CONFIRMAR</button>
+                <p id="msgCodigo"></p>
+            </div>
+        </div>
 
-    <button class="btn btn-primary" id="btnIniciar" onclick="AV.iniciar()">Iniciar Missão</button>
-    <button class="btn btn-primary hidden" id="btnRelatorio" onclick="AV.gerarRelatorio()">Gerar Relatório →</button>
-    
-    <div id="controlesDinamicos"></div>
-  </div>
+        <div class="section-label">Avaliação Operacional Simbiótica Humano-IA-Máquina</div>
+        <div class="tool-grid">
+            <a href="https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/" class="tool-btn active" id="btn-avaliacao">Avaliação de Estado CRS <span>→</span></a>
+            <a href="https://paulorobertoxavierjunior-create.github.io/vibracoes-de-leao/" class="tool-btn active" id="btn-vibracoes">Vibrações de Leão <span>→</span></a>
+        </div>
 
-  <div class="card hidden" id="cardResultado">
-    <span class="card-status">Resultado CRS</span>
-    <div id="textoResultado" style="font-family: var(--mono); font-size: 11px; text-align: left; white-space: pre-wrap;"></div>
-  </div>
+        <div class="section-label">MÓDULOS TÉCNICOS</div>
+        <div class="tool-grid">
+            <a href="#" class="tool-btn" id="btn-psiq">Elayon PsiQ <span>OFFLINE</span></a>
+            <a href="#" class="tool-btn" id="btn-health">Elayon Health <span>OFFLINE</span></a>
+            <a href="#" class="tool-btn" id="btn-pc">Elayon PC <span>OFFLINE</span></a>
+        </div>
 
-  <div class="log-card">
-    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-      <span style="font-family: var(--mono); font-size: 9px; color: var(--muted);">LOG_SYSTEM</span>
-      <button onclick="L.limpar()" style="background: none; border: none; color: var(--muted); font-size: 8px; cursor: pointer;">LIMPAR</button>
-    </div>
-    <div id="logBox"></div>
-  </div>
+        <div class="logout-area">
+            <button class="btn-logout" id="actionLogout">ENCERRAR SESSÃO [LOGOUT]</button>
+        </div>
+    </main>
 
-  <footer style="margin-top: 40px; opacity: 0.2; font-size: 8px; font-family: var(--mono);">
-    ELAYON CORE V2.0 · PILOT_STATION
-  </footer>
-</div>
+    <script>
+        function toggleTokenForm() {
+            const form = document.getElementById('tokenForm');
+            form.style.display = form.style.display === 'block' ? 'none' : 'block';
+            if (form.style.display === 'block') {
+                document.getElementById('inputCodigo').focus();
+                document.getElementById('msgCodigo').textContent = '';
+            }
+        }
+    </script>
 
-<script>
-/* ════════════════════════════════════════
-   L — Logger
-════════════════════════════════════════ */
-const L = (() => {
-  const box = () => document.getElementById('logBox');
-  function w(msg, cls) {
-    const b = box(); if(!b) return;
-    const s = document.createElement('div');
-    s.className = 'll ' + cls;
-    s.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-    b.appendChild(s); b.scrollTop = b.scrollHeight;
-  }
-  return {
-    ok: m => w('✓ ' + m, 'ok'),
-    er: m => w('✕ ' + m, 'er'),
-    i:  m => w('· ' + m, 'i'),
-    s:  m => w('⬡ ' + m, 's'),
-    limpar: () => { box().innerHTML = ''; }
-  };
-})();
-
-/* ════════════════════════════════════════
-   AV — Orquestrador
-════════════════════════════════════════ */
-const AV = (() => {
-  const ENDPOINT = 'https://nucleo-crs-elayon.onrender.com/api/crs/analisar';
-  const FASES = [
-    { label: 'FASE 01', texto: 'Qual o tema da sua missão hoje?\nFale livremente e clique em CONCLUIR.' },
-    { label: 'FASE 02', texto: 'Desenvolva sua linha de raciocínio.\nO sistema escuta o ritmo, não as palavras.' },
-    { label: 'FASE 03', texto: 'Defina seu objetivo real.\nO que você quer manifestar com isso?' }
-  ];
-
-  let faseAtual = 0;
-  let rec = null;
-  let silTimer = null;
-  let faseAtiva = false;
-  let aguardandoConfirmacao = false;
-  let met = { inicio: 0, pausas: 0, ultimoSom: 0 };
-  let cap = { f1: '', f2: '', f3: '' };
-
-  const st = t => document.getElementById('statusSessao').textContent = t;
-  const tv = t => document.getElementById('textoVivo').textContent = t;
-
-  function setPip(n) {
-    [1,2,3].forEach(i => {
-      const p = document.getElementById('pip'+i);
-      p.className = 'pip' + (i < n ? ' done' : i === n ? ' active' : '');
-    });
-  }
-
-  function iniciar() {
-    L.s('Sessão iniciada');
-    document.getElementById('btnIniciar').classList.add('hidden');
-    abrirFase(1);
-  }
-
-  function abrirFase(n) {
-    faseAtual = n;
-    faseAtiva = true;
-    aguardandoConfirmacao = false;
-    setPip(n);
-    st(FASES[n-1].label);
-    tv(FASES[n-1].texto);
-    
-    criarBotaoConcluir();
-    iniciarMic();
-  }
-
-  function iniciarMic() {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return L.er('Navegador sem suporte a voz.');
-
-    rec = new SR();
-    rec.lang = 'pt-BR';
-    rec.continuous = true;
-    rec.interimResults = true;
-
-    met.inicio = Date.now();
-    met.ultimoSom = Date.now();
-    met.pausas = 0;
-
-    rec.onresult = ev => {
-      let parcial = '';
-      for (let i = ev.resultIndex; i < ev.results.length; i++) parcial += ev.results[i][0].transcript;
-      tv(parcial);
-      
-      if (Date.now() - met.ultimoSom > 1200) met.pausas++;
-      met.ultimoSom = Date.now();
-      resetSilencio();
-    };
-
-    rec.onend = () => { if(faseAtiva) rec.start(); };
-    rec.start();
-    L.ok(`Mic ativo Fase ${faseAtual}`);
-  }
-
-  function resetSilencio() {
-    clearTimeout(silTimer);
-    silTimer = setTimeout(() => {
-      if(faseAtiva) { L.i('Silêncio detectado'); pararMic(); mostrarConfirmacao(); }
-    }, 8000);
-  }
-
-  function pararMic() {
-    faseAtiva = false;
-    clearTimeout(silTimer);
-    if(rec) { rec.stop(); rec = null; }
-    cap['f' + faseAtual] = document.getElementById('textoVivo').textContent;
-    removerBotaoConcluir();
-  }
-
-  function encerrarFase() {
-    pararMic();
-    removerBotoesConfirmacao();
-    if (faseAtual < 3) abrirFase(faseAtual + 1);
-    else { st('CALIBRAÇÃO CONCLUÍDA'); tv('Padrões captados. Pronto para o relatório.'); document.getElementById('btnRelatorio').classList.remove('hidden'); }
-  }
-
-  // --- BOTÕES DINÂMICOS ---
-  function criarBotaoConcluir() {
-    const container = document.getElementById('controlesDinamicos');
-    container.innerHTML = `<button class="btn btn-stop btn-dinamico" onclick="AV.encerrarFase()">Concluir Fase</button>`;
-  }
-
-  function mostrarConfirmacao() {
-    aguardandoConfirmacao = true;
-    st('CONFIRMAR REGISTRO?');
-    const container = document.getElementById('controlesDinamicos');
-    container.innerHTML = `
-      <button class="btn btn-primary btn-dinamico" onclick="AV.confirmar()">Confirmar</button>
-      <button class="btn btn-ghost btn-dinamico" onclick="AV.refazer()">Refazer</button>
-    `;
-  }
-
-  function removerBotaoConcluir() { document.getElementById('controlesDinamicos').innerHTML = ''; }
-  function removerBotoesConfirmacao() { document.getElementById('controlesDinamicos').innerHTML = ''; }
-
-  async function gerarRelatorio() {
-    document.getElementById('btnRelatorio').classList.add('hidden');
-    st('Sincronizando com Núcleo...');
-    
-    const payload = {
-      duration_sec: Math.round((Date.now() - met.inicio)/1000),
-      pause_count: met.pausas,
-      transcript_raw: `${cap.f1} | ${cap.f2} | ${cap.f3}`.slice(0,500)
-    };
-
-    try {
-      const res = await fetch(ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      exibirResultado(data, payload);
-    } catch(e) {
-      L.er('Erro na conexão. Exibindo análise local.');
-      exibirResultado({ analise_sugestiva: 'Núcleo em manutenção. Padrão rítmico estável.' }, payload);
-    }
-  }
-
-  function exibirResultado(data, p) {
-    st('RELATÓRIO FINAL');
-    const res = document.getElementById('cardResultado');
-    res.classList.remove('hidden');
-    document.getElementById('textoResultado').textContent = 
-      `ANÁLISE DE RITMO:\n${data.analise_sugestiva}\n\nMETADADOS:\nDuração: ${p.duration_sec}s\nPausas: ${p.pause_count}`;
-    res.scrollIntoView({ behavior: 'smooth' });
-    L.ok('Processo finalizado.');
-  }
-
-  return { iniciar, encerrarFase, confirmar: encerrarFase, refazer: () => abrirFase(faseAtual), gerarRelatorio };
-})();
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://paulorobertoxavierjunior-create.github.io/elayon-cadastro/js/config.js"></script>
+    <script src="js/presenca.js"></script>
 </body>
 </html>
