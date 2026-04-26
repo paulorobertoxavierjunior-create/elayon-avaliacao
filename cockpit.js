@@ -78,9 +78,6 @@ async function faseVoz(num, comando) {
   if (window.setPip) window.setPip(num);
   await falar(comando);
 
-  const btnStop = el("btnStopManual");
-  if (btnStop) btnStop.classList.remove("hidden");
-
   abortController = new AbortController();
 
   try {
@@ -99,7 +96,7 @@ async function faseVoz(num, comando) {
   } catch (err) {
     if (err.name !== "AbortError") console.error(err);
   } finally {
-    if (btnStop) btnStop.classList.add("hidden");
+    
     setText("textoVivo", "");
   }
 
