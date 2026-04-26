@@ -1,219 +1,312 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bancada de ferramentas • Elayon</title>
-    <style>
-        body { display: none; margin: 0; background: #f0f7f8; font-family: 'Courier New', Courier, monospace; color: #0a2a2f; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Elayon | Calibração</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@300;400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:      #050708;
+      --surface: rgba(10,16,20,0.92);
+      --border:  rgba(255,255,255,0.06);
+      --cyan:    #3ecfcf;
+      --cglow:   rgba(62,207,207,0.22);
+      --teal:    #2a9d8f;
+      --red:     #ef4444;
+      --rglow:   rgba(239,68,68,0.3);
+      --text:    #dff0f0;
+      --muted:   #3a5a60;
+      --mono:    'Share Tech Mono', monospace;
+      --sans:    'Syne', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text); font-family: var(--sans);
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+      padding: 0 20px 60px; overflow-x: hidden;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(62,207,207,0.06) 0%, transparent 65%);
+    }
+    .page { position: relative; z-index: 1; width: 100%; max-width: 440px; }
 
-        .hud-header {
-            background: #0a2a2f;
-            color: #66c7c0;
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #66c7c0;
-            font-size: 11px;
-            text-transform: uppercase;
-        }
+    .site-header {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 0; border-bottom: 1px solid var(--border); margin-bottom: 24px;
+    }
+    .logo-box { display: flex; align-items: center; gap: 12px; }
+    .logo-box img { height: 52px; width: 52px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); }
+    .logo-box span { font-family: var(--mono); font-size: 9px; letter-spacing: 3px; color: var(--cyan); text-transform: uppercase; }
+    .back-btn {
+      font-family: var(--mono); font-size: 9px; letter-spacing: 3px; color: var(--muted);
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 12px; cursor: pointer; text-decoration: none;
+    }
 
-        .main-container { max-width: 600px; margin: 20px auto; padding: 0 20px; }
+    .phase-bar { display: flex; gap: 8px; margin-bottom: 24px; }
+    .pip { flex: 1; height: 3px; background: rgba(255,255,255,0.05); border-radius: 4px; transition: 0.4s; }
+    .pip.active { background: var(--cyan); box-shadow: 0 0 10px var(--cglow); }
+    .pip.done   { background: var(--teal); opacity: 0.5; }
 
-        .profile-card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            border: 1px solid #cfe4e7;
-            margin-bottom: 20px;
-            box-shadow: 4px 4px 0px #66c7c0;
-        }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 24px; padding: 26px 22px; backdrop-filter: blur(16px); margin-bottom: 14px;
+    }
+    .card-label {
+      font-family: var(--mono); font-size: 8px; letter-spacing: 4px;
+      color: var(--cyan); text-transform: uppercase; display: block; margin-bottom: 14px;
+    }
+    .card-texto { font-size: 16px; font-weight: 400; line-height: 1.6; opacity: 0.9; }
 
-        .profile-card h2 { margin: 0; font-size: 18px; color: #0a2a2f; }
-        .profile-card p { margin: 5px 0 0; font-size: 12px; color: #4a6b70; }
+    .mic-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 24px; padding: 26px 22px; backdrop-filter: blur(16px);
+      text-align: center; margin-bottom: 14px;
+    }
+    .mic-status {
+      font-family: var(--mono); font-size: 9px; letter-spacing: 3px;
+      color: var(--cyan); text-transform: uppercase; display: block; margin-bottom: 18px;
+    }
+    .wave-box { display: flex; align-items: center; justify-content: center; gap: 4px; height: 44px; margin-bottom: 18px; }
+    .wave-bar { width: 4px; border-radius: 4px; background: var(--cyan); opacity: 0.1; transition: opacity 0.3s; }
+    .wave-bar.on { opacity: 1; animation: wave 1s ease-in-out infinite; }
+    .wave-bar:nth-child(1){height:10px;animation-delay:0.0s}
+    .wave-bar:nth-child(2){height:20px;animation-delay:0.1s}
+    .wave-bar:nth-child(3){height:32px;animation-delay:0.2s}
+    .wave-bar:nth-child(4){height:24px;animation-delay:0.3s}
+    .wave-bar:nth-child(5){height:36px;animation-delay:0.4s}
+    .wave-bar:nth-child(6){height:24px;animation-delay:0.3s}
+    .wave-bar:nth-child(7){height:32px;animation-delay:0.2s}
+    .wave-bar:nth-child(8){height:20px;animation-delay:0.1s}
+    .wave-bar:nth-child(9){height:10px;animation-delay:0.0s}
+    @keyframes wave { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(1.6)} }
 
-        .saldo-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px solid #eaf3f4;
-        }
+    .timer { font-family: var(--mono); font-size: 30px; color: var(--text); letter-spacing: 6px; margin-bottom: 24px; }
 
-        .saldo-texto {
-            font-size: 13px;
-            color: #0a2a2f;
-        }
+    .btn {
+      width: 100%; padding: 16px; border: none; border-radius: 14px;
+      font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
+      text-transform: uppercase; cursor: pointer; transition: 0.2s; margin-top: 10px;
+    }
+    .btn-primary  { background: var(--cyan); color: #050708; font-weight: 700; box-shadow: 0 4px 20px var(--cglow); }
+    .btn-stop     { background: var(--red);  color: white; font-weight: 700; animation: pulse-red 1.5s infinite; }
+    .btn-ghost    { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-presenca { background: var(--teal); color: white; font-weight: 700; font-size: 11px; margin-top: 16px; }
+    @keyframes pulse-red { 0%{box-shadow:0 0 0 0 var(--rglow)} 70%{box-shadow:0 0 0 12px rgba(239,68,68,0)} 100%{box-shadow:0 0 0 0 rgba(239,68,68,0)} }
 
-        .saldo-texto strong {
-            color: #66c7c0;
-            font-size: 16px;
-        }
+    .final-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 24px; padding: 26px 22px; backdrop-filter: blur(16px); margin-bottom: 14px;
+    }
+    .final-title {
+      font-family: var(--mono); font-size: 8px; letter-spacing: 4px;
+      color: var(--teal); text-transform: uppercase; display: block; margin-bottom: 18px;
+    }
+    .audio-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .audio-item:last-of-type { border-bottom: none; }
+    .audio-label { font-family: var(--mono); font-size: 10px; color: var(--text); }
+    .btn-export {
+      font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+      background: none; border: 1px solid var(--border); color: var(--cyan);
+      border-radius: 6px; padding: 6px 12px; cursor: pointer;
+    }
 
-        .btn-add-token {
-            background: #0a2a2f;
-            color: #66c7c0;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 14px;
-            font-family: 'Courier New', monospace;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            letter-spacing: 1px;
-        }
-
-        .btn-add-token:hover { background: #112f36; }
-
-        .token-form {
-            display: none;
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px solid #eaf3f4;
-        }
-
-        .token-form input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #cfe4e7;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            box-sizing: border-box;
-            margin-bottom: 8px;
-        }
-
-        .token-form button {
-            width: 100%;
-            padding: 10px;
-            background: #0a2a2f;
-            color: #66c7c0;
-            border: none;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        .token-form button:hover { background: #112f36; }
-
-        #msgCodigo {
-            margin: 8px 0 0;
-            font-size: 11px;
-            min-height: 14px;
-        }
-
-        .section-label {
-            font-size: 12px;
-            font-weight: bold;
-            color: #66c7c0;
-            margin: 25px 0 10px;
-            display: flex;
-            align-items: center;
-        }
-        .section-label::after { content: ""; flex: 1; height: 1px; background: #cfe4e7; margin-left: 10px; }
-
-        .tool-grid { display: flex; flex-direction: column; gap: 10px; }
-
-        .tool-btn {
-            background: white;
-            border: 1px solid #cfe4e7;
-            padding: 18px;
-            border-radius: 12px;
-            text-decoration: none;
-            color: #0a2a2f;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: 0.2s;
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        .tool-btn.active {
-            opacity: 1;
-            pointer-events: auto;
-            border-left: 6px solid #7bd490;
-        }
-        .tool-btn.active:hover { background: #f9fdfd; transform: translateX(5px); }
-
-        .btn-perfil {
-            background: #66c7c0;
-            border: none;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .logout-area { margin-top: 30px; text-align: center; }
-        .btn-logout { background: none; border: none; color: #ff7a7a; font-weight: bold; cursor: pointer; font-family: inherit; }
-    </style>
+    .confirm-msg { font-size: 13px; font-weight: 300; line-height: 1.7; opacity: 0.8; margin-bottom: 4px; text-align: left; }
+    .hidden { display: none !important; }
+    footer { margin-top: 36px; opacity: 0.15; font-size: 8px; font-family: var(--mono); text-align: center; }
+  </style>
 </head>
-<body data-page="presenca">
+<body>
+<div class="page">
 
-    <header class="hud-header">
-        <div>SISTEMA: ONLINE | ID: <span id="hud-id">---</span> | TOKENS: <span id="hud-tokens">0</span></div>
-        <button class="btn-perfil" id="btnGoToCore" title="Painel Central">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-        </button>
-    </header>
+  <header class="site-header">
+    <div class="logo-box">
+      <img src="IMG-20250610-WA0002.jpg" alt="Elayon" />
+      <span>Elayon · Calibração</span>
+    </div>
+    <a href="https://paulorobertoxavierjunior-create.github.io/elayon-presenca/index.html" class="back-btn">← PAINEL</a>
+  </header>
 
-    <main class="main-container">
-        <div class="profile-card">
-            <h2 id="userDisplayName">Carregando...</h2>
-            <p id="userDisplayEmail">Validando credenciais de acesso...</p>
+  <div id="secaoFases">
+    <div class="phase-bar">
+      <div class="pip" id="pip1"></div>
+      <div class="pip" id="pip2"></div>
+      <div class="pip" id="pip3"></div>
+    </div>
 
-            <div class="saldo-row">
-                <span class="saldo-texto">Saldo: <strong id="card-tokens">0</strong> tokens</span>
-                <button class="btn-add-token" onclick="toggleTokenForm()">+ ADICIONAR</button>
-            </div>
+    <div class="card">
+      <span class="card-label" id="labelFase">Fase 01</span>
+      <p class="card-texto" id="textoFase"></p>
+    </div>
 
-            <div class="token-form" id="tokenForm">
-                <input id="inputCodigo" type="text" placeholder="Ex: ELA10PRESENCA" autocomplete="off" />
-                <button onclick="resgatarCodigo()">CONFIRMAR</button>
-                <p id="msgCodigo"></p>
-            </div>
-        </div>
+    <div class="mic-card">
+      <span class="mic-status" id="micStatus">Toque para iniciar</span>
+      <div class="wave-box">
+        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      </div>
+      <div class="timer" id="timer">00:00</div>
 
-        <div class="section-label">Avaliação Operacional Simbiótica Humano-IA-Máquina</div>
-        <div class="tool-grid">
-            <a href="https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/" class="tool-btn active" id="btn-avaliacao">Avaliação de Estado CRS <span>→</span></a>
-            <a href="https://paulorobertoxavierjunior-create.github.io/vibracoes-de-leao/" class="tool-btn active" id="btn-vibracoes">Vibrações de Leão <span>→</span></a>
-        </div>
+      <div id="eIniciar">
+        <button class="btn btn-primary" id="btnIniciar">● INICIAR</button>
+      </div>
+      <div id="eGravando" class="hidden">
+        <button class="btn btn-stop" id="btnConcluir">■ CONCLUIR ETAPA</button>
+      </div>
+      <div id="eConfirmar" class="hidden">
+        <p class="confirm-msg">Etapa gravada. Continuar ou refazer?</p>
+        <button class="btn btn-primary" id="btnConfirmar">✓ CONFIRMAR</button>
+        <button class="btn btn-ghost" id="btnRefazer">↺ REFAZER</button>
+      </div>
+    </div>
+  </div>
 
-        <div class="section-label">MÓDULOS TÉCNICOS</div>
-        <div class="tool-grid">
-            <a href="#" class="tool-btn" id="btn-psiq">Elayon PsiQ <span>OFFLINE</span></a>
-            <a href="#" class="tool-btn" id="btn-health">Elayon Health <span>OFFLINE</span></a>
-            <a href="#" class="tool-btn" id="btn-pc">Elayon PC <span>OFFLINE</span></a>
-        </div>
+  <div id="secaoFinal" class="hidden">
+    <div class="final-card">
+      <span class="final-title">Calibração Concluída · Registros</span>
+      <div class="audio-item">
+        <span class="audio-label">Fase 01 · Como você está</span>
+        <button class="btn-export" id="exp1">↓ EXPORTAR</button>
+      </div>
+      <div class="audio-item">
+        <span class="audio-label">Fase 02 · Sua intenção</span>
+        <button class="btn-export" id="exp2">↓ EXPORTAR</button>
+      </div>
+      <div class="audio-item">
+        <span class="audio-label">Fase 03 · Comprometimento</span>
+        <button class="btn-export" id="exp3">↓ EXPORTAR</button>
+      </div>
+      <button class="btn btn-presenca" id="btnPresenca">► ENTRAR NO PRESENÇA</button>
+    </div>
+  </div>
 
-        <div class="logout-area">
-            <button class="btn-logout" id="actionLogout">ENCERRAR SESSÃO [LOGOUT]</button>
-        </div>
-    </main>
+  <footer>ELAYON CORE V2.0 · CALIBRAÇÃO DE PRESENÇA</footer>
+</div>
 
-    <script>
-        function toggleTokenForm() {
-            const form = document.getElementById('tokenForm');
-            form.style.display = form.style.display === 'block' ? 'none' : 'block';
-            if (form.style.display === 'block') {
-                document.getElementById('inputCodigo').focus();
-                document.getElementById('msgCodigo').textContent = '';
-            }
-        }
-    </script>
+<script>
+var FASES = [
+  { label: 'Fase 01 · Como você está',       texto: 'Como você está chegando aqui hoje?',                          fala: 'Como você está chegando aqui hoje?' },
+  { label: 'Fase 02 · Sua intenção',          texto: 'O que você quer realizar agora?',                             fala: 'O que você quer realizar agora?' },
+  { label: 'Fase 03 · Comprometimento',       texto: 'Qual compromisso você assume consigo mesmo hoje?',            fala: 'Qual compromisso você assume consigo mesmo hoje?' }
+];
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://paulorobertoxavierjunior-create.github.io/elayon-cadastro/js/config.js"></script>
-    <script src="js/presenca.js"></script>
+var fase=1, rec=null, chunks=[], audios={}, stream=null, timerInt=null, seg=0;
+
+function el(id){ return document.getElementById(id); }
+
+function setPip(n){
+  [1,2,3].forEach(function(i){
+    var p=el('pip'+i);
+    p.className='pip'+(i<n?' done':i===n?' active':'');
+  });
+}
+
+function setWave(on){
+  document.querySelectorAll('.wave-bar').forEach(function(b){
+    on?b.classList.add('on'):b.classList.remove('on');
+  });
+}
+
+function setEstado(id){
+  ['eIniciar','eGravando','eConfirmar'].forEach(function(e){ el(e).classList.add('hidden'); });
+  el(id).classList.remove('hidden');
+}
+
+function fmt(s){
+  return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+}
+
+function falar(txt){
+  try{
+    window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(txt);
+    u.lang='pt-BR'; u.rate=1.0;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+function carregarFase(n){
+  fase=n;
+  setPip(n);
+  el('labelFase').textContent=FASES[n-1].label;
+  el('textoFase').textContent=FASES[n-1].texto;
+  el('micStatus').textContent='Toque para iniciar';
+  el('timer').textContent='00:00';
+  seg=0;
+  setEstado('eIniciar');
+  setWave(false);
+  falar(FASES[n-1].fala);
+}
+
+function iniciar(){
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
+    stream=s; chunks=[];
+    rec=new MediaRecorder(stream);
+    rec.ondataavailable=function(ev){ if(ev.data.size>0) chunks.push(ev.data); };
+    rec.start(100);
+    seg=0;
+    timerInt=setInterval(function(){ seg++; el('timer').textContent=fmt(seg); },1000);
+    setWave(true);
+    setEstado('eGravando');
+    el('micStatus').textContent='Gravando...';
+  }).catch(function(){
+    el('micStatus').textContent='Microfone bloqueado';
+  });
+}
+
+function concluir(){
+  clearInterval(timerInt);
+  rec.onstop=function(){
+    audios[fase]=new Blob(chunks,{type:'audio/webm'});
+  };
+  rec.stop();
+  stream.getTracks().forEach(function(t){ t.stop(); });
+  setWave(false);
+  el('micStatus').textContent='Etapa concluída';
+  setEstado('eConfirmar');
+}
+
+function confirmar(){
+  if(fase<3){ carregarFase(fase+1); }
+  else{
+    el('secaoFases').classList.add('hidden');
+    el('secaoFinal').classList.remove('hidden');
+  }
+}
+
+function refazer(){
+  audios[fase]=null;
+  carregarFase(fase);
+}
+
+function exportar(n){
+  var blob=audios[n];
+  if(!blob) return;
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url; a.download='elayon_f'+n+'_'+Date.now()+'.webm';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+el('btnIniciar').addEventListener('click',iniciar);
+el('btnConcluir').addEventListener('click',concluir);
+el('btnConfirmar').addEventListener('click',confirmar);
+el('btnRefazer').addEventListener('click',refazer);
+el('exp1').addEventListener('click',function(){ exportar(1); });
+el('exp2').addEventListener('click',function(){ exportar(2); });
+el('exp3').addEventListener('click',function(){ exportar(3); });
+el('btnPresenca').addEventListener('click',function(){
+  window.location.href='https://paulorobertoxavierjunior-create.github.io/elayon-presenca/index.html';
+});
+
+carregarFase(1);
+</script>
 </body>
-</html> 
+</html>
