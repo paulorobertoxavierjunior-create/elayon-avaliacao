@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bancada de ferramentas • Elayon</title>
+    <style>
+        body { display: none; margin: 0; background: #f0f7f8; font-family: 'Courier New', Courier, monospace; color: #0a2a2f; }
+
+        .hud-header {
+            background: #0a2a2f;
+            color: #66c7c0;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #66c7c0;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .main-container { max-width: 600px; margin: 20px auto; padding: 0 20px; }
+
+        .profile-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #cfe4e7;
+            margin-bottom: 20px;
+            box-shadow: 4px 4px 0px #66c7c0;
+        }
+
+        .profile-card h2 { margin: 0; font-size: 18px; color: #0a2a2f; }
+        .profile-card p { margin: 5px 0 0; font-size: 12px; color: #4a6b70; }
+
+        .section-label { 
+            font-size: 12px; 
+            font-weight: bold; 
+            color: #66c7c0; 
+            margin: 25px 0 10px; 
+            display: flex; 
+            align-items: center; 
+        }
+        .section-label::after { content: ""; flex: 1; height: 1px; background: #cfe4e7; margin-left: 10px; }
+
+        .tool-grid { display: flex; flex-direction: column; gap: 10px; }
+
+        .tool-btn {
+            background: white;
+            border: 1px solid #cfe4e7;
+            padding: 18px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #0a2a2f;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.2s;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .tool-btn.active {
+            opacity: 1;
+            pointer-events: auto;
+            border-left: 6px solid #7bd490;
+        }
+        .tool-btn.active:hover { background: #f9fdfd; transform: translateX(5px); }
+
+        .btn-perfil {
+            background: #66c7c0;
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logout-area { margin-top: 30px; text-align: center; }
+        .btn-logout { background: none; border: none; color: #ff7a7a; font-weight: bold; cursor: pointer; font-family: inherit; }
+    </style>
+</head>
+<body data-page="presenca">
+
+    <header class="hud-header">
+        <div>SISTEMA: ONLINE | ID: <span id="hud-id">---</span></div>
+        <button class="btn-perfil" id="btnGoToCore" title="Painel Central">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </button>
+    </header>
+
+    <main class="main-container">
+        <div class="profile-card">
+            <h2 id="userDisplayName">Carregando...</h2>
+            <p id="userDisplayEmail">Validando credenciais de acesso...</p>
+        </div>
+
+        <div class="section-label">Avaliação Operacional Simbiótica Humano-IA-Máquina</div>
+        <div class="tool-grid">
+            <a href="https://paulorobertoxavierjunior-create.github.io/elayon-avaliacao/" class="tool-btn active" id="btn-avaliacao">Avaliação de Estado CRS <span>→</span></a>
+            <a href="https://paulorobertoxavierjunior-create.github.io/vibracoes-de-leao/" class="tool-btn active" id="btn-vibracoes">Vibrações de Leão <span>→</span></a>
+        </div>
+
+        <div class="section-label">MÓDULOS TÉCNICOS</div>
+        <div class="tool-grid">
+            <a href="#" class="tool-btn" id="btn-psiq">Elayon PsiQ <span>OFFLINE</span></a>
+            <a href="#" class="tool-btn" id="btn-health">Elayon Health <span>OFFLINE</span></a>
+            <a href="#" class="tool-btn" id="btn-pc">Elayon PC <span>OFFLINE</span></a>
+        </div>
+
+        <div class="logout-area">
+            <button class="btn-logout" id="actionLogout">ENCERRAR SESSÃO [LOGOUT]</button>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://paulorobertoxavierjunior-create.github.io/elayon-cadastro/js/config.js"></script>
+    <script src="js/presenca.js"></script>
+</body>
+</html>
