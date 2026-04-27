@@ -1,94 +1,51 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Elayon | Calibração</title>
+  <title>Elayon | Calibracao</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@300;400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --bg:#050708;--surface:rgba(10,16,20,0.92);--border:rgba(255,255,255,0.06);
-      --cyan:#3ecfcf;--cglow:rgba(62,207,207,0.22);--teal:#2a9d8f;
-      --red:#ef4444;--rglow:rgba(239,68,68,0.3);--text:#dff0f0;--muted:#3a5a60;
-      --mono:'Share Tech Mono',monospace;--sans:'Syne',sans-serif;
-    }
+    :root{--bg:#050708;--surface:rgba(10,16,20,0.92);--border:rgba(255,255,255,0.06);--cyan:#3ecfcf;--cglow:rgba(62,207,207,0.22);--teal:#2a9d8f;--red:#ef4444;--rglow:rgba(239,68,68,0.3);--text:#dff0f0;--muted:#3a5a60;--mono:'Share Tech Mono',monospace;--sans:'Syne',sans-serif;}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;
-      display:flex;flex-direction:column;align-items:center;padding:0 20px 60px;overflow-x:hidden}
-    body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-      background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(62,207,207,0.06) 0%,transparent 65%)}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 20px 60px;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(62,207,207,0.06) 0%,transparent 65%)}
     .page{position:relative;z-index:1;width:100%;max-width:440px}
-
-    /* ── HEADER ── */
-    .site-header{width:100%;display:flex;justify-content:space-between;align-items:center;
-      padding:16px 0;border-bottom:1px solid var(--border);margin-bottom:24px}
+    .site-header{width:100%;display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--border);margin-bottom:24px}
     .logo-box{display:flex;align-items:center;gap:12px}
     .logo-box img{height:52px;width:52px;object-fit:cover;border-radius:10px;border:1px solid var(--border)}
     .logo-box span{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase}
-    .back-btn{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--muted);
-      background:none;border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;text-decoration:none}
-
-    /* ── PIPS ── */
+    .back-btn{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;text-decoration:none}
     .phase-bar{display:flex;gap:8px;margin-bottom:24px}
     .pip{flex:1;height:3px;background:rgba(255,255,255,0.05);border-radius:4px;transition:0.4s}
     .pip.active{background:var(--cyan);box-shadow:0 0 10px var(--cglow)}
     .pip.done{background:var(--teal);opacity:0.5}
-
-    /* ── CARDS ── */
-    .card{background:var(--surface);border:1px solid var(--border);border-radius:24px;
-      padding:26px 22px;backdrop-filter:blur(16px);margin-bottom:14px}
-    .card-label{font-family:var(--mono);font-size:8px;letter-spacing:4px;color:var(--cyan);
-      text-transform:uppercase;display:block;margin-bottom:14px}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:26px 22px;backdrop-filter:blur(16px);margin-bottom:14px}
+    .card-label{font-family:var(--mono);font-size:8px;letter-spacing:4px;color:var(--cyan);text-transform:uppercase;display:block;margin-bottom:14px}
     .card-texto{font-size:16px;font-weight:400;line-height:1.6;opacity:0.9}
-
-    /* ── MIC ── */
-    .mic-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;
-      padding:26px 22px;backdrop-filter:blur(16px);text-align:center;margin-bottom:14px}
-    .mic-status{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--cyan);
-      text-transform:uppercase;display:block;margin-bottom:18px}
+    .mic-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:26px 22px;backdrop-filter:blur(16px);text-align:center;margin-bottom:14px}
+    .mic-status{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;display:block;margin-bottom:18px}
     .wave-box{display:flex;align-items:center;justify-content:center;gap:4px;height:44px;margin-bottom:18px}
     .wave-bar{width:4px;border-radius:4px;background:var(--cyan);opacity:0.1;transition:opacity 0.3s}
     .wave-bar.on{opacity:1;animation:wave 1s ease-in-out infinite}
-    .wave-bar:nth-child(1){height:10px;animation-delay:0.0s}
-    .wave-bar:nth-child(2){height:20px;animation-delay:0.1s}
-    .wave-bar:nth-child(3){height:32px;animation-delay:0.2s}
-    .wave-bar:nth-child(4){height:24px;animation-delay:0.3s}
-    .wave-bar:nth-child(5){height:36px;animation-delay:0.4s}
-    .wave-bar:nth-child(6){height:24px;animation-delay:0.3s}
-    .wave-bar:nth-child(7){height:32px;animation-delay:0.2s}
-    .wave-bar:nth-child(8){height:20px;animation-delay:0.1s}
-    .wave-bar:nth-child(9){height:10px;animation-delay:0.0s}
+    .wave-bar:nth-child(1){height:10px;animation-delay:0.0s}.wave-bar:nth-child(2){height:20px;animation-delay:0.1s}.wave-bar:nth-child(3){height:32px;animation-delay:0.2s}.wave-bar:nth-child(4){height:24px;animation-delay:0.3s}.wave-bar:nth-child(5){height:36px;animation-delay:0.4s}.wave-bar:nth-child(6){height:24px;animation-delay:0.3s}.wave-bar:nth-child(7){height:32px;animation-delay:0.2s}.wave-bar:nth-child(8){height:20px;animation-delay:0.1s}.wave-bar:nth-child(9){height:10px;animation-delay:0.0s}
     @keyframes wave{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.6)}}
     .timer{font-family:var(--mono);font-size:30px;color:var(--text);letter-spacing:6px;margin-bottom:24px}
-
-    /* ── BOTÕES ── */
-    .btn{width:100%;padding:16px;border:none;border-radius:14px;font-family:var(--mono);
-      font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:0.2s;margin-top:10px}
+    .btn{width:100%;padding:16px;border:none;border-radius:14px;font-family:var(--mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:0.2s;margin-top:10px}
     .btn-primary{background:var(--cyan);color:#050708;font-weight:700;box-shadow:0 4px 20px var(--cglow)}
     .btn-stop{background:var(--red);color:white;font-weight:700;animation:pulse-red 1.5s infinite}
     .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
     .btn-teal{background:var(--teal);color:white;font-weight:700}
     @keyframes pulse-red{0%{box-shadow:0 0 0 0 var(--rglow)}70%{box-shadow:0 0 0 12px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
-
-    /* ── SEÇÃO FINAL ── */
-    .final-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;
-      padding:26px 22px;backdrop-filter:blur(16px);margin-bottom:14px}
-    .final-title{font-family:var(--mono);font-size:8px;letter-spacing:4px;color:var(--teal);
-      text-transform:uppercase;display:block;margin-bottom:18px}
-    .audio-item{display:flex;justify-content:space-between;align-items:center;
-      padding:12px 0;border-bottom:1px solid var(--border)}
+    .final-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:26px 22px;backdrop-filter:blur(16px);margin-bottom:14px}
+    .final-title{font-family:var(--mono);font-size:8px;letter-spacing:4px;color:var(--teal);text-transform:uppercase;display:block;margin-bottom:18px}
+    .audio-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
     .audio-item:last-of-type{border-bottom:none}
     .audio-label{font-family:var(--mono);font-size:10px;color:var(--text)}
-    .btn-export{font-family:var(--mono);font-size:9px;letter-spacing:2px;background:none;
-      border:1px solid var(--border);color:var(--cyan);border-radius:6px;padding:6px 12px;cursor:pointer}
-
-    /* ── STATUS UPLOAD ── */
-    .upload-status{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--muted);
-      text-align:center;margin-top:14px;min-height:16px}
-    .upload-status.ok{color:var(--teal)}
-    .upload-status.er{color:var(--red)}
-
+    .btn-export{font-family:var(--mono);font-size:9px;letter-spacing:2px;background:none;border:1px solid var(--border);color:var(--cyan);border-radius:6px;padding:6px 12px;cursor:pointer}
+    .upload-status{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-align:center;margin-top:14px;min-height:16px}
+    .upload-status.ok{color:var(--teal)}.upload-status.er{color:var(--red)}
+    #debugBox{background:#020304;border:1px solid #333;border-radius:10px;padding:10px;margin-top:12px;font-family:var(--mono);font-size:9px;color:#ff9900;word-break:break-all;white-space:pre-wrap;max-height:160px;overflow-y:auto;display:none}
     .confirm-msg{font-size:13px;font-weight:300;line-height:1.7;opacity:0.8;margin-bottom:4px;text-align:left}
     .hidden{display:none!important}
     footer{margin-top:36px;opacity:0.15;font-size:8px;font-family:var(--mono);text-align:center}
@@ -96,16 +53,14 @@
 </head>
 <body>
 <div class="page">
-
   <header class="site-header">
     <div class="logo-box">
       <img src="IMG-20250610-WA0002.jpg" alt="Elayon" />
-      <span>Elayon · Calibração</span>
+      <span>Elayon - Calibracao</span>
     </div>
-    <a href="https://paulorobertoxavierjunior-create.github.io/elayon-presenca/index.html" class="back-btn">← PAINEL</a>
+    <a href="https://paulorobertoxavierjunior-create.github.io/elayon-presenca/index.html" class="back-btn">PAINEL</a>
   </header>
 
-  <!-- ── FASES DE GRAVAÇÃO ── -->
   <div id="secaoFases">
     <div class="phase-bar">
       <div class="pip" id="pip1"></div>
@@ -124,87 +79,63 @@
         <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
       </div>
       <div class="timer" id="timer">00:00</div>
-      <div id="eIniciar"><button class="btn btn-primary" id="btnIniciar">● INICIAR</button></div>
-      <div id="eGravando" class="hidden"><button class="btn btn-stop" id="btnConcluir">■ CONCLUIR ETAPA</button></div>
+      <div id="eIniciar"><button class="btn btn-primary" id="btnIniciar">INICIAR</button></div>
+      <div id="eGravando" class="hidden"><button class="btn btn-stop" id="btnConcluir">CONCLUIR ETAPA</button></div>
       <div id="eConfirmar" class="hidden">
         <p class="confirm-msg">Etapa gravada. Continuar ou refazer?</p>
-        <button class="btn btn-primary" id="btnConfirmar">✓ CONFIRMAR</button>
-        <button class="btn btn-ghost" id="btnRefazer">↺ REFAZER</button>
+        <button class="btn btn-primary" id="btnConfirmar">CONFIRMAR</button>
+        <button class="btn btn-ghost" id="btnRefazer">REFAZER</button>
       </div>
     </div>
   </div>
 
-  <!-- ── SEÇÃO FINAL: registros + envio ── -->
   <div id="secaoFinal" class="hidden">
     <div class="final-card">
-      <span class="final-title">Registros · Calibração</span>
-
-      <!-- Exportar local por fase -->
-      <div class="audio-item">
-        <span class="audio-label">Fase 01 · Como você está</span>
-        <button class="btn-export" id="exp1">↓ LOCAL</button>
-      </div>
-      <div class="audio-item">
-        <span class="audio-label">Fase 02 · Sua intenção</span>
-        <button class="btn-export" id="exp2">↓ LOCAL</button>
-      </div>
-      <div class="audio-item">
-        <span class="audio-label">Fase 03 · Comprometimento</span>
-        <button class="btn-export" id="exp3">↓ LOCAL</button>
-      </div>
-
-      <!-- Status do envio -->
-      <div class="upload-status" id="uploadStatus">—</div>
-
-      <!-- Ações finais -->
-      <button class="btn btn-primary" id="btnEnviar"     style="margin-top:16px;">↑ ENVIAR PARA ANÁLISE</button>
-      <button class="btn btn-teal"    id="btnPresenca"   style="margin-top:10px;">► ENTRAR NO PRESENÇA</button>
-      <button class="btn btn-ghost"   id="btnRecalibrar" style="margin-top:10px;">↺ RECALIBRAR</button>
+      <span class="final-title">Registros - Calibracao</span>
+      <div class="audio-item"><span class="audio-label">Fase 01 - Como voce esta</span><button class="btn-export" id="exp1">LOCAL</button></div>
+      <div class="audio-item"><span class="audio-label">Fase 02 - Sua intencao</span><button class="btn-export" id="exp2">LOCAL</button></div>
+      <div class="audio-item"><span class="audio-label">Fase 03 - Comprometimento</span><button class="btn-export" id="exp3">LOCAL</button></div>
+      <div class="upload-status" id="uploadStatus">--</div>
+      <div id="debugBox"></div>
+      <button class="btn btn-primary" id="btnEnviar" style="margin-top:16px;">ENVIAR PARA ANALISE</button>
+      <button class="btn btn-teal" id="btnPresenca" style="margin-top:10px;">ENTRAR NO PRESENCA</button>
+      <button class="btn btn-ghost" id="btnRecalibrar" style="margin-top:10px;">RECALIBRAR</button>
     </div>
   </div>
 
-  <footer>ELAYON CORE V2.0 · CALIBRAÇÃO DE PRESENÇA</footer>
+  <footer>ELAYON CORE V2.0 - CALIBRACAO DE PRESENCA</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* ══════════════════════════════════════
-   CONFIG SUPABASE
-══════════════════════════════════════ */
 var SUPA_URL='https://eudcjihffrfmhzmfwtlg.supabase.co';
 var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1ZGNqaWhmZnJmbWh6bWZ3dGxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDE3MjUsImV4cCI6MjA5MDMxNzcyNX0.2tod6vvl_4SAXzSmW1wU8Mk9pLn8fvhF2xrAZOysUu0';
 var supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
 
-/* ══════════════════════════════════════
-   RESTAURAR SESSÃO VIA URL (vindo do painel)
-══════════════════════════════════════ */
+function dbg(msg){var b=document.getElementById('debugBox');b.style.display='block';b.textContent+=msg+'\n';b.scrollTop=b.scrollHeight;}
+
 (async function(){
   var params=new URLSearchParams(window.location.search);
-  var at=params.get('at');
-  var rt=params.get('rt');
+  var at=params.get('at');var rt=params.get('rt');
   if(at&&rt){
-    await supa.auth.setSession({access_token:decodeURIComponent(at),refresh_token:decodeURIComponent(rt)});
+    dbg('Token URL: SIM');
+    var r=await supa.auth.setSession({access_token:decodeURIComponent(at),refresh_token:decodeURIComponent(rt)});
+    dbg('setSession: '+(r.error?r.error.message:'OK'));
     window.history.replaceState({},'',window.location.pathname);
+  }else{
+    dbg('Token URL: NAO');
+    var s=await supa.auth.getSession();
+    dbg('Sessao local: '+(s.data&&s.data.session&&s.data.session.user?s.data.session.user.id:'NENHUMA'));
   }
 })();
 
-/* ══════════════════════════════════════
-   FASES — perguntas e falas
-══════════════════════════════════════ */
 var FASES=[
-  {label:'Fase 01 · Como você está', texto:'Como você está chegando aqui hoje?',              fala:'Como você está chegando aqui hoje?'},
-  {label:'Fase 02 · Sua intenção',   texto:'O que você quer realizar agora?',                 fala:'O que você quer realizar agora?'},
-  {label:'Fase 03 · Comprometimento',texto:'Qual compromisso você assume consigo mesmo hoje?', fala:'Qual compromisso você assume consigo mesmo hoje?'}
+  {label:'Fase 01',texto:'Como voce esta chegando aqui hoje?',fala:'Como voce esta chegando aqui hoje?'},
+  {label:'Fase 02',texto:'O que voce quer realizar agora?',fala:'O que voce quer realizar agora?'},
+  {label:'Fase 03',texto:'Qual compromisso voce assume consigo mesmo hoje?',fala:'Qual compromisso voce assume consigo mesmo hoje?'}
 ];
 
-/* ══════════════════════════════════════
-   ESTADO
-══════════════════════════════════════ */
 var fase=1,rec=null,chunks=[],audios={},stream=null,timerInt=null,seg=0;
-
-/* ══════════════════════════════════════
-   HELPERS DOM
-══════════════════════════════════════ */
 function el(id){return document.getElementById(id)}
 function setPip(n){[1,2,3].forEach(function(i){var p=el('pip'+i);p.className='pip'+(i<n?' done':i===n?' active':'')})}
 function setWave(on){document.querySelectorAll('.wave-bar').forEach(function(b){on?b.classList.add('on'):b.classList.remove('on')})}
@@ -212,111 +143,40 @@ function setEstado(id){['eIniciar','eGravando','eConfirmar'].forEach(function(e)
 function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
 function falar(txt){try{window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(txt);u.lang='pt-BR';u.rate=1.0;window.speechSynthesis.speak(u)}catch(e){}}
 
-/* ══════════════════════════════════════
-   FLUXO DE FASES
-══════════════════════════════════════ */
-function carregarFase(n){
-  fase=n;setPip(n);
-  el('labelFase').textContent=FASES[n-1].label;
-  el('textoFase').textContent=FASES[n-1].texto;
-  el('micStatus').textContent='Toque para iniciar';
-  el('timer').textContent='00:00';
-  seg=0;setEstado('eIniciar');setWave(false);
-  falar(FASES[n-1].fala);
-}
+function carregarFase(n){fase=n;setPip(n);el('labelFase').textContent=FASES[n-1].label;el('textoFase').textContent=FASES[n-1].texto;el('micStatus').textContent='Toque para iniciar';el('timer').textContent='00:00';seg=0;setEstado('eIniciar');setWave(false);falar(FASES[n-1].fala);}
 
-function iniciar(){
-  navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
-    stream=s;chunks=[];
-    rec=new MediaRecorder(stream);
-    rec.ondataavailable=function(ev){if(ev.data.size>0)chunks.push(ev.data)};
-    rec.start(100);seg=0;
-    timerInt=setInterval(function(){seg++;el('timer').textContent=fmt(seg)},1000);
-    setWave(true);setEstado('eGravando');
-    el('micStatus').textContent='Gravando...';
-  }).catch(function(){el('micStatus').textContent='Microfone bloqueado'});
-}
+function iniciar(){navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){stream=s;chunks=[];rec=new MediaRecorder(stream);rec.ondataavailable=function(ev){if(ev.data.size>0)chunks.push(ev.data)};rec.start(100);seg=0;timerInt=setInterval(function(){seg++;el('timer').textContent=fmt(seg)},1000);setWave(true);setEstado('eGravando');el('micStatus').textContent='Gravando...';}).catch(function(){el('micStatus').textContent='Microfone bloqueado'});}
 
-function concluir(){
-  clearInterval(timerInt);
-  rec.onstop=function(){audios[fase]=new Blob(chunks,{type:'audio/webm'})};
-  rec.stop();stream.getTracks().forEach(function(t){t.stop()});
-  setWave(false);el('micStatus').textContent='Etapa concluída';
-  setEstado('eConfirmar');
-}
+function concluir(){clearInterval(timerInt);rec.onstop=function(){audios[fase]=new Blob(chunks,{type:'audio/webm'})};rec.stop();stream.getTracks().forEach(function(t){t.stop()});setWave(false);el('micStatus').textContent='Etapa concluida';setEstado('eConfirmar');}
 
-function confirmar(){
-  if(fase<3){carregarFase(fase+1)}
-  else{el('secaoFases').classList.add('hidden');el('secaoFinal').classList.remove('hidden')}
-}
+function confirmar(){if(fase<3){carregarFase(fase+1)}else{el('secaoFases').classList.add('hidden');el('secaoFinal').classList.remove('hidden')}}
 
 function refazer(){audios[fase]=null;carregarFase(fase)}
 
-/* ══════════════════════════════════════
-   EXPORTAR LOCAL
-══════════════════════════════════════ */
-function exportar(n){
-  var blob=audios[n];if(!blob)return;
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');
-  a.href=url;a.download='elayon_f'+n+'_'+Date.now()+'.webm';
-  a.click();URL.revokeObjectURL(url);
-}
+function exportar(n){var blob=audios[n];if(!blob)return;var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='elayon_f'+n+'_'+Date.now()+'.webm';a.click();URL.revokeObjectURL(url);}
 
-/* ══════════════════════════════════════
-   ENVIAR PARA SUPABASE STORAGE
-══════════════════════════════════════ */
 async function enviarAudios(){
   var status=el('uploadStatus');
-  status.textContent='Verificando sessão...';
-  status.className='upload-status';
-
+  status.textContent='Verificando sessao...';status.className='upload-status';
   var sessao=await supa.auth.getSession();
-  var userId=sessao?.data?.session?.user?.id;
-
-  if(!userId){
-    status.textContent='Sem sessão — volte ao painel.';
-    status.className='upload-status er';
-    return;
-  }
-
+  var userId=sessao&&sessao.data&&sessao.data.session?sessao.data.session.user.id:null;
+  dbg('userId no envio: '+(userId||'NENHUM'));
+  if(!userId){status.textContent='Sem sessao - volte ao painel.';status.className='upload-status er';return;}
   status.textContent='Enviando...';
   var erros=0;
-
   for(var n=1;n<=3;n++){
     var blob=audios[n];
-    if(!blob){erros++;continue}
-    var res=await supa.storage.from('calibracoes').upload(
-      userId+'/fase'+n+'.webm', blob,
-      {contentType:'audio/webm',upsert:true}
-    );
+    if(!blob){dbg('F'+n+': sem blob');erros++;continue}
+    var res=await supa.storage.from('calibracoes').upload(userId+'/fase'+n+'.webm',blob,{contentType:'audio/webm',upsert:true});
+    dbg('F'+n+': '+(res.error?res.error.message:'OK'));
     if(res.error)erros++;
   }
-
-  if(erros===0){
-    status.textContent='✓ Enviado com sucesso';
-    status.className='upload-status ok';
-  } else {
-    status.textContent='Erro em '+erros+' arquivo(s)';
-    status.className='upload-status er';
-  }
+  if(erros===0){status.textContent='Enviado com sucesso';status.className='upload-status ok';}
+  else{status.textContent='Verifique o debug';status.className='upload-status er';}
 }
 
-/* ══════════════════════════════════════
-   RECALIBRAR — zera e reinicia
-══════════════════════════════════════ */
-function recalibrar(){
-  audios={};fase=1;
-  el('secaoFinal').classList.add('hidden');
-  el('secaoFases').classList.remove('hidden');
-  el('uploadStatus').textContent='—';
-  el('uploadStatus').className='upload-status';
-  carregarFase(1);
-}
+function recalibrar(){audios={};fase=1;el('secaoFinal').classList.add('hidden');el('secaoFases').classList.remove('hidden');el('uploadStatus').textContent='--';el('uploadStatus').className='upload-status';el('debugBox').textContent='';el('debugBox').style.display='none';carregarFase(1);}
 
-/* ══════════════════════════════════════
-   EVENTOS
-══════════════════════════════════════ */
 el('btnIniciar').addEventListener('click',iniciar);
 el('btnConcluir').addEventListener('click',concluir);
 el('btnConfirmar').addEventListener('click',confirmar);
@@ -325,11 +185,8 @@ el('exp1').addEventListener('click',function(){exportar(1)});
 el('exp2').addEventListener('click',function(){exportar(2)});
 el('exp3').addEventListener('click',function(){exportar(3)});
 el('btnEnviar').addEventListener('click',enviarAudios);
-el('btnPresenca').addEventListener('click',function(){
-  window.location.href='https://paulorobertoxavierjunior-create.github.io/presenca/index.html';
-});
+el('btnPresenca').addEventListener('click',function(){window.location.href='https://paulorobertoxavierjunior-create.github.io/presenca/index.html';});
 el('btnRecalibrar').addEventListener('click',recalibrar);
-
 carregarFase(1);
 </script>
 </body>
