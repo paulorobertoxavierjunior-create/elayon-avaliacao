@@ -135,7 +135,8 @@ var FASES=[
   {label:'Fase 03',texto:'Qual compromisso voce assume consigo mesmo hoje?',fala:'Qual compromisso voce assume consigo mesmo hoje?'}
 ];
 
-var fase=1,rec=null,chunks=[],audios={},stream=null,timerInt=null,seg=0;
+var fase=1,rec=null,chunks=[],audios={},stream=null,timerInt=null,seg=0,gravando=false;
+
 function el(id){return document.getElementById(id)}
 function setPip(n){[1,2,3].forEach(function(i){var p=el('pip'+i);p.className='pip'+(i<n?' done':i===n?' active':'')})}
 function setWave(on){document.querySelectorAll('.wave-bar').forEach(function(b){on?b.classList.add('on'):b.classList.remove('on')})}
@@ -143,39 +144,158 @@ function setEstado(id){['eIniciar','eGravando','eConfirmar'].forEach(function(e)
 function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
 function falar(txt){try{window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(txt);u.lang='pt-BR';u.rate=1.0;window.speechSynthesis.speak(u)}catch(e){}}
 
-function carregarFase(n){fase=n;setPip(n);el('labelFase').textContent=FASES[n-1].label;el('textoFase').textContent=FASES[n-1].texto;el('micStatus').textContent='Toque para iniciar';el('timer').textContent='00:00';seg=0;setEstado('eIniciar');setWave(false);falar(FASES[n-1].fala);}
+function carregarFase(n){
+  fase=n;
+  setPip(n);
+  el('labelFase').textContent=FASES[n-1].label;
+  el('textoFase').textContent=FASES[n-1].texto;
+  el('micStatus').textContent='Toque para iniciar';
+  el('timer').textContent='00:00';
+  seg=0;
+  setEstado('eIniciar');
+  setWave(false);
+  falar(FASES[n-1].fala);
+}
 
-function iniciar(){navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){stream=s;chunks=[];rec=new MediaRecorder(stream);rec.ondataavailable=function(ev){if(ev.data.size>0)chunks.push(ev.data)};rec.start(100);seg=0;timerInt=setInterval(function(){seg++;el('timer').textContent=fmt(seg)},1000);setWave(true);setEstado('eGravando');el('micStatus').textContent='Gravando...';}).catch(function(){el('micStatus').textContent='Microfone bloqueado'});}
+function iniciar(){
+  if(gravando) return; // Proteção para não iniciar duas vezes
+  gravando=true;
+  
+  navigator.mediaDevices.getUserMedia({audio:true})
+  .then(function(s){
+    stream=s;
+    chunks=[];
+    rec=new MediaRecorder(stream);
+    rec.ondataavailable=function(ev){if(ev.data.size>0) chunks.push(ev.data);};
+    
+    // Limpa timer anterior se existir
+    if(timerInt) clearInterval(timerInt);
+    
+    seg=0;
+    timerInt=setInterval(function(){
+      seg++;
+      el('timer').textContent=fmt(seg);
+    },1000);
+    
+    rec.start(100);
+    setWave(true);
+    setEstado('eGravando');
+    el('micStatus').textContent='Gravando...';
+  })
+  .catch(function(err){
+    gravando=false;
+    console.error(err);
+    el('micStatus').textContent='Microfone bloqueado ou indisponível';
+  });
+}
 
-function concluir(){clearInterval(timerInt);rec.onstop=function(){audios[fase]=new Blob(chunks,{type:'audio/webm'})};rec.stop();stream.getTracks().forEach(function(t){t.stop()});setWave(false);el('micStatus').textContent='Etapa concluida';setEstado('eConfirmar');}
+function concluir(){
+  if(!gravando || !rec) return;
+  gravando=false;
+  
+  // Para o timer imediatamente
+  if(timerInt){
+    clearInterval(timerInt);
+    timerInt=null;
+  }
 
-function confirmar(){if(fase<3){carregarFase(fase+1)}else{el('secaoFases').classList.add('hidden');el('secaoFinal').classList.remove('hidden')}}
+  rec.onstop=function(){
+    audios[fase]=new Blob(chunks,{type:'audio/webm'});
+  };
+  
+  try{ rec.stop(); }catch(e){}
+  
+  if(stream){
+    stream.getTracks().forEach(function(t){ t.stop(); });
+  }
+  
+  setWave(false);
+  el('micStatus').textContent='Etapa concluida';
+  setEstado('eConfirmar');
+}
 
-function refazer(){audios[fase]=null;carregarFase(fase)}
+function confirmar(){
+  if(fase<3){
+    carregarFase(fase+1);
+  }else{
+    el('secaoFases').classList.add('hidden');
+    el('secaoFinal').classList.remove('hidden');
+  }
+}
 
-function exportar(n){var blob=audios[n];if(!blob)return;var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='elayon_f'+n+'_'+Date.now()+'.webm';a.click();URL.revokeObjectURL(url);}
+function refazer(){
+  audios[fase]=null;
+  carregarFase(fase);
+}
+
+function exportar(n){
+  var blob=audios[n];
+  if(!blob) return;
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='elayon_f'+n+'_'+Date.now()+'.webm';
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 async function enviarAudios(){
   var status=el('uploadStatus');
-  status.textContent='Verificando sessao...';status.className='upload-status';
+  status.textContent='Verificando sessao...';
+  status.className='upload-status';
+  
   var sessao=await supa.auth.getSession();
-  var userId=sessao&&sessao.data&&sessao.data.session?sessao.data.session.user.id:null;
+  var userId=sessao?.data?.session?.user.id || null;
+  
   dbg('userId no envio: '+(userId||'NENHUM'));
-  if(!userId){status.textContent='Sem sessao - volte ao painel.';status.className='upload-status er';return;}
+  
+  if(!userId){
+    status.textContent='Sem sessao - volte ao painel.';
+    status.className='upload-status er';
+    return;
+  }
+  
   status.textContent='Enviando...';
   var erros=0;
+  
   for(var n=1;n<=3;n++){
     var blob=audios[n];
-    if(!blob){dbg('F'+n+': sem blob');erros++;continue}
+    if(!blob){
+      dbg('F'+n+': sem blob');
+      erros++;
+      continue;
+    }
     var res=await supa.storage.from('calibracoes').upload(userId+'/fase'+n+'.webm',blob,{contentType:'audio/webm',upsert:true});
     dbg('F'+n+': '+(res.error?res.error.message:'OK'));
-    if(res.error)erros++;
+    if(res.error) erros++;
   }
-  if(erros===0){status.textContent='Enviado com sucesso';status.className='upload-status ok';}
-  else{status.textContent='Verifique o debug';status.className='upload-status er';}
+  
+  if(erros===0){
+    status.textContent='Enviado com sucesso';
+    status.className='upload-status ok';
+  }else{
+    status.textContent='Verifique o debug';
+    status.className='upload-status er';
+  }
 }
 
-function recalibrar(){audios={};fase=1;el('secaoFinal').classList.add('hidden');el('secaoFases').classList.remove('hidden');el('uploadStatus').textContent='--';el('uploadStatus').className='upload-status';el('debugBox').textContent='';el('debugBox').style.display='none';carregarFase(1);}
+function recalibrar(){
+  // Limpa tudo ao recalibrar
+  if(timerInt) clearInterval(timerInt);
+  timerInt=null;
+  gravando=false;
+  audios={};
+  fase=1;
+  
+  el('secaoFinal').classList.add('hidden');
+  el('secaoFases').classList.remove('hidden');
+  el('uploadStatus').textContent='--';
+  el('uploadStatus').className='upload-status';
+  el('debugBox').textContent='';
+  el('debugBox').style.display='none';
+  
+  carregarFase(1);
+}
 
 el('btnIniciar').addEventListener('click',iniciar);
 el('btnConcluir').addEventListener('click',concluir);
@@ -187,7 +307,9 @@ el('exp3').addEventListener('click',function(){exportar(3)});
 el('btnEnviar').addEventListener('click',enviarAudios);
 el('btnPresenca').addEventListener('click',function(){window.location.href='https://paulorobertoxavierjunior-create.github.io/presenca/index.html';});
 el('btnRecalibrar').addEventListener('click',recalibrar);
+
 carregarFase(1);
+
 </script>
 </body>
 </html>
