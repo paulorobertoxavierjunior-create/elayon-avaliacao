@@ -132,6 +132,9 @@ function confirmar() {
     a.click();
     URL.revokeObjectURL(url);
     log('Áudio Fase ' + fase + ' salvo', 'ok');
+
+    // ✅ AQUI É ONDE VOCÊ ADICIONA A CHAMADA
+    enviarParaSupabase(fase, blob);
   }
 
   if (fase < 3) {
@@ -143,6 +146,7 @@ function confirmar() {
     log('Todas as fases concluídas', 'ok');
   }
 }
+
 
 /* ── Refazer ── */
 function refazer() {
@@ -175,3 +179,34 @@ document.addEventListener('DOMContentLoaded', () => {
   el('btnBaixar').addEventListener('click', baixarTudo);
   el('btnLimparLog').addEventListener('click', () => { el('logBox').innerHTML = ''; });
 });
+
+/* ── Enviar para o Supabase ── */
+async function enviarParaSupabase(numeroFase, blob) {
+  if (!userId) {
+    log('Usuário não identificado, não foi possível enviar', 'er');
+    return;
+  }
+
+  const caminho = `${userId}/fase${numeroFase}.webm`;
+  log(`Enviando ${caminho}...`, 'i');
+
+  try {
+    const { data, error } = await supa.storage
+      .from('calibracoes')
+      .upload(caminho, blob, {
+        contentType: 'audio/webm',
+        upsert: true
+      });
+
+    if (error) {
+      log(`Erro F${numeroFase}: ${error.message}`, 'er');
+      throw error;
+    }
+
+    log(`F${numeroFase} salvo na nuvem ✅`, 'ok');
+
+  } catch (e) {
+    log(`Falha ao enviar F${numeroFase}`, 'er');
+    console.error(e);
+  }
+}
