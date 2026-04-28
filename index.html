@@ -109,28 +109,23 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 var SUPA_URL='https://eudcjihffrfmhzmfwtlg.supabase.co';
-var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1ZGNqaWhmZnJmbWh6bWZ3dGxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3NDE3MjUsImV4cCI6MjA5MDMxNzcyNX0.2tod6vvl_4SAXzSmW1wU8Mk9pLn8fvhF2xrAZOysUu0';
-var supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
+// --- REMOVIDO TODO O CÓDIGO DO SUPABASE ---
 
-function dbg(msg){var b=document.getElementById('debugBox');b.style.display='block';b.textContent+=msg+'\n';b.scrollTop=b.scrollHeight;}
+function dbg(msg){
+  var b=document.getElementById('debugBox');
+  b.style.display='block';
+  b.textContent+=msg+'\n';
+  b.scrollTop=b.scrollHeight;
+}
 
+// Simulação de login (agora não precisa mais)
 (async function(){
-  var params=new URLSearchParams(window.location.search);
-  var at=params.get('at');var rt=params.get('rt');
-  if(at&&rt){
-    dbg('Token URL: SIM');
-    var r=await supa.auth.setSession({access_token:decodeURIComponent(at),refresh_token:decodeURIComponent(rt)});
-    dbg('setSession: '+(r.error?r.error.message:'OK'));
-    window.history.replaceState({},'',window.location.pathname);
-  }else{
-    dbg('Token URL: NAO');
-    var s=await supa.auth.getSession();
-    dbg('Sessao local: '+(s.data&&s.data.session&&s.data.session.user?s.data.session.user.id:'NENHUMA'));
-  }
+  dbg('Modo Local Ativado');
+  dbg('Sessao local: SALVA LOCALMENTE');
 })();
 
 var FASES=[
-  {label:'Fase 01',texto:'Como voce esta chegando aqui hoje?',fala:'Como voce esta chegando aqui hoje?'},
+  {label:'Fase 01',texto:'Iniciando processo de auto calibração. Inicie. Conte até 10 tranquilamente. Finalize no botão vermelho e confirme.',fala:'Iniciando processo de auto calibração. Inicie. Conte até 10 tranquilamente. Finalize no botão vermelho e confirme.'},
   {label:'Fase 02',texto:'O que voce quer realizar agora?',fala:'O que voce quer realizar agora?'},
   {label:'Fase 03',texto:'Qual compromisso voce assume consigo mesmo hoje?',fala:'Qual compromisso voce assume consigo mesmo hoje?'}
 ];
@@ -198,7 +193,22 @@ function concluir(){
   }
 
   rec.onstop=function(){
-    audios[fase]=new Blob(chunks,{type:'audio/webm'});
+    var blob=new Blob(chunks,{type:'audio/webm'});
+    audios[fase]=blob;
+    
+    // --- A MAGIA ACONTECE AQUI ---
+    // Converte o audio para texto e salva no navegador
+    var reader = new FileReader();
+    reader.onload = function(e){
+        try{
+            localStorage.setItem('audio_fase_'+fase, e.target.result);
+            dbg('Fase '+fase+' salva localmente! ✅');
+        }catch(erro){
+            dbg('Erro ao salvar: '+erro.message);
+        }
+    };
+    reader.readAsDataURL(blob);
+    // --- FIM DA MAGIA ---
   };
   
   try{ rec.stop(); }catch(e){}
@@ -208,7 +218,7 @@ function concluir(){
   }
   
   setWave(false);
-  el('micStatus').textContent='Etapa concluida';
+  el('micStatus').textContent='Etapa concluida e salva!';
   setEstado('eConfirmar');
 }
 
@@ -218,11 +228,14 @@ function confirmar(){
   }else{
     el('secaoFases').classList.add('hidden');
     el('secaoFinal').classList.remove('hidden');
+    el('uploadStatus').textContent='TUDO SALVO NO NAVEGADOR';
+    el('uploadStatus').className='upload-status ok';
   }
 }
 
 function refazer(){
   audios[fase]=null;
+  localStorage.removeItem('audio_fase_'+fase); // Apaga o antigo
   carregarFase(fase);
 }
 
@@ -237,44 +250,15 @@ function exportar(n){
   URL.revokeObjectURL(url);
 }
 
-async function enviarAudios(){
-  var status=el('uploadStatus');
-  status.textContent='Verificando sessao...';
-  status.className='upload-status';
+// Função de enviar simplificada
+function enviarAudios(){
+  el('uploadStatus').textContent='Já está tudo salvo! ✅';
+  el('uploadStatus').className='upload-status ok';
   
-  var sessao=await supa.auth.getSession();
-  var userId=sessao?.data?.session?.user.id || null;
-  
-  dbg('userId no envio: '+(userId||'NENHUM'));
-  
-  if(!userId){
-    status.textContent='Sem sessao - volte ao painel.';
-    status.className='upload-status er';
-    return;
-  }
-  
-  status.textContent='Enviando...';
-  var erros=0;
-  
-  for(var n=1;n<=3;n++){
-    var blob=audios[n];
-    if(!blob){
-      dbg('F'+n+': sem blob');
-      erros++;
-      continue;
-    }
-    var res=await supa.storage.from('calibracoes').upload(userId+'/fase'+n+'.webm',blob,{contentType:'audio/webm',upsert:true});
-    dbg('F'+n+': '+(res.error?res.error.message:'OK'));
-    if(res.error) erros++;
-  }
-  
-  if(erros===0){
-    status.textContent='Enviado com sucesso';
-    status.className='upload-status ok';
-  }else{
-    status.textContent='Verifique o debug';
-    status.className='upload-status er';
-  }
+  // Espera 1 segundo e vai pra outra página
+  setTimeout(function(){
+      window.location.href='https://paulorobertoxavierjunior-create.github.io/presenca/index.html';
+  }, 1000);
 }
 
 function recalibrar(){
@@ -283,6 +267,9 @@ function recalibrar(){
   gravando=false;
   audios={};
   fase=1;
+  
+  // Limpa tudo
+  for(var i=1;i<=3;i++) localStorage.removeItem('audio_fase_'+i);
   
   el('secaoFinal').classList.add('hidden');
   el('secaoFases').classList.remove('hidden');
