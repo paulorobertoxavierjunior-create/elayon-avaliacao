@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Elayon Space • Cockpit do Piloto</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #050708;
+            --surface: rgba(10, 16, 20, 0.92);
+            --border: rgba(255, 255, 255, 0.08);
+            --cyan: #3ecfcf;
+            --cglow: rgba(62, 207, 207, 0.22);
+            --teal: #2a9d8f;
+            --red: #ef4444;
+            --text: #dff0f0;
+            --muted: #4a6b70;
+            --mono: 'Share Tech Mono', monospace;
+            --sans: 'Syne', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 20px 60px;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(62,207,207,0.06) 0%, transparent 65%);
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .site-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-box span {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--cyan);
+            text-transform: uppercase;
+        }
+
+        .back-btn {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--text);
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-btn:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px 20px;
+            backdrop-filter: blur(16px);
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        .pilot-title {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .pilot-email {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 16px;
+            word-break: break-all;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+            font-family: var(--mono);
+            font-size: 12px;
+        }
+
+        .tokens-value {
+            color: var(--cyan);
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .section-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--cyan);
+            text-transform: uppercase;
+            margin: 24px 0 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-label::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+            margin-left: 12px;
+        }
+
+        .tool-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tool-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            text-decoration: none;
+            color: var(--text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.2s;
+        }
+
+        .tool-card.active {
+            border-left: 4px solid var(--cyan);
+            cursor: pointer;
+        }
+
+        .tool-card.active:hover {
+            transform: translateX(4px);
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px var(--cglow);
+        }
+
+        .tool-card.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+            border-left: 4px solid var(--muted);
+        }
+
+        .tool-info h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .tool-info p {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .status-badge {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 2px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        .badge-active {
+            background: rgba(62, 207, 207, 0.15);
+            color: var(--cyan);
+            border: 1px solid var(--cyan);
+        }
+
+        .badge-offline {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+
+        .logout-area {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .btn-logout {
+            background: none;
+            border: none;
+            color: var(--red);
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: 0.2s;
+        }
+
+        .btn-logout:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        footer {
+            margin-top: 40px;
+            opacity: 0.2;
+            font-size: 9px;
+            font-family: var(--mono);
+            text-align: center;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header class="site-header">
+        <div class="logo-box">
+            <span>ELAYON • COCKPIT</span>
+        </div>
+        <!-- Botão de Regresso ao Perfil -->
+        <a id="btnBackToProfile" href="#" class="back-btn">
+            ← PERFIL
+        </a>
+    </header>
+
+    <main>
+        <!-- Card do Piloto Autenticado -->
+        <div class="card">
+            <h2 class="pilot-title" id="pilotName">Carregando...</h2>
+            <div class="pilot-email" id="pilotEmail">Validando acesso...</div>
+            
+            <div class="info-row">
+                <span>ID EXCLUSIVO</span>
+                <span id="pilotId" style="color: var(--muted); font-size: 10px;">---</span>
+            </div>
+            <div class="info-row" style="margin-top: 8px;">
+                <span>SALDO DISPONÍVEL</span>
+                <span class="tokens-value"><span id="pilotTokens">0</span> TOKENS</span>
+            </div>
+        </div>
+
+        <!-- Módulo Obrigatorio: Calibração -->
+        <div class="section-label">CALIBRAÇÃO DE SISTEMA</div>
+        <div class="tool-grid">
+            <!-- Aponta diretamente para a calibração no index.html -->
+            <a href="index.html" class="tool-card active">
+                <div class="tool-info">
+                    <h3>Calibração Biocognitiva CRS</h3>
+                    <p>3 Captações de Áudio Bruto • Custo: 3 Tokens</p>
+                </div>
+                <span class="status-badge badge-active">INICIAR →</span>
+            </a>
+        </div>
+
+        <!-- Ferramentas Conectadas -->
+        <div class="section-label">MÓDULOS DE FLUXO E MÁQUINA</div>
+        <div class="tool-grid">
+            <div class="tool-card disabled" id="moduleHealth">
+                <div class="tool-info">
+                    <h3>Elayon Health</h3>
+                    <p>Requer Calibração Concluída</p>
+                </div>
+                <span class="status-badge badge-offline">OFFLINE</span>
+            </div>
+
+            <div class="tool-card disabled" id="modulePsiq">
+                <div class="tool-info">
+                    <h3>Elayon PsiQ</h3>
+                    <p>Análise Semântica de Frequências</p>
+                </div>
+                <span class="status-badge badge-offline">OFFLINE</span>
+            </div>
+        </div>
+
+        <div class="logout-area">
+            <button class="btn-logout" id="btnLogout">ENCERRAR SESSÃO [LOGOUT]</button>
+        </div>
+    </main>
+
+    <footer>ELAYON CORE V2.0 • COCKPIT SYSTEM</footer>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://xlktkelumtpugidnecbj.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa3RrZWx1bXRwdWdpZG5lY2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NzU4OTgsImV4cCI6MjEwNjM1MTg5OH0.EIn9oiFl7PmhYhaMlvYKljeFVZflRCbxD_HT65-88XM';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Ajuste este link para a URL do seu Vercel
+    const PROFILE_PAGE_URL = 'https://project-f7o5k.vercel.app/perfil.html';
+
+    document.getElementById('btnBackToProfile').href = PROFILE_PAGE_URL;
+
+    async function initCockpit() {
+        // Tenta obter credenciais passadas via URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlUid = urlParams.get('uid');
+
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        
+        if (error || (!session && !urlUid)) {
+            // Se não estiver logado, redireciona para o login
+            window.location.href = PROFILE_PAGE_URL;
+            return;
+        }
+
+        const user = session ? session.user : { id: urlUid, email: urlParams.get('email') };
+        
+        document.getElementById('pilotId').textContent = user.id ? user.id.substring(0, 18) + '...' : '---';
+        document.getElementById('pilotEmail').textContent = user.email || 'Piloto Elayon';
+
+        // Puxa perfil e tokens diretamente da base de dados
+        await loadPilotProfile(user);
+    }
+
+    async function loadPilotProfile(user) {
+        try {
+            const { data: profile, error } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (profile) {
+                document.getElementById('pilotName').textContent = profile.nome || user.email.split('@')[0];
+                document.getElementById('pilotTokens').textContent = profile.tokens ?? 100;
+            } else {
+                document.getElementById('pilotName').textContent = user.email ? user.email.split('@')[0] : 'Piloto Elayon';
+                document.getElementById('pilotTokens').textContent = 100;
+            }
+        } catch (e) {
+            document.getElementById('pilotName').textContent = 'Piloto Elayon';
+            document.getElementById('pilotTokens').textContent = 100;
+        }
+    }
+
+    document.getElementById('btnLogout').addEventListener('click', async () => {
+        await supabaseClient.auth.signOut();
+        window.location.href = PROFILE_PAGE_URL;
+    });
+
+    initCockpit();
+</script>
+</body>
+</html>
